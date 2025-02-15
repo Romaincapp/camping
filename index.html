@@ -18,20 +18,45 @@
         .floating {
             animation: float 3s ease-in-out infinite;
         }
-        .hero-gradient {
-            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/api/placeholder/1920/1080');
-            background-size: cover;
-            background-position: center;
+       .hero-gradient {
+    /* Remplacez cette ligne : */
+    background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/api/placeholder/1920/1080');
+    /* Par celle-ci (remplacez MON_IMAGE.jpg par le nom de votre image) : */
+    background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('MON_IMAGE.jpg');
+    background-size: cover;
+    background-position: center;
+}
         }
         .swiper {
-            width: 100%;
-            height: 400px;
-        }
-        .swiper-slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    width: 100%;
+    height: 600px;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.swiper-slide {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+    color: #16a34a !important; /* Vert qui correspond au thème */
+    background: rgba(255, 255, 255, 0.8);
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 25px;
+}
+
+.swiper-button-next:after,
+.swiper-button-prev:after {
+    font-size: 20px !important;
+}
+
+.swiper-pagination-bullet-active {
+    background: #16a34a !important; /* Vert qui correspond au thème */
+}
     </style>
 </head>
 <body class="bg-green-50">
@@ -85,7 +110,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold text-center mb-2">Confort</h3>
-                    <p class="text-gray-600 text-center">Hamac, chaises longues, sanitaires, eau potable, electricité, douche chaude, terrain clotûré </p>
+                    <p class="text-gray-600 text-center">Hamac, chaises longues, sanitaires, eau potable, électricité, douche chaude, terrain clôturé </p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
@@ -94,7 +119,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold text-center mb-2">Cuisine équipée</h3>
-                    <p class="text-gray-600 text-center">Une cuisine en pleine nature pour plus de confort : ustensil de cuisine, cuisson au gaz, frigo, congélateur, percolateur</p>
+                    <p class="text-gray-600 text-center">Une cuisine en pleine nature pour plus de conforts : ustensiles de cuisine, cuisson au gaz, frigo, congélateur, percolateur</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
@@ -103,7 +128,7 @@
                         </svg>
                     </div>
                     <h3 class="text-xl font-semibold text-center mb-2">Welcomebook Digital</h3>
-                    <p class="text-gray-600 text-center">retrouvé nos meilleurs conseils randonnée, et bien plus encore dans notre applications</p>
+                    <p class="text-gray-600 text-center">retrouvez nos meilleurs conseils randonnées, et bien plus encore dans notre application</p>
                 </div>
             </div>
         </div>
@@ -215,18 +240,22 @@
     <script>
         // Initialisation du Swiper
         const swiper = new Swiper('.swiper', {
-            loop: true,
-            pagination: {
-                el: '.swiper-pagination',
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            autoplay: {
-                delay: 5000,
-            },
-        });
+    loop: true,
+    effect: "fade", // Effet de transition en fondu
+    autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+    },
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
+    speed: 1000, // Durée de la transition
+});
 
         // Animation au scroll
         gsap.registerPlugin(ScrollTrigger);
