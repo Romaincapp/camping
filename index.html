@@ -139,7 +139,44 @@
         </a>
     </div>
 </header>
+.hero-section {
+    height: 100vh;
+    position: relative;
+    background: linear-gradient(to bottom, #1a4731, #166534);
+    overflow: hidden;
+}
 
+.hero-animation {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.hero-animation .icon {
+    position: absolute;
+    font-size: 2rem;
+}
+
+.hero-animation .trees {
+    top: 20%;
+    left: 10%;
+}
+
+.hero-animation .tent {
+    bottom: 30%;
+    left: 25%;
+}
+
+.hero-animation .camping {
+    bottom: 25%;
+    right: 15%;
+}
+
+.hero-animation .bonfire {
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+}
     <!-- Carrousel Section -->
     <section class="py-20 px-4">
         <div class="container mx-auto">
