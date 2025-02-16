@@ -7,17 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/ScrollTrigger.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        .hero-section {
-    height: 100vh;
-    position: relative;
-    overflow: hidden;
-       }
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
@@ -26,180 +16,37 @@
         .floating {
             animation: float 3s ease-in-out infinite;
         }
-       .hero-gradient {
-    
-    background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://campspace.com/media/detail/uploads/space/a1/be/fd/a1befdf4249037dd605870e242a325ea.jpg');
-    background-size: cover;
-    background-position: center;
-}
-        
-        .swiper {
-    width: 100%;
-    height: 600px;
-    border-radius: 20px;
-    padding: 20px;
-}
-
-.swiper-slide {
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.swiper-button-next,
-.swiper-button-prev {
-    color: #16a34a !important; /* Vert qui correspond au thème */
-    background: rgba(255, 255, 255, 0.8);
-    width: 50px !important;
-    height: 50px !important;
-    border-radius: 25px;
-}
-
-.swiper-button-next:after,
-.swiper-button-prev:after {
-    font-size: 20px !important;
-}
-
-.swiper-pagination-bullet-active {
-    background: #16a34a !important; /* Vert qui correspond au thème */
-}
-
-/* Remplacez les styles d'animation actuels par ceux-ci */
-@keyframes driveRight {
-    0% { 
-        transform: translateX(-100%) translateY(0); 
-        opacity: 0;
-    }
-    10% { 
-        opacity: 1; 
-    }
-    90% { 
-        opacity: 1; 
-    }
-    100% { 
-        transform: translateX(100vw) translateY(-5px);
-        opacity: 0;
-    }
-}
-
-@keyframes driveLeft {
-    0% { 
-        transform: translateX(100vw) scaleX(-1) translateY(0);
-        opacity: 0;
-    }
-    10% { 
-        opacity: 1; 
-    }
-    90% { 
-        opacity: 1; 
-    }
-    100% { 
-        transform: translateX(-100%) scaleX(-1) translateY(-5px);
-        opacity: 0;
-    }
-
-
-@keyframes fireFlicker {
-    0% { transform: scale(1) rotate(0deg); filter: brightness(100%); }
-    25% { transform: scale(1.05) rotate(1deg); filter: brightness(110%); }
-    50% { transform: scale(0.95) rotate(-1deg); filter: brightness(90%); }
-    75% { transform: scale(1.05) rotate(0.5deg); filter: brightness(105%); }
-    100% { transform: scale(1) rotate(0deg); filter: brightness(100%); }
-}
-
-@keyframes tentSway {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(0.5deg); }
-    75% { transform: rotate(-0.5deg); }
-    100% { transform: rotate(0deg); }
-}
-
-.animate-drive-right {
-    animation: driveRight 30s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-.animate-drive-left {
-    animation: driveLeft 35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    animation-delay: 15s;
-}
-
-.animate-tent {
-    animation: tentSway 4s ease-in-out infinite;
-    transform-origin: bottom center;
-}
-
-.animate-fire {
-    animation: fireFlicker 3s ease-in-out infinite;
-    filter: drop-shadow(0 0 5px rgba(255, 107, 53, 0.5));
-}
+        .hero-gradient {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.3)), url('/api/placeholder/1920/1080');
+            background-size: cover;
+            background-position: center;
+        }
+        .custom-shape-divider-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+        }
     </style>
 </head>
-    <body>
-<header class="hero-section">
-    <div id="hero-animation"></div>
-    <div class="text-center" style="position: relative; z-index: 10;">
-        <h1 class="text-5xl md:text-7xl font-bold mb-4 text-white">Olloy-sur-Viroin</h1>
-        <p class="text-xl md:text-2xl mb-8 text-white">Privatisez un étang à l'orée du bois sur les hauteurs d'Olloy</p>
-        <a href="#reservation" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300">
-            Réserver maintenant
-        </a>
-    </div>
-</header>
-.hero-section {
-    height: 100vh;
-    position: relative;
-    background: linear-gradient(to bottom, #1a4731, #166534);
-    overflow: hidden;
-}
-
-.hero-animation {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-.hero-animation .icon {
-    position: absolute;
-    font-size: 2rem;
-}
-
-.hero-animation .trees {
-    top: 20%;
-    left: 10%;
-}
-
-.hero-animation .tent {
-    bottom: 30%;
-    left: 25%;
-}
-
-.hero-animation .camping {
-    bottom: 25%;
-    right: 15%;
-}
-
-.hero-animation .bonfire {
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-}
-    <!-- Carrousel Section -->
-    <section class="py-20 px-4">
-        <div class="container mx-auto">
-            <h2 class="text-4xl font-bold text-center text-green-800 mb-12">Découvrez notre site</h2>
-            <div class="swiper">
-                <div class="swiper-wrapper">
-                    <div class="swiper-slide"><img src="https://campspace.com/media/detail/uploads/space/a1/be/fd/a1befdf4249037dd605870e242a325ea.jpg" alt="Vue du camping 1" /></div>
-                    <div class="swiper-slide"><img src="https://campspace.com/media/detail/uploads/space/d6/09/3c/d6093c2330d9c633512c3af929e7c859.jpg" alt="Vue du camping 2" /></div>
-                    <div class="swiper-slide"><img src="https://campspace.com/media/detail/uploads/space/03/32/41/033241bc61784eeaab97717c99a3d6ca.jpg" alt="Vue du camping 3" /></div>
-                    <div class="swiper-slide"><img src="https://campspace.com/media/detail/uploads/space/48/d7/7a/48d77a12fe7c4cb6e8e3f79f6bf18ff4.jpg" alt="Vue du camping 4" /></div>
-                </div>
-                <div class="swiper-pagination"></div>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-            </div>
+<body class="bg-green-50">
+    <!-- Hero Section -->
+    <header class="hero-gradient h-screen relative flex items-center justify-center text-white">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-7xl font-bold mb-4 floating">Olloy-sur-Viroin</h1>
+            <p class="text-xl md:text-2xl mb-8">Privatisez un étang à l'orée du bois sur les hauteurs d'Olloy</p>
+            <a href="#reservation" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300">
+                Réserver maintenant
+            </a>
         </div>
-    </section>
+        <div class="custom-shape-divider-bottom">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" class="fill-green-50"></path>
+            </svg>
+        </div>
+    </header>
 
     <!-- Features Section -->
     <section class="py-20 px-4">
@@ -212,8 +59,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-center mb-2">Camping privé</h3>
-                    <p class="text-gray-600 text-center">Profitez, vous seuls, d'un camping privatif en pleine nature </p>
+                    <h3 class="text-xl font-semibold text-center mb-2">Étang privé</h3>
+                    <p class="text-gray-600 text-center">Profitez d'un étang privatif pour votre séjour en pleine nature</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
@@ -221,28 +68,17 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-center mb-2">Confort</h3>
-                    <p class="text-gray-600 text-center">Hamac, chaises longues, sanitaires, eau potable, électricité, douche chaude, terrain clôturé </p>
+                    <h3 class="text-xl font-semibold text-center mb-2">Emplacement idéal</h3>
+                    <p class="text-gray-600 text-center">À l'orée du bois, sur les hauteurs d'Olloy-sur-Viroin</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
                         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-center mb-2">Cuisine équipée</h3>
-                    <p class="text-gray-600 text-center">Une cuisine en pleine nature pour plus de conforts : ustensiles de cuisine, cuisson au gaz, frigo, congélateur, percolateur</p>
-                </div>
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                  <svg class="w-8 h-8 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                   <path d="M8 4h8a2 2 0 0 1 2 2v2c0 1.1-.9 2-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                     <rect x="11" y="10" width="2" height="10"/>
-                      <rect x="9" y="20" width="6" height="2" rx="1"/>
-                        </svg>
-                </div>
-                    </div>
-                    <h3 class="text-xl font-semibold text-center mb-2">Welcomebook Digital</h3>
-                    <p class="text-gray-600 text-center">retrouvez nos meilleurs conseils randonnées, et bien plus encore dans notre application</p>
+                    <h3 class="text-xl font-semibold text-center mb-2">Activités variées</h3>
+                    <p class="text-gray-600 text-center">Pêche, randonnée, feux de camp et bien plus encore</p>
                 </div>
             </div>
         </div>
@@ -255,70 +91,54 @@
             <form id="reservationForm" class="bg-white p-8 rounded-lg shadow-lg">
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-                        Nom complet *
+                        Nom complet
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" required>
                 </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                        Email *
+                        Email
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" required>
                 </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
-                        Téléphone *
+                        Téléphone
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="phone" type="tel" required>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="arrival">
-                            Date d'arrivée *
+                            Date d'arrivée
                         </label>
                         <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="arrival" type="date" required>
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="departure">
-                            Date de départ *
+                            Date de départ
                         </label>
                         <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="departure" type="date" required>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="adults">
-                            Nombre d'adultes *
-                        </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="adults" type="number" min="1" required>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="children">
-                            Nombre d'enfants *
-                        </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="children" type="number" min="0" required>
-                    </div>
-                </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="accommodation">
-                        Type d'hébergement *
+                        Type d'hébergement
                     </label>
                     <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="accommodation" required>
                         <option value="">Sélectionnez une option</option>
                         <option value="tent">Tente</option>
                         <option value="van">Van</option>
-                        <option value="campingcar">Camping-car</option>
-                        <option value="rooftent">Tente de toit</option>
+                        <option value="caravan">Caravane</option>
+                        <option value="cabin">Cabane</option>
                     </select>
                 </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="message">
-                        Message *
+                        Message supplémentaire
                     </label>
-                    <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message" rows="4" required></textarea>
+                    <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="message" rows="4"></textarea>
                 </div>
-                <p class="text-sm text-gray-600 mb-4">* Champs obligatoires</p>
-                <p class="text-xs text-gray-500 mb-6">Les devis reçus sont à titre informatif et ne constituent pas une réservation validée.</p>
                 <div class="flex items-center justify-center">
                     <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300" type="submit">
                         Demander un devis
@@ -328,49 +148,7 @@
         </div>
     </section>
 
-    <!-- Pricing Info Section -->
-    <section class="py-10 px-4 bg-green-50">
-        <div class="container mx-auto max-w-3xl">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-2xl font-bold text-green-800 mb-4">Tarifs</h3>
-                <div class="mb-4">
-                    <p class="font-semibold">Haute saison (1er avril - 1er novembre) :</p>
-                    <ul class="list-disc ml-6">
-                        <li>Adulte : 19€/nuit</li>
-                        <li>Enfant : 13€/nuit</li>
-                    </ul>
-                </div>
-                <div>
-                    <p class="font-semibold">Basse saison :</p>
-                    <ul class="list-disc ml-6">
-                        <li>Premier adulte : 19€/nuit</li>
-                        <li>Adultes supplémentaires : 10€/nuit</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <script>
-        // Initialisation du Swiper
-        const swiper = new Swiper('.swiper', {
-    loop: true,
-    effect: "fade", // Effet de transition en fondu
-    autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
-    },
-    pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-    },
-    navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-    },
-    speed: 1000, // Durée de la transition
-});
-
         // Animation au scroll
         gsap.registerPlugin(ScrollTrigger);
         
@@ -389,31 +167,9 @@
         document.getElementById('reservationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const adults = parseInt(document.getElementById('adults').value);
-            const children = parseInt(document.getElementById('children').value);
-            const arrival = new Date(document.getElementById('arrival').value);
-            const departure = new Date(document.getElementById('departure').value);
-            
-            // Calcul du nombre de nuits
-            const nights = Math.ceil((departure - arrival) / (1000 * 60 * 60 * 24));
-            
-            // Vérification de la saison
-            const month = arrival.getMonth() + 1; // getMonth() retourne 0-11
-            const isHighSeason = month >= 4 && month <= 11; // Avril (4) à Novembre (11)
-            
-            let totalPrice = 0;
-            if (isHighSeason) {
-                totalPrice = (adults * 19 + children * 13) * nights;
-            } else {
-                totalPrice = (19 + (adults - 1) * 10) * nights; // Premier adulte à 19€, les autres à 10€
-            }
-            
-            alert(`Merci pour votre demande de réservation ! 
-                  Estimation du prix pour ${nights} nuits : ${totalPrice}€
-                  Nous vous contacterons rapidement pour confirmer votre devis.`);
-           
+            // Ici, vous pourrez ajouter le code pour envoyer les données du formulaire
+            alert('Merci pour votre demande de réservation ! Nous vous contacterons rapidement avec un devis.');
         });
     </script>
-    <script src="js/hero-animation.js"></script>
 </body>
 </html>
