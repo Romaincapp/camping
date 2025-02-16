@@ -13,6 +13,11 @@
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
+        .hero-section {
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+       }
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
@@ -405,8 +410,9 @@
             alert(`Merci pour votre demande de réservation ! 
                   Estimation du prix pour ${nights} nuits : ${totalPrice}€
                   Nous vous contacterons rapidement pour confirmer votre devis.`);
-            <script src="js/hero-animation.js"></script>
+           
         });
     </script>
+    <script src="js/hero-animation.js"></script>
 </body>
 </html>
