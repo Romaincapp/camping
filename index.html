@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camping Olloy-sur-Viroin - Location d'étang privé</title>
+    <title>Camping Olloy-sur-Viroin - Location emplacement de camping</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/ScrollTrigger.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -427,6 +427,138 @@
         </div>
     </div>
 </section>
+
+     <!-- Test calendrier de malade-->
+
+    import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+
+const CampingReservation = () => {
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [message, setMessage] = useState('');
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  const calculatePrice = (dates, numAdults, numChildren) => {
+    if (dates.length !== 2) return 0;
+
+    const startDate = new Date(dates[0]);
+    const endDate = new Date(dates[1]);
+    const numberOfNights = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+    const month = startDate.getMonth() + 1; // getMonth() returns 0-11
+    const isHighSeason = month >= 4 && month <= 11;
+
+    let price = 0;
+    if (isHighSeason) {
+      price = (numAdults * 19 + numChildren * 13) * numberOfNights;
+    } else {
+      price = (19 + (numAdults - 1 + numChildren) * 10) * numberOfNights;
+    }
+
+    return price;
+  };
+
+  const handleDateSelect = (dates) => {
+    setSelectedDates(dates);
+    setTotalPrice(calculatePrice(dates, adults, children));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Ici vous pourriez ajouter la logique d'envoi du formulaire
+    console.log('Formulaire soumis');
+  };
+
+  return (
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center">Réservation Camping</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label>Sélectionnez vos dates</Label>
+            <div className="border rounded-lg p-4">
+              <Calendar
+                mode="range"
+                selected={selectedDates}
+                onSelect={handleDateSelect}
+                numberOfMonths={2}
+                className="rounded-md"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="adults">Nombre d'adultes</Label>
+              <Input
+                id="adults"
+                type="number"
+                min="1"
+                value={adults}
+                onChange={(e) => {
+                  setAdults(parseInt(e.target.value));
+                  setTotalPrice(calculatePrice(selectedDates, parseInt(e.target.value), children));
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="children">Nombre d'enfants</Label>
+              <Input
+                id="children"
+                type="number"
+                min="0"
+                value={children}
+                onChange={(e) => {
+                  setChildren(parseInt(e.target.value));
+                  setTotalPrice(calculatePrice(selectedDates, adults, parseInt(e.target.value)));
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="message">Message (optionnel)</Label>
+            <Textarea
+              id="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="h-24"
+            />
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-lg font-semibold">Total estimé : {totalPrice}€</p>
+            <p className="text-sm text-gray-600 mt-2">
+              Haute saison (avril à novembre) : 19€/adulte et 13€/enfant<br />
+              Basse saison : 19€ premier adulte et 10€/personne supplémentaire
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <Button type="submit" className="w-full">
+              Envoyer la demande
+            </Button>
+            <p className="text-sm text-gray-500 italic">
+              Note : L'envoi de cette demande est à titre de renseignement et doit être validé 
+              par notre équipe avant de faire office de réservation officielle.
+            </p>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CampingReservation;
 
     <footer class="bg-green-800 text-white py-12">
     <div class="container mx-auto px-4">
