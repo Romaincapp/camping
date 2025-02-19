@@ -372,7 +372,7 @@
         </button>
 
         <!-- Conteneur de l'agenda (caché par défaut) -->
-        <div id="agendaContainer" class="mt-8 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-500 ease-in-out max-h-0">
+        <div id="agendaContainer" class="mt-8 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-500 ease-in-out max-h-0" style="transition: max-height 0.5s ease-out; overflow: hidden;">
             <div class="relative w-full h-0" style="padding-bottom: 75%;">
                 <iframe 
                     src="https://calendar.google.com/calendar/embed?src=romainfrancedumoulin@gmail.com&ctz=Europe/Paris"
@@ -494,77 +494,29 @@
             stagger: 0.2
         });
 
-        // Animation du formulaire
-        gsap.from('#reservationForm', {
-            scrollTrigger: {
-                trigger: '#reservationForm',
-                start: 'top bottom-=50',
-                toggleActions: 'play none none reverse'
-            },
-            y: 30,
-            opacity: 0,
-            duration: 1
-        });
+    
 
-        // Gestion du formulaire et calcul des prix
-        document.getElementById('reservationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+ document.addEventListener('DOMContentLoaded', function() {
+        // Récupération des éléments
+        const toggleButton = document.getElementById('toggleAgenda');
+        const agendaContainer = document.getElementById('agendaContainer');
 
-            const formData = {
-                adults: parseInt(document.getElementById('adults').value) || 0,
-                children: parseInt(document.getElementById('children').value) || 0,
-                arrival: new Date(document.getElementById('arrival').value),
-                departure: new Date(document.getElementById('departure').value)
-            };
+        // État initial
+        let isAgendaVisible = false;
 
-            // Calcul du nombre de nuits
-            const nights = Math.ceil((formData.departure - formData.arrival) / (1000 * 60 * 60 * 24));
-
-            // Vérification de la saison
-            const month = formData.arrival.getMonth() + 1;
-            const isHighSeason = month >= 4 && month <= 11;
-
-            // Calcul du prix
-            let totalPrice = 0;
-            if (isHighSeason) {
-                totalPrice = (formData.adults * 19 + formData.children * 13) * nights;
+        // Fonction pour basculer l'affichage
+        toggleButton.addEventListener('click', function() {
+            isAgendaVisible = !isAgendaVisible;
+            
+            // Changement de la hauteur pour révéler ou cacher
+            if (isAgendaVisible) {
+                agendaContainer.style.maxHeight = agendaContainer.scrollHeight + "px";
+                toggleButton.textContent = "Cacher les disponibilités";
             } else {
-                totalPrice = (19 + (formData.adults - 1) * 10) * nights;
+                agendaContainer.style.maxHeight = "0";
+                toggleButton.textContent = "Voir les disponibilités";
             }
-
-            // Affichage du résumé de la réservation
-            const message = `
-                Résumé de votre demande de réservation :
-                - Nombre de nuits : ${nights}
-                - Nombre d'adultes : ${formData.adults}
-                - Nombre d'enfants : ${formData.children}
-                - Prix total estimé : ${totalPrice}€
-
-                Nous vous contacterons rapidement pour confirmer votre réservation.
-            `;
-
-            alert(message);
         });
-
-    // Récupération des éléments
-    const toggleButton = document.getElementById('toggleAgenda');
-    const agendaContainer = document.getElementById('agendaContainer');
-
-    // État initial
-    let isAgendaVisible = false;
-
-    // Fonction pour basculer l'affichage
-    toggleButton.addEventListener('click', function() {
-        isAgendaVisible = !isAgendaVisible;
-        
-        // Changement de la hauteur pour révéler ou cacher
-        if (isAgendaVisible) {
-            agendaContainer.style.maxHeight = agendaContainer.scrollHeight + "px";
-            toggleButton.textContent = "Cacher les disponibilités";
-        } else {
-            agendaContainer.style.maxHeight = "0";
-            toggleButton.textContent = "Voir les disponibilités";
-        }
     });
 
     </script>
