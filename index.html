@@ -84,7 +84,7 @@
 .swiper-slide img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover;a
     object-position: center;
 }
 
@@ -358,7 +358,35 @@
             </div>
         </div>
     </div>
+
 </section>
+<!-- Section Google Agenda avec bouton interactif -->
+<section id="agenda" class="py-16 md:py-20 px-4 bg-green-50">
+    <div class="container mx-auto max-w-4xl text-center">
+        <h2 class="text-3xl md:text-4xl font-bold text-green-800 mb-8 md:mb-12">Disponibilités & Événements</h2>
+        
+        <!-- Bouton pour révéler/cacher l'agenda -->
+        <button id="toggleAgenda" 
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300">
+            Voir les disponibilités
+        </button>
+
+        <!-- Conteneur de l'agenda (caché par défaut) -->
+        <div id="agendaContainer" class="mt-8 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-500 ease-in-out max-h-0">
+            <div class="relative w-full h-0" style="padding-bottom: 75%;">
+                <iframe 
+                    src="https://calendar.google.com/calendar/embed?src=romainfrancedumoulin@gmail.com&ctz=Europe/Paris"
+                    class="absolute top-0 left-0 w-full h-full border-0"
+                    frameborder="0"
+                    scrolling="no"
+                    loading="lazy">
+                </iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+
     
 
   <!-- Remplacez toute la section "reservation" par ce code -->
@@ -517,6 +545,29 @@
 
             alert(message);
         });
+
+    // Récupération des éléments
+    const toggleButton = document.getElementById('toggleAgenda');
+    const agendaContainer = document.getElementById('agendaContainer');
+
+    // État initial
+    let isAgendaVisible = false;
+
+    // Fonction pour basculer l'affichage
+    toggleButton.addEventListener('click', function() {
+        isAgendaVisible = !isAgendaVisible;
+        
+        // Changement de la hauteur pour révéler ou cacher
+        if (isAgendaVisible) {
+            agendaContainer.style.maxHeight = agendaContainer.scrollHeight + "px";
+            toggleButton.textContent = "Cacher les disponibilités";
+        } else {
+            agendaContainer.style.maxHeight = "0";
+            toggleButton.textContent = "Voir les disponibilités";
+        }
+    });
+
     </script>
+
 </body>
 </html>
