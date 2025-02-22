@@ -486,40 +486,7 @@
             </iframe>
         </div>
 
- <div class="container">
-        <h2>Réservation</h2>
-        
-        <form id="bookingForm" action="https://formspree.io/f/xzzdykyq" method="POST">
-            <div class="dates-container">
-                <div id="dateRange">
-                    Sélectionnez vos dates : <span id="checkInDisplay">__/__/__</span> → <span id="checkOutDisplay">__/__/__</span>
-                </div>
-                <input type="date" id="checkIn" name="checkIn" required style="display: none;">
-                <input type="date" id="checkOut" name="checkOut" required style="display: none;">
-            </div>
 
-            <div class="form-group">
-                <label for="adults">Nombre d'adultes :</label>
-                <input type="number" id="adults" name="adults" min="1" value="1" required>
-            </div>
-
-            <div class="form-group">
-                <label for="children">Nombre d'enfants :</label>
-                <input type="number" id="children" name="children" min="0" value="0" required>
-            </div>
-
-            <div class="total">
-                Total estimé : <span id="totalPrice">0</span>€
-            </div>
-
-            <div class="disclaimer">
-                Note : Cette demande ne fait pas office de réservation définitive. 
-                Nous reviendrons vers vous dans les plus brefs délais pour confirmer votre séjour.
-            </div>
-
-            <button type="submit">Demande de réservation</button>
-        </form>
-    </div>
         
         <!-- Section des tarifs -->
         <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
@@ -637,94 +604,6 @@
         });
     });
 
-
-        let checkInDate = null;
-        let checkOutDate = null;
-        let isSelectingCheckIn = true;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialiser avec la date d'aujourd'hui
-            const today = new Date();
-            document.getElementById('checkIn').min = today.toISOString().split('T')[0];
-            
-            // Gestionnaires d'événements pour les inputs
-            document.getElementById('adults').addEventListener('input', calculateTotal);
-            document.getElementById('children').addEventListener('input', calculateTotal);
-            document.getElementById('checkIn').addEventListener('change', handleDateChange);
-            document.getElementById('checkOut').addEventListener('change', handleDateChange);
-
-            // Initialiser le calendrier
-            setupCalendar();
-        });
-
-        function setupCalendar() {
-            document.addEventListener('click', function(e) {
-                if (e.target.matches('.date-cell')) {
-                    const selectedDate = new Date(e.target.dataset.date);
-                    if (isSelectingCheckIn) {
-                        checkInDate = selectedDate;
-                        document.getElementById('checkIn').value = formatDate(selectedDate);
-                        document.getElementById('checkInDisplay').textContent = formatDateDisplay(selectedDate);
-                        isSelectingCheckIn = false;
-                    } else {
-                        if (selectedDate > checkInDate) {
-                            checkOutDate = selectedDate;
-                            document.getElementById('checkOut').value = formatDate(selectedDate);
-                            document.getElementById('checkOutDisplay').textContent = formatDateDisplay(selectedDate);
-                            isSelectingCheckIn = true;
-                            calculateTotal();
-                        }
-                    }
-                }
-            });
-        }
-
-        function handleDateChange() {
-            calculateTotal();
-        }
-
-        function formatDate(date) {
-            return date.toISOString().split('T')[0];
-        }
-
-        function formatDateDisplay(date) {
-            return date.toLocaleDateString('fr-FR');
-        }
-
-        function calculateTotal() {
-            const checkIn = new Date(document.getElementById('checkIn').value);
-            const checkOut = new Date(document.getElementById('checkOut').value);
-            const adults = parseInt(document.getElementById('adults').value) || 0;
-            const children = parseInt(document.getElementById('children').value) || 0;
-
-            if (!checkIn || !checkOut || checkOut <= checkIn) {
-                document.getElementById('totalPrice').textContent = '0';
-                return;
-            }
-
-            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-            let total = 0;
-
-            // Vérifier si la date est entre avril et novembre
-            const month = checkIn.getMonth() + 1; // getMonth() retourne 0-11
-            const isHighSeason = month >= 4 && month <= 11;
-
-            if (isHighSeason) {
-                // Tarif haute saison
-                total = (adults * 19 + children * 13) * nights;
-            } else {
-                // Tarif basse saison
-                if (adults + children > 0) {
-                    total = 19 * nights; // Première personne
-                    const additionalPeople = adults + children - 1;
-                    if (additionalPeople > 0) {
-                        total += additionalPeople * 10 * nights;
-                    }
-                }
-            }
-
-            document.getElementById('totalPrice').textContent = total.toString();
-        }
     
     </script>
 
