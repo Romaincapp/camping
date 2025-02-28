@@ -375,24 +375,19 @@
     <div class="container mx-auto max-w-4xl text-center">
         <h2 class="text-3xl md:text-4xl font-bold text-green-800 mb-8 md:mb-12">Disponibilités</h2>
         
-        <!-- Bouton pour révéler/cacher l'agenda -->
-        <button id="toggleAgenda" 
-                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300">
-            Voir les disponibilités
-        </button>
-
+      
         <!-- Conteneur de l'agenda (caché par défaut) -->
-        <div id="agendaContainer" class="mt-8 bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-500 ease-in-out max-h-0" style="transition: max-height 0.5s ease-out; overflow: hidden;">
-            <div class="relative w-full h-0" style="padding-bottom: 75%;">
-                <iframe 
-                    src="https://calendar.google.com/calendar/embed?src=romainfrancedumoulin@gmail.com&ctz=Europe/Paris"
-                    class="absolute top-0 left-0 w-full h-full border-0"
-                    frameborder="0"
-                    scrolling="no"
-                    loading="lazy">
-                </iframe>
-            </div>
-        </div>
+       <div id="agendaContainer" class="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="relative w-full h-0" style="padding-bottom: 75%;">
+        <iframe 
+            src="https://calendar.google.com/calendar/embed?src=romainfrancedumoulin@gmail.com&ctz=Europe/Paris"
+            class="absolute top-0 left-0 w-full h-full border-0"
+            frameborder="0"
+            scrolling="no"
+            loading="lazy">
+        </iframe>
+    </div>
+</div>
     </div>
 </section>
 
@@ -464,53 +459,51 @@
     <script>     
         // Initialisation du Swiper avec des paramètres optimisés
         const swiper = new Swiper('.swiper', {
-            loop: true,
-            effect: "fade",
-            autoplay: {
-                delay: 5000,
-                disableOnInteraction: false,
+        loop: true,
+        effect: "fade",
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        speed: 1000,
+        breakpoints: {
+            320: {
+                slidesPerView: 1,
             },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
+            768: {
+                slidesPerView: 1,
             },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            speed: 1000,
-            breakpoints: {
-                320: {
-                    slidesPerView: 1,
-                },
-                768: {
-                    slidesPerView: 1,
-                },
-                1024: {
-                    slidesPerView: 1,
-                }
+            1024: {
+                slidesPerView: 1,
             }
-        });
-
-        // Animations GSAP
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Animation des cartes de fonctionnalités
-        gsap.from('.feature-card', {
-            scrollTrigger: {
-                trigger: '.feature-card',
-                start: 'top bottom-=100',
-                toggleActions: 'play none none reverse'
-            },
-            y: 50,
-            opacity: 0,
-            duration: 0.8,
-            stagger: 0.2
-        });
-
+        }
+    });
     
+    // Animations GSAP
+    gsap.registerPlugin(ScrollTrigger);
+    // Animation des cartes de fonctionnalités
+    gsap.from('.feature-card', {
+        scrollTrigger: {
+            trigger: '.feature-card',
+            start: 'top bottom-=100',
+            toggleActions: 'play none none reverse'
+        },
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.2
+    });
+   
 
- document.addEventListener('DOMContentLoaded', function() {
+         document.addEventListener('DOMContentLoaded', function() {
         // Récupération des éléments
         const toggleButton = document.getElementById('toggleAgenda');
         const agendaContainer = document.getElementById('agendaContainer');
