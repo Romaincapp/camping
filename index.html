@@ -9,7 +9,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.js"></script>
-    <svg xmlns="https://www.w3.org/2000/svg" viewBox="0 0 400 400">
     <style>
        /* Animations */
 @keyframes float {
@@ -21,7 +20,6 @@
 @keyframes pulse {
     0%, 100% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.05); opacity: 0.8; }
-    100% { transform: scale(1); }
 }
 
 @keyframes gradient {
@@ -29,11 +27,6 @@
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
-        
- @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
 
 /* Classes d'animation */
 .floating {
@@ -156,14 +149,7 @@
 .shadow-lg:hover {
     transform: translateY(-2px);
 }
-    .float { animation: float 3s ease-in-out infinite; }
-    .pulse { animation: pulse 3s ease-in-out infinite; }
-    .fadeIn { animation: fadeIn 1s ease-out forwards; }
-    
-    .tent-icon { opacity: 0; animation: fadeIn 0.5s ease-out 0.2s forwards; }
-    .comfort-icon { opacity: 0; animation: fadeIn 0.5s ease-out 0.4s forwards; }
-    .kitchen-icon { opacity: 0; animation: fadeIn 0.5s ease-out 0.6s forwards; }
-    .guide-icon { opacity: 0; animation: fadeIn 0.5s ease-out 0.8s forwards; }
+
          
 </style>
 
@@ -340,16 +326,8 @@
             <!-- Feature Card 1 - Camping privé -->
             <div class="feature-card">
                 <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                   <g class="tent-icon" transform="translate(50, 50)">
-                        <circle cx="40" cy="40" r="40" fill="#E9F6EE"/>
-                        <g transform="translate(15, 15)" class="float">
-                      <path d="M40 20L65 60H15L40 20Z" fill="#16A34A" stroke="#065F46" stroke-width="2" stroke-linejoin="round"/>
-                      <path d="M40 40L55 60H25L40 40Z" fill="#22C55E"/>
-                      <path d="M30 60H50" stroke="#065F46" stroke-width="2" stroke-linecap="round"/>
-                      <path d="M38 60V63" stroke="#065F46" stroke-width="2" stroke-linecap="round"/>
-                      <path d="M42 60V63" stroke="#065F46" stroke-width="2" stroke-linecap="round"/>
-                        </g>
-                      </g>
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="https://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </div>
                 <h3 class="text-xl font-semibold text-center mb-2">Camping privé</h3>
@@ -359,17 +337,9 @@
             <!-- Feature Card 2 - Confort -->
             <div class="feature-card">
                 <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                                  <g class="comfort-icon" transform="translate(150, 50)">
-                                <circle cx="40" cy="40" r="40" fill="#E9F6EE"/>
-                                <g transform="translate(15, 15)" class="pulse">
-                              <path d="M20 55C20 58.3 22.7 61 26 61H44C47.3 61 50 58.3 50 55V35C50 31.7 47.3 29 44 29H26C22.7 29 20 31.7 20 35V55Z" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/>
-                              <path d="M40 23V29H30V23C30 21.9 30.9 21 32 21H38C39.1 21 40 21.9 40 23Z" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/>
-                              <path d="M25 40H45" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/>
-                              <path d="M25 46H45" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/>
-                              <path d="M25 52H40" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/>
-                    </g>
-                  </g>
-                </svg>
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="https://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
                 </div>
                 <h3 class="text-xl font-semibold text-center mb-2">Confort</h3>
                 <p class="text-gray-600 text-center">Hamac, chaises longues, sanitaires, eau potable, électricité, douche chaude, terrain clôturé</p>
@@ -378,19 +348,9 @@
             <!-- Feature Card 3 - Cuisine équipée -->
             <div class="feature-card">
                 <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <g class="kitchen-icon" transform="translate(50, 150)">
-                        <circle cx="40" cy="40" r="40" fill="#E9F6EE"/>
-                        <g transform="translate(15, 15)" class="float">
-                          <path d="M20 25V18C20 16.9 20.9 16 22 16H48C49.1 16 50 16.9 50 18V25" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/>
-                          <rect x="15" y="25" width="40" height="12" rx="2" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/>
-                          <path d="M15 37L15 55C15 57.2 16.8 59 19 59H51C53.2 59 55 57.2 55 55V37" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/>
-                          <circle cx="25" cy="48" r="3" fill="#16A34A"/>
-                          <circle cx="35" cy="48" r="3" fill="#16A34A"/>
-                          <circle cx="45" cy="48" r="3" fill="#16A34A"/>
-                          <circle cx="35" cy="31" r="3" fill="#16A34A"/>
-                        </g>
-                      </g>
-                 </svg>
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="https://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
                 </div>
                 <h3 class="text-xl font-semibold text-center mb-2">Cuisine équipée</h3>
                 <p class="text-gray-600 text-center">Une cuisine en pleine nature pour plus de conforts : ustensiles de cuisine, cuisson au gaz, frigo, congélateur, percolateur</p>
@@ -399,18 +359,8 @@
             <!-- Feature Card 4 - Welcomebook Digital -->
             <div class="feature-card">
                 <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                     <g class="guide-icon" transform="translate(150, 150)">
-                        <circle cx="40" cy="40" r="40" fill="#E9F6EE"/>
-                        <g transform="translate(15, 15)" class="pulse">
-                          <path d="M20 20C20 17.8 21.8 16 24 16H46C48.2 16 50 17.8 50 20V60C50 62.2 48.2 64 46 64H24C21.8 64 20 62.2 20 60V20Z" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/>
-                          <rect x="28" y="22" width="14" height="5" rx="1" fill="#16A34A"/>
-                          <rect x="28" y="32" width="14" height="2" fill="#16A34A"/>
-                          <rect x="28" y="37" width="14" height="2" fill="#16A34A"/>
-                          <rect x="28" y="42" width="14" height="2" fill="#16A34A"/>
-                          <rect x="28" y="47" width="10" height="2" fill="#16A34A"/>
-                          <circle cx="35" cy="56" r="2" fill="#16A34A"/>
-                            </g>
-                          </g>
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="https://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
                 <h3 class="text-xl font-semibold text-center mb-2">Welcomebook Digital</h3>
