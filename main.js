@@ -1,4 +1,4 @@
- <script>     
+ 
         // Initialisation du Swiper avec des paramètres optimisés
         const swiper = new Swiper('.swiper', {
         loop: true,
@@ -67,6 +67,3 @@
             }
         });
     });
-
-    
-    </script>
