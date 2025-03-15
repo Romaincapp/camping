@@ -1,6 +1,7 @@
- 
-        // Initialisation du Swiper avec des paramètres optimisés
-        const swiper = new Swiper('.swiper', {
+// Attendre que le DOM soit complètement chargé
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation du Swiper avec des paramètres optimisés
+    const swiper = new Swiper('.swiper', {
         loop: true,
         effect: "fade",
         autoplay: {
@@ -43,16 +44,15 @@
         duration: 0.8,
         stagger: 0.2
     });
-   
 
-         document.addEventListener('DOMContentLoaded', function() {
-        // Récupération des éléments
-        const toggleButton = document.getElementById('toggleAgenda');
-        const agendaContainer = document.getElementById('agendaContainer');
-
+    // Récupération des éléments pour l'agenda
+    const toggleButton = document.getElementById('toggleAgenda');
+    const agendaContainer = document.getElementById('agendaContainer');
+    
+    // Vérifier si les éléments existent avant d'ajouter des event listeners
+    if (toggleButton && agendaContainer) {
         // État initial
         let isAgendaVisible = false;
-
         // Fonction pour basculer l'affichage
         toggleButton.addEventListener('click', function() {
             isAgendaVisible = !isAgendaVisible;
@@ -66,4 +66,5 @@
                 toggleButton.textContent = "Voir les disponibilités";
             }
         });
-    });
+    }
+});
