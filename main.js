@@ -267,7 +267,7 @@ function initCalendar() {
           <div class="flex absolute bottom-0 left-0 right-0 h-6">
             ${isStay && !isCheckIn && !isCheckOut ? `
               <div class="flex-grow bg-red-500 text-white text-xs flex items-center justify-center">
-                Séjour
+            
               </div>
             ` : `
               ${isCheckOut ? `
