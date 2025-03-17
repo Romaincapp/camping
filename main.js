@@ -49,56 +49,89 @@ document.addEventListener('DOMContentLoaded', function() {
   initCalendar();
 });
 
-// Fonction pour initialiser le calendrier React
+// Fonction pour initialiser le calendrier personnalisé
 function initCalendar() {
   // Vérifier si le conteneur existe
   const calendarContainer = document.getElementById('calendarContainer');
   if (!calendarContainer) return;
 
-  // Fonction pour simuler la récupération des événements depuis l'API Google Calendar
+  // Fonction pour récupérer les événements depuis l'API Google Calendar
   async function fetchGoogleCalendarEvents(year, month) {
-    // Dans une implémentation réelle, vous feriez un appel à l'API Google Calendar ici
-    // Exemple d'URL d'API: https://www.googleapis.com/calendar/v3/calendars/romainfrancedumoulin@gmail.com/events
-    
-    // Pour l'instant, nous simulons des données
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Simuler des réservations pour ce mois avec des check-in/check-out consécutifs
-        const events = [
-          {
-            id: "event1",
-            title: "Réservé",
-            start: new Date(year, month, 5),
-            end: new Date(year, month, 8)
-          },
-          {
-            id: "event2",
-            title: "Réservé",
-            start: new Date(year, month, 8), // Check-in le même jour que le check-out précédent
-            end: new Date(year, month, 12)
-          },
-          {
-            id: "event3",
-            title: "Réservé",
-            start: new Date(year, month, 15),
-            end: new Date(year, month, 18)
-          },
-          {
-            id: "event4",
-            title: "Réservé",
-            start: new Date(year, month, 22),
-            end: new Date(year, month, 25)
-          },
-          {
-            id: "event5",
-            title: "Réservé",
-            start: new Date(year, month, 25), // Autre exemple de check-in/check-out le même jour
-            end: new Date(year, month, 28)
-          }
-        ];
-        resolve(events);
-      }, 500);
-    });
+    try {
+      // Calculer le premier et dernier jour du mois
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      
+      // Formater les dates pour l'API Google (format ISO)
+      const timeMin = firstDay.toISOString();
+      const timeMax = lastDay.toISOString();
+      
+      // ID de votre calendrier (généralement votre adresse email)
+      const calendarId = 'romainfrancedumoulin@gmail.com'; 
+      
+      // Votre clé API
+      const apiKey = 'AIzaSyCECx-Qj4APoyaDXEMKq9y4fVCidvxyOUk';
+      
+      // Construire l'URL de l'API
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+      
+      console.log("Récupération des événements du calendrier...");
+      
+      // Faire la requête à l'API
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Erreur lors de la récupération des événements: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`${data.items.length} événements récupérés`);
+      
+      // Transformer les événements Google Calendar en format utilisable par notre calendrier
+      return data.items.map(event => ({
+        id: event.id,
+        title: event.summary || 'Réservé',
+        start: new Date(event.start.dateTime || event.start.date),
+        end: new Date(event.end.dateTime || event.end.date)
+      }));
+    } catch (error) {
+      console.error('Erreur API Google Calendar:', error);
+      // En cas d'erreur, revenir aux événements de démonstration
+      console.log('Utilisation des événements de démonstration');
+      
+      // Événements de démonstration en cas d'échec de l'API
+      return [
+        {
+          id: "event1",
+          title: "Réservé",
+          start: new Date(year, month, 5),
+          end: new Date(year, month, 8)
+        },
+        {
+          id: "event2",
+          title: "Réservé",
+          start: new Date(year, month, 8),
+          end: new Date(year, month, 12)
+        },
+        {
+          id: "event3",
+          title: "Réservé",
+          start: new Date(year, month, 15),
+          end: new Date(year, month, 18)
+        },
+        {
+          id: "event4",
+          title: "Réservé",
+          start: new Date(year, month, 22),
+          end: new Date(year, month, 25)
+        },
+        {
+          id: "event5",
+          title: "Réservé",
+          start: new Date(year, month, 25),
+          end: new Date(year, month, 28)
+        }
+      ];
+    }
   }
 
   // Variables pour suivre l'état du calendrier
