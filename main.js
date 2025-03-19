@@ -35,84 +35,59 @@ function initBookingForm() {
   
   console.log("Tous les éléments du formulaire sont présents");
   
-  // Fonction pour calculer le nombre de nuits
-  function calculateNumberOfNights(checkin, checkout) {
-    if (!checkin || !checkout) return 0;
-    
-    const checkinDate = new Date(checkin);
-    const checkoutDate = new Date(checkout);
-    
-    // Retourner 0 si les dates sont invalides ou checkout avant checkin
-    if (isNaN(checkinDate) || isNaN(checkoutDate) || checkoutDate <= checkinDate) return 0;
-    
-    // Calculer la différence en jours
-    const diffTime = Math.abs(checkoutDate - checkinDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    return diffDays;
-  }
-  
-  // Fonction pour déterminer si c'est la haute saison
-  function isHighSeason(date) {
-    if (!date) return false;
-    
-    const month = date.getMonth(); // 0 = Janvier, 11 = Décembre
-    
-    // Haute saison: Avril (3) à Octobre (9)
-    return month >= 3 && month <= 9;
-  }
-  
   // Fonction pour calculer le prix
-  function calculatePrice() {
-    console.log("Calcul du prix...");
+function calculatePrice() {
+  console.log("Calcul du prix...");
+  
+  const checkin = checkinInput.value;
+  const checkout = checkoutInput.value;
+  const adults = parseInt(adultsInput.value) || 0;
+  const children = parseInt(childrenInput.value) || 0;
+  
+  console.log(`Dates: ${checkin} - ${checkout}, Adultes: ${adults}, Enfants: ${children}`);
+  
+  // Calculer le nombre de nuits
+  const nights = calculateNumberOfNights(checkin, checkout);
+  console.log(`Nombre de nuits: ${nights}`);
+  
+  // Vérifier si c'est la haute saison
+  const highSeason = isHighSeason(checkin ? new Date(checkin) : null);
+  console.log(`Haute saison: ${highSeason}`);
+  
+  // Calculer le prix selon la saison
+  let adultPrice, childPrice, totalPrice;
+  
+  if (highSeason) {
+    // Haute saison: 19€ par adulte, 13€ par enfant
+    adultPrice = 19;
+    childPrice = 13;
+    totalPrice = (adults * adultPrice + children * childPrice) * nights;
+  } else {
+    // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
+    // (pas de distinction entre adultes et enfants en basse saison)
+    adultPrice = "19€ (1er) / 10€ (autres)";
+    childPrice = "10€";
     
-    const checkin = checkinInput.value;
-    const checkout = checkoutInput.value;
-    const adults = parseInt(adultsInput.value) || 0;
-    const children = parseInt(childrenInput.value) || 0;
-    
-    console.log(`Dates: ${checkin} - ${checkout}, Adultes: ${adults}, Enfants: ${children}`);
-    
-    // Calculer le nombre de nuits
-    const nights = calculateNumberOfNights(checkin, checkout);
-    console.log(`Nombre de nuits: ${nights}`);
-    
-    // Vérifier si c'est la haute saison
-    const highSeason = isHighSeason(checkin ? new Date(checkin) : null);
-    console.log(`Haute saison: ${highSeason}`);
-    
-    // Calculer le prix selon la saison
-    let adultPrice, childPrice, totalPrice;
-    
-    if (highSeason) {
-      // Haute saison: 19€ par adulte, 13€ par enfant
-      adultPrice = 19;
-      childPrice = 13;
-      totalPrice = (adults * adultPrice + children * childPrice) * nights;
-    } else {
-      // Basse saison: 19€ pour le premier adulte, 10€ pour les adultes supplémentaires
-      adultPrice = adults > 0 ? "19€ (1er) / 10€ (autres)" : "0";
-      childPrice = 0; // Pas de prix spécifique pour les enfants en basse saison
-      
-      // Calculer le prix total
-      totalPrice = adults > 0 
-        ? (19 + Math.max(0, adults - 1) * 10) * nights 
-        : 0;
-    }
-    
-    console.log(`Prix adulte: ${adultPrice}, Prix enfant: ${childPrice}, Total: ${totalPrice}`);
-    
-    // Mettre à jour l'affichage
-    numberOfNightsElement.textContent = nights;
-    pricePerAdultElement.textContent = typeof adultPrice === 'number' ? `${adultPrice} €` : adultPrice;
-    pricePerChildElement.textContent = `${childPrice} €`;
-    numberOfAdultsElement.textContent = adults;
-    numberOfChildrenElement.textContent = children;
-    totalPriceElement.textContent = `${totalPrice} €`;
-    
-    // Mettre à jour le champ caché pour FormSpree
-    priceSummaryInput.value = `Nombre de nuits: ${nights}, Prix total estimé: ${totalPrice} €`;
+    // Calculer le prix total
+    const totalPersons = adults + children;
+    totalPrice = totalPersons > 0 
+      ? (19 + (totalPersons - 1) * 10) * nights 
+      : 0;
   }
+  
+  console.log(`Prix adulte: ${adultPrice}, Prix enfant: ${childPrice}, Total: ${totalPrice}`);
+  
+  // Mettre à jour l'affichage
+  numberOfNightsElement.textContent = nights;
+  pricePerAdultElement.textContent = adultPrice;
+  pricePerChildElement.textContent = childPrice;
+  numberOfAdultsElement.textContent = adults;
+  numberOfChildrenElement.textContent = children;
+  totalPriceElement.textContent = `${totalPrice} €`;
+  
+  // Mettre à jour le champ caché pour FormSpree
+  priceSummaryInput.value = `Nombre de nuits: ${nights}, Prix total estimé: ${totalPrice} €`;
+}
   
   console.log("Ajout des écouteurs d'événements...");
   
