@@ -1,8 +1,14 @@
-// Fonction pour initialiser le formulaire de réservation
 function initBookingForm() {
+  console.log("Initialisation du formulaire de réservation...");
+  
   // Vérifier si le formulaire existe sur la page
   const bookingForm = document.getElementById('bookingForm');
-  if (!bookingForm) return;
+  if (!bookingForm) {
+    console.log("Formulaire de réservation non trouvé");
+    return;
+  }
+  
+  console.log("Formulaire de réservation trouvé");
   
   // Référence aux éléments du formulaire
   const checkinInput = document.getElementById('checkin');
@@ -19,11 +25,15 @@ function initBookingForm() {
   const totalPriceElement = document.getElementById('totalPrice');
   const priceSummaryInput = document.getElementById('priceSummary');
   
-  // Écouteurs d'événements pour recalculer le prix à chaque changement
-  checkinInput.addEventListener('change', calculatePrice);
-  checkoutInput.addEventListener('change', calculatePrice);
-  adultsInput.addEventListener('change', calculatePrice);
-  childrenInput.addEventListener('change', calculatePrice);
+  // Vérification de la présence des éléments
+  if (!checkinInput || !checkoutInput || !adultsInput || !childrenInput ||
+      !numberOfNightsElement || !pricePerAdultElement || !pricePerChildElement ||
+      !numberOfAdultsElement || !numberOfChildrenElement || !totalPriceElement || !priceSummaryInput) {
+    console.log("Certains éléments du formulaire sont manquants");
+    return;
+  }
+  
+  console.log("Tous les éléments du formulaire sont présents");
   
   // Fonction pour calculer le nombre de nuits
   function calculateNumberOfNights(checkin, checkout) {
@@ -54,16 +64,22 @@ function initBookingForm() {
   
   // Fonction pour calculer le prix
   function calculatePrice() {
+    console.log("Calcul du prix...");
+    
     const checkin = checkinInput.value;
     const checkout = checkoutInput.value;
     const adults = parseInt(adultsInput.value) || 0;
     const children = parseInt(childrenInput.value) || 0;
     
+    console.log(`Dates: ${checkin} - ${checkout}, Adultes: ${adults}, Enfants: ${children}`);
+    
     // Calculer le nombre de nuits
     const nights = calculateNumberOfNights(checkin, checkout);
+    console.log(`Nombre de nuits: ${nights}`);
     
     // Vérifier si c'est la haute saison
     const highSeason = isHighSeason(checkin ? new Date(checkin) : null);
+    console.log(`Haute saison: ${highSeason}`);
     
     // Calculer le prix selon la saison
     let adultPrice, childPrice, totalPrice;
@@ -84,6 +100,8 @@ function initBookingForm() {
         : 0;
     }
     
+    console.log(`Prix adulte: ${adultPrice}, Prix enfant: ${childPrice}, Total: ${totalPrice}`);
+    
     // Mettre à jour l'affichage
     numberOfNightsElement.textContent = nights;
     pricePerAdultElement.textContent = typeof adultPrice === 'number' ? `${adultPrice} €` : adultPrice;
@@ -95,6 +113,21 @@ function initBookingForm() {
     // Mettre à jour le champ caché pour FormSpree
     priceSummaryInput.value = `Nombre de nuits: ${nights}, Prix total estimé: ${totalPrice} €`;
   }
+  
+  console.log("Ajout des écouteurs d'événements...");
+  
+  // Écouteurs d'événements pour recalculer le prix à chaque changement
+  checkinInput.addEventListener('input', calculatePrice);
+  checkinInput.addEventListener('change', calculatePrice);
+  
+  checkoutInput.addEventListener('input', calculatePrice);
+  checkoutInput.addEventListener('change', calculatePrice);
+  
+  adultsInput.addEventListener('input', calculatePrice);
+  adultsInput.addEventListener('change', calculatePrice);
+  
+  childrenInput.addEventListener('input', calculatePrice);
+  childrenInput.addEventListener('change', calculatePrice);
   
   // Initialiser le calcul
   calculatePrice();
@@ -109,6 +142,8 @@ function initBookingForm() {
       alert('La date de départ doit être postérieure à la date d'arrivée.');
     }
   });
+  
+  console.log("Formulaire de réservation initialisé");
 }
 
 // Fonction pour initialiser le calendrier personnalisé
