@@ -309,7 +309,162 @@
         </div>
     </div>
 </section>
-     
+     <!-- Section de formulaire de réservation -->
+<section id="reservation-form" class="py-16 md:py-20 px-4 bg-green-50">
+  <div class="container mx-auto max-w-4xl">
+    <h2 class="text-3xl md:text-4xl font-bold text-center text-green-800 mb-8 md:mb-12">Demande de réservation</h2>
+    
+    <!-- Avertissement -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded shadow-md">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-yellow-700">
+            Ce formulaire est uniquement une demande d'information et ne confirme pas votre réservation. Un lien de paiement vous sera envoyé une fois vos dates validées.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Formulaire -->
+    <form 
+      id="bookingForm"
+      action="https://formspree.io/f/xzzdykyq"
+      method="POST"
+      class="bg-white p-6 md:p-8 rounded-lg shadow-lg"
+    >
+      <!-- Coordonnées -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Vos coordonnées</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="name" class="block text-gray-700 font-medium mb-2">Nom complet *</label>
+            <input type="text" id="name" name="name" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="email" class="block text-gray-700 font-medium mb-2">Email *</label>
+            <input type="email" id="email" name="email" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="phone" class="block text-gray-700 font-medium mb-2">Téléphone *</label>
+            <input type="tel" id="phone" name="phone" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="country" class="block text-gray-700 font-medium mb-2">Pays</label>
+            <input type="text" id="country" name="country"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Détails du séjour -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Détails du séjour</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="checkin" class="block text-gray-700 font-medium mb-2">Date d'arrivée (Check-in 14h) *</label>
+            <input type="date" id="checkin" name="checkin" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="checkout" class="block text-gray-700 font-medium mb-2">Date de départ (Check-out 12h) *</label>
+            <input type="date" id="checkout" name="checkout" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="accommodationType" class="block text-gray-700 font-medium mb-2">Type d'hébergement *</label>
+          <select id="accommodationType" name="accommodationType" required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            <option value="">-- Sélectionnez --</option>
+            <option value="Tente">Tente</option>
+            <option value="Van">Van</option>
+            <option value="Camping-car">Camping-car</option>
+            <option value="Tente de toit">Tente de toit</option>
+          </select>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="adults" class="block text-gray-700 font-medium mb-2">Nombre d'adultes *</label>
+            <input type="number" id="adults" name="adults" min="1" value="1" required
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="children" class="block text-gray-700 font-medium mb-2">Nombre d'enfants</label>
+            <input type="number" id="children" name="children" min="0" value="0"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Information supplémentaire -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
+        <div>
+          <label for="message" class="block text-gray-700 font-medium mb-2">Message (questions, requêtes spéciales...)</label>
+          <textarea id="message" name="message" rows="4"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+        </div>
+      </div>
+      
+      <!-- Calcul des frais -->
+      <div id="price-estimation" class="mb-8 p-4 bg-green-50 rounded-lg border border-green-100">
+        <h3 class="text-xl font-semibold text-green-800 mb-4">Estimation des frais</h3>
+        <div class="space-y-2 mb-4">
+          <div class="flex justify-between">
+            <span>Nombre de nuits:</span>
+            <span id="numberOfNights">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Prix par adulte:</span>
+            <span id="pricePerAdult">0 €</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Prix par enfant:</span>
+            <span id="pricePerChild">0 €</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Nombre d'adultes:</span>
+            <span id="numberOfAdults">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Nombre d'enfants:</span>
+            <span id="numberOfChildren">0</span>
+          </div>
+        </div>
+        <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
+          <span>Total estimé:</span>
+          <span id="totalPrice">0 €</span>
+        </div>
+        <div class="mt-4 text-xs text-gray-600">
+          <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
+          <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
+          <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
+        </div>
+      </div>
+
+      <!-- Bouton d'envoi -->
+      <div class="text-center">
+        <input type="hidden" id="priceSummary" name="priceSummary" value="">
+        <button type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 inline-block">
+          Envoyer ma demande
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+        
   <!-- Remplacez toute la section "reservation" par ce code -->
 <section id="reservation" class="py-16 md:py-20 px-4 bg-green-100">
     <div class="container mx-auto max-w-4xl">
