@@ -141,7 +141,7 @@ function initBookingForm() {
       event.preventDefault();
       alert("La date de depart doit etre posterieure a la date d'arrivee.");
     }
-  }}
+  });
   
   console.log("Formulaire de réservation initialisé");
 }
