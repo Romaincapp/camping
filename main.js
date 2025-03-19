@@ -1,53 +1,115 @@
-// Attendre que le DOM soit complètement chargé
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialisation du Swiper avec des paramètres optimisés
-  const swiper = new Swiper('.swiper', {
-    loop: true,
-    effect: "fade",
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false,
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
-    },
-    speed: 1000,
-    breakpoints: {
-      320: {
-        slidesPerView: 1,
-      },
-      768: {
-        slidesPerView: 1,
-      },
-      1024: {
-        slidesPerView: 1,
-      }
+// Fonction pour initialiser le formulaire de réservation
+function initBookingForm() {
+  // Vérifier si le formulaire existe sur la page
+  const bookingForm = document.getElementById('bookingForm');
+  if (!bookingForm) return;
+  
+  // Référence aux éléments du formulaire
+  const checkinInput = document.getElementById('checkin');
+  const checkoutInput = document.getElementById('checkout');
+  const adultsInput = document.getElementById('adults');
+  const childrenInput = document.getElementById('children');
+  
+  // Référence aux éléments d'affichage du prix
+  const numberOfNightsElement = document.getElementById('numberOfNights');
+  const pricePerAdultElement = document.getElementById('pricePerAdult');
+  const pricePerChildElement = document.getElementById('pricePerChild');
+  const numberOfAdultsElement = document.getElementById('numberOfAdults');
+  const numberOfChildrenElement = document.getElementById('numberOfChildren');
+  const totalPriceElement = document.getElementById('totalPrice');
+  const priceSummaryInput = document.getElementById('priceSummary');
+  
+  // Écouteurs d'événements pour recalculer le prix à chaque changement
+  checkinInput.addEventListener('change', calculatePrice);
+  checkoutInput.addEventListener('change', calculatePrice);
+  adultsInput.addEventListener('change', calculatePrice);
+  childrenInput.addEventListener('change', calculatePrice);
+  
+  // Fonction pour calculer le nombre de nuits
+  function calculateNumberOfNights(checkin, checkout) {
+    if (!checkin || !checkout) return 0;
+    
+    const checkinDate = new Date(checkin);
+    const checkoutDate = new Date(checkout);
+    
+    // Retourner 0 si les dates sont invalides ou checkout avant checkin
+    if (isNaN(checkinDate) || isNaN(checkoutDate) || checkoutDate <= checkinDate) return 0;
+    
+    // Calculer la différence en jours
+    const diffTime = Math.abs(checkoutDate - checkinDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  }
+  
+  // Fonction pour déterminer si c'est la haute saison
+  function isHighSeason(date) {
+    if (!date) return false;
+    
+    const month = date.getMonth(); // 0 = Janvier, 11 = Décembre
+    
+    // Haute saison: Avril (3) à Octobre (9)
+    return month >= 3 && month <= 9;
+  }
+  
+  // Fonction pour calculer le prix
+  function calculatePrice() {
+    const checkin = checkinInput.value;
+    const checkout = checkoutInput.value;
+    const adults = parseInt(adultsInput.value) || 0;
+    const children = parseInt(childrenInput.value) || 0;
+    
+    // Calculer le nombre de nuits
+    const nights = calculateNumberOfNights(checkin, checkout);
+    
+    // Vérifier si c'est la haute saison
+    const highSeason = isHighSeason(checkin ? new Date(checkin) : null);
+    
+    // Calculer le prix selon la saison
+    let adultPrice, childPrice, totalPrice;
+    
+    if (highSeason) {
+      // Haute saison: 19€ par adulte, 13€ par enfant
+      adultPrice = 19;
+      childPrice = 13;
+      totalPrice = (adults * adultPrice + children * childPrice) * nights;
+    } else {
+      // Basse saison: 19€ pour le premier adulte, 10€ pour les adultes supplémentaires
+      adultPrice = adults > 0 ? "19€ (1er) / 10€ (autres)" : "0";
+      childPrice = 0; // Pas de prix spécifique pour les enfants en basse saison
+      
+      // Calculer le prix total
+      totalPrice = adults > 0 
+        ? (19 + Math.max(0, adults - 1) * 10) * nights 
+        : 0;
+    }
+    
+    // Mettre à jour l'affichage
+    numberOfNightsElement.textContent = nights;
+    pricePerAdultElement.textContent = typeof adultPrice === 'number' ? `${adultPrice} €` : adultPrice;
+    pricePerChildElement.textContent = `${childPrice} €`;
+    numberOfAdultsElement.textContent = adults;
+    numberOfChildrenElement.textContent = children;
+    totalPriceElement.textContent = `${totalPrice} €`;
+    
+    // Mettre à jour le champ caché pour FormSpree
+    priceSummaryInput.value = `Nombre de nuits: ${nights}, Prix total estimé: ${totalPrice} €`;
+  }
+  
+  // Initialiser le calcul
+  calculatePrice();
+  
+  // Validation avant soumission
+  bookingForm.addEventListener('submit', function(event) {
+    const checkin = new Date(checkinInput.value);
+    const checkout = new Date(checkoutInput.value);
+    
+    if (checkout <= checkin) {
+      event.preventDefault();
+      alert('La date de départ doit être postérieure à la date d'arrivée.');
     }
   });
-    
-  // Animations GSAP
-  gsap.registerPlugin(ScrollTrigger);
-  // Animation des cartes de fonctionnalités
-  gsap.from('.feature-card', {
-    scrollTrigger: {
-      trigger: '.feature-card',
-      start: 'top bottom-=100',
-      toggleActions: 'play none none reverse'
-    },
-    y: 50,
-    opacity: 0,
-    duration: 0.8,
-    stagger: 0.2
-  });
-
-  // Fonction pour initialiser le calendrier
-  initCalendar();
-});
+}
 
 // Fonction pour initialiser le calendrier personnalisé
 function initCalendar() {
@@ -352,3 +414,57 @@ function initCalendar() {
   // Initialiser le calendrier
   updateCalendar();
 }
+
+// Attendre que le DOM soit complètement chargé
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialisation du Swiper avec des paramètres optimisés
+  const swiper = new Swiper('.swiper', {
+    loop: true,
+    effect: "fade",
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    speed: 1000,
+    breakpoints: {
+      320: {
+        slidesPerView: 1,
+      },
+      768: {
+        slidesPerView: 1,
+      },
+      1024: {
+        slidesPerView: 1,
+      }
+    }
+  });
+    
+  // Animations GSAP
+  gsap.registerPlugin(ScrollTrigger);
+  // Animation des cartes de fonctionnalités
+  gsap.from('.feature-card', {
+    scrollTrigger: {
+      trigger: '.feature-card',
+      start: 'top bottom-=100',
+      toggleActions: 'play none none reverse'
+    },
+    y: 50,
+    opacity: 0,
+    duration: 0.8,
+    stagger: 0.2
+  });
+
+  // Initialiser le calendrier
+  initCalendar();
+  
+  // Initialiser le formulaire de réservation
+  initBookingForm();
+});
