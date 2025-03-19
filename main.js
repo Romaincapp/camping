@@ -139,9 +139,9 @@ function initBookingForm() {
     
     if (checkout <= checkin) {
       event.preventDefault();
-      alert('La date de départ doit être postérieure à la date d'arrivée.');
+      alert('La date de départ doit être postérieure à la date d\'arrivée.');
     }
-  });
+  }}
   
   console.log("Formulaire de réservation initialisé");
 }
