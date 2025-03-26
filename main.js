@@ -24,7 +24,9 @@ function isHighSeason(date) {
   // Haute saison: du 1er avril (mois 3) au 1er novembre (mois 10)
   return month >= 3 && month <= 10;
 }
-  function initBookingForm() {
+
+// Fonction pour initialiser le formulaire de réservation
+function initBookingForm() {
   console.log("Initialisation du formulaire de réservation...");
   
   // Vérifier si le formulaire existe sur la page
@@ -62,58 +64,58 @@ function isHighSeason(date) {
   console.log("Tous les éléments du formulaire sont présents");
   
   // Fonction pour calculer le prix
-function calculatePrice() {
-  console.log("Calcul du prix...");
-  
-  const checkin = checkinInput.value;
-  const checkout = checkoutInput.value;
-  const adults = parseInt(adultsInput.value) || 0;
-  const children = parseInt(childrenInput.value) || 0;
-  
-  console.log(`Dates: ${checkin} - ${checkout}, Adultes: ${adults}, Enfants: ${children}`);
-  
-  // Calculer le nombre de nuits
-  const nights = calculateNumberOfNights(checkin, checkout);
-  console.log(`Nombre de nuits: ${nights}`);
-  
-  // Vérifier si c'est la haute saison
-  const highSeason = isHighSeason(checkin ? new Date(checkin) : null);
-  console.log(`Haute saison: ${highSeason}`);
-  
-  // Calculer le prix selon la saison
-  let adultPrice, childPrice, totalPrice;
-  
-  if (highSeason) {
-    // Haute saison: 19€ par adulte, 13€ par enfant
-    adultPrice = 19;
-    childPrice = 13;
-    totalPrice = (adults * adultPrice + children * childPrice) * nights;
-  } else {
-    // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
-    // (pas de distinction entre adultes et enfants en basse saison)
-    adultPrice = "19€ (1er) / 10€ (autres)";
-    childPrice = "10€";
+  function calculatePrice() {
+    console.log("Calcul du prix...");
     
-    // Calculer le prix total
-    const totalPersons = adults + children;
-    totalPrice = totalPersons > 0 
-      ? (19 + (totalPersons - 1) * 10) * nights 
-      : 0;
+    const checkin = checkinInput.value;
+    const checkout = checkoutInput.value;
+    const adults = parseInt(adultsInput.value) || 0;
+    const children = parseInt(childrenInput.value) || 0;
+    
+    console.log(`Dates: ${checkin} - ${checkout}, Adultes: ${adults}, Enfants: ${children}`);
+    
+    // Calculer le nombre de nuits
+    const nights = calculateNumberOfNights(checkin, checkout);
+    console.log(`Nombre de nuits: ${nights}`);
+    
+    // Vérifier si c'est la haute saison
+    const highSeason = isHighSeason(checkin ? new Date(checkin) : null);
+    console.log(`Haute saison: ${highSeason}`);
+    
+    // Calculer le prix selon la saison
+    let adultPrice, childPrice, totalPrice;
+    
+    if (highSeason) {
+      // Haute saison: 19€ par adulte, 13€ par enfant
+      adultPrice = 19;
+      childPrice = 13;
+      totalPrice = (adults * adultPrice + children * childPrice) * nights;
+    } else {
+      // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
+      // (pas de distinction entre adultes et enfants en basse saison)
+      adultPrice = "19€ (1er) / 10€ (autres)";
+      childPrice = "10€";
+      
+      // Calculer le prix total
+      const totalPersons = adults + children;
+      totalPrice = totalPersons > 0 
+        ? (19 + (totalPersons - 1) * 10) * nights 
+        : 0;
+    }
+    
+    console.log(`Prix adulte: ${adultPrice}, Prix enfant: ${childPrice}, Total: ${totalPrice}`);
+    
+    // Mettre à jour l'affichage
+    numberOfNightsElement.textContent = nights;
+    pricePerAdultElement.textContent = typeof adultPrice === 'number' ? `${adultPrice} €` : adultPrice;
+    pricePerChildElement.textContent = typeof childPrice === 'number' ? `${childPrice} €` : childPrice;
+    numberOfAdultsElement.textContent = adults;
+    numberOfChildrenElement.textContent = children;
+    totalPriceElement.textContent = `${totalPrice} €`;
+    
+    // Mettre à jour le champ caché pour FormSpree
+    priceSummaryInput.value = `Nombre de nuits: ${nights}, Prix total estimé: ${totalPrice} €`;
   }
-  
-  console.log(`Prix adulte: ${adultPrice}, Prix enfant: ${childPrice}, Total: ${totalPrice}`);
-  
-  // Mettre à jour l'affichage
-  numberOfNightsElement.textContent = nights;
-  pricePerAdultElement.textContent = adultPrice;
-  pricePerChildElement.textContent = childPrice;
-  numberOfAdultsElement.textContent = adults;
-  numberOfChildrenElement.textContent = children;
-  totalPriceElement.textContent = `${totalPrice} €`;
-  
-  // Mettre à jour le champ caché pour FormSpree
-  priceSummaryInput.value = `Nombre de nuits: ${nights}, Prix total estimé: ${totalPrice} €`;
-}
   
   console.log("Ajout des écouteurs d'événements...");
   
@@ -140,7 +142,7 @@ function calculatePrice() {
     
     if (checkout <= checkin) {
       event.preventDefault();
-      alert("La date de depart doit etre posterieure a la date d'arrivee.");
+      alert("La date de départ doit être postérieure à la date d'arrivée.");
     }
   });
   
@@ -182,15 +184,15 @@ function initCalendar() {
       }
       
       const data = await response.json();
-      console.log(`${data.items.length} événements récupérés`);
+      console.log(`${data.items ? data.items.length : 0} événements récupérés`);
       
       // Transformer les événements Google Calendar en format utilisable par notre calendrier
-      return data.items.map(event => ({
+      return data.items ? data.items.map(event => ({
         id: event.id,
         title: event.summary || 'Réservé',
         start: new Date(event.start.dateTime || event.start.date),
         end: new Date(event.end.dateTime || event.end.date)
-      }));
+      })) : [];
     } catch (error) {
       console.error('Erreur API Google Calendar:', error);
       // En cas d'erreur, revenir aux événements de démonstration
@@ -245,15 +247,28 @@ function initCalendar() {
       </div>
     `;
     
-    // Récupérer les événements
-    const events = await fetchGoogleCalendarEvents(
-      currentDate.getFullYear(),
-      currentDate.getMonth()
-    );
-    currentEvents = events;
-    
-    // Générer le HTML du calendrier
-    renderCalendar();
+    try {
+      // Récupérer les événements
+      const events = await fetchGoogleCalendarEvents(
+        currentDate.getFullYear(),
+        currentDate.getMonth()
+      );
+      currentEvents = events;
+      
+      // Générer le HTML du calendrier
+      renderCalendar();
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du calendrier:", error);
+      calendarContainer.innerHTML = `
+        <div class="text-center p-6">
+          <p class="text-red-500">Erreur lors du chargement du calendrier.</p>
+          <button id="retryCalendar" class="mt-4 bg-green-600 text-white px-4 py-2 rounded-md">
+            Réessayer
+          </button>
+        </div>
+      `;
+      document.getElementById('retryCalendar')?.addEventListener('click', updateCalendar);
+    }
   }
   
   // Fonction pour générer le HTML du calendrier
@@ -436,12 +451,12 @@ function initCalendar() {
     calendarContainer.innerHTML = calendarHTML;
     
     // Ajouter les écouteurs d'événements pour les boutons de navigation
-    document.getElementById('prevMonth').addEventListener('click', () => {
+    document.getElementById('prevMonth')?.addEventListener('click', () => {
       currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
       updateCalendar();
     });
     
-    document.getElementById('nextMonth').addEventListener('click', () => {
+    document.getElementById('nextMonth')?.addEventListener('click', () => {
       currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
       updateCalendar();
     });
@@ -503,4 +518,23 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialiser le formulaire de réservation
   initBookingForm();
+});
+
+// Correction de l'animation float pour éviter l'erreur matrix
+document.addEventListener('DOMContentLoaded', function() {
+  // Appliquer des styles corrects pour l'animation float
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    @keyframes float {
+      0% { transform: translate(0, 0px); }
+      50% { transform: translate(0, -5px); }
+      100% { transform: translate(0, 0px); }
+    }
+    
+    .floating, .text-yellow-400 {
+      animation: float 3s ease-in-out infinite;
+      transform: translate(0, 0); /* Valeur initiale explicite */
+    }
+  `;
+  document.head.appendChild(styleElement);
 });
