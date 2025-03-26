@@ -1,4 +1,30 @@
-function initBookingForm() {
+// Fonction pour calculer le nombre de nuits entre deux dates
+function calculateNumberOfNights(checkinDate, checkoutDate) {
+  if (!checkinDate || !checkoutDate) return 0;
+  
+  const checkin = new Date(checkinDate);
+  const checkout = new Date(checkoutDate);
+  
+  // Vérifier si les dates sont valides
+  if (isNaN(checkin.getTime()) || isNaN(checkout.getTime())) return 0;
+  
+  // Calculer la différence en jours
+  const timeDiff = checkout.getTime() - checkin.getTime();
+  const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  
+  return nights > 0 ? nights : 0;
+}
+
+// Fonction pour déterminer si une date est en haute saison
+function isHighSeason(date) {
+  if (!date || isNaN(date.getTime())) return true; // Par défaut, considérer haute saison
+  
+  const month = date.getMonth(); // 0 = Janvier, 11 = Décembre
+  
+  // Haute saison: du 1er avril (mois 3) au 1er novembre (mois 10)
+  return month >= 3 && month <= 10;
+}
+  function initBookingForm() {
   console.log("Initialisation du formulaire de réservation...");
   
   // Vérifier si le formulaire existe sur la page
