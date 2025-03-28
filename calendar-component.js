@@ -27,22 +27,25 @@ const CalendarBookingForm = () => {
     totalPrice: 0
   });
 
-  // Fonction pour récupérer les événements du calendrier
-  const fetchEvents = async () => {
-    setIsLoading(true);
-    try {
-      // Récupérer les événements depuis Google Calendar
-      const events = await fetchGoogleCalendarEvents(currentDate.getFullYear(), currentDate.getMonth());
-      setEvents(events);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des événements:", error);
-      // Utiliser des événements de démonstration en cas d'erreur
+ // Fonction pour récupérer les événements du calendrier
+const fetchEvents = async () => {
+  console.log("Début du chargement des événements");
+  setIsLoading(true);
+  
+  try {
+    // Utiliser directement les événements de démonstration pour le moment
+    setTimeout(() => {
+      console.log("Utilisation des événements de démonstration");
       const demoEvents = generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth());
       setEvents(demoEvents);
-    } finally {
       setIsLoading(false);
-    }
-  };
+      console.log("Événements de démonstration chargés");
+    }, 1000); // Court délai pour l'effet
+  } catch (error) {
+    console.error("Erreur lors du chargement:", error);
+    setIsLoading(false);
+  }
+};
 
   // Fonction pour récupérer les événements depuis l'API Google Calendar
   const fetchGoogleCalendarEvents = async (year, month) => {
