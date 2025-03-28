@@ -359,7 +359,12 @@
         </div>
     </div>
 </footer>
-    <!-- Scripts du système de réservation -->
+   <!-- Scripts React sans modules ES6 -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+<!-- Scripts du système de réservation (chargés dans le bon ordre) -->
 <script type="text/babel" src="calendar-component.js"></script>
 <script type="text/babel" src="reservation.js"></script>
 
@@ -368,5 +373,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/ScrollTrigger.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
