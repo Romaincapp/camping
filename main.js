@@ -510,12 +510,17 @@ document.addEventListener('DOMContentLoaded', function() {
     stagger: 0.2
   });
 
-  // Initialiser le calendrier
-  initCalendar();
-  
-  // Initialiser le formulaire de réservation
-  initBookingForm();
-});
+  // Fonction pour initialiser le calendrier personnalisé
+function initCalendar() {
+  console.log("Ancien calendrier désactivé - utilisation du composant React à la place");
+  // Tout le code de la fonction est désactivé
+}
+
+// Fonction pour initialiser le formulaire de réservation
+function initBookingForm() {
+  console.log("Ancien formulaire désactivé - utilisation du composant React à la place");
+  // Tout le code de la fonction est désactivé
+}
 
 // Correction de l'animation float pour éviter l'erreur matrix
 document.addEventListener('DOMContentLoaded', function() {
