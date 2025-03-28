@@ -47,7 +47,18 @@ const fetchEvents = () => {
     console.log("Événements de démonstration chargés");
   }, 1000);
 };
+// Ajouter un effet de secours pour éviter un chargement infini
+React.useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    if (isLoading) {
+      console.log("Délai d'attente dépassé, fin forcée du chargement");
+      setIsLoading(false);
+      setEvents(generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth()));
+    }
+  }, 5000);  // Attendre 5 secondes maximum
 
+  return () => clearTimeout(timeoutId);
+}, [isLoading]);
   // Fonction pour récupérer les événements depuis l'API Google Calendar
   const fetchGoogleCalendarEvents = async (year, month) => {
     // Calculer le premier et dernier jour du mois
