@@ -259,27 +259,42 @@ const CalendarBookingForm = () => {
     });
   };
   
-  // Gérer la soumission du formulaire
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    
-    // Vérifier si les dates sont valides
-    if (!selectedStartDate || !selectedEndDate) {
-      alert("Veuillez sélectionner des dates d'arrivée et de départ.");
-      return;
+const handleSubmit = (event) => {
+  event.preventDefault();
+  
+  // Vérifications...
+  
+  // Construire les données pour FormSpree
+  const formDataWithPrice = {
+    ...formData,
+    priceSummary: `Nombre de nuits: ${priceInfo.nights}, Prix total estimé: ${priceInfo.totalPrice} €`
+  };
+  
+  // Envoyer à FormSpree
+  fetch('https://formspree.io/f/xzzdykyq', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formDataWithPrice)
+  })
+  .then(response => {
+    if (response.ok) {
+      alert("Demande de réservation envoyée avec succès!");
+      // Réinitialiser le formulaire
+      setSelectedStartDate(null);
+      setSelectedEndDate(null);
+      // Reste du code de réinitialisation...
+    } else {
+      alert("Une erreur est survenue lors de l'envoi du formulaire.");
     }
-    
-    // Vérifier si la date de départ est après la date d'arrivée
-    if (selectedEndDate <= selectedStartDate) {
-      alert("La date de départ doit être postérieure à la date d'arrivée.");
-      return;
-    }
-    
-    // Ajouter le résumé du prix aux données du formulaire
-    const formDataWithPrice = {
-      ...formData,
-      priceSummary: `Nombre de nuits: ${priceInfo.nights}, Prix total estimé: ${priceInfo.totalPrice} €`
-    };
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    alert("Une erreur est survenue lors de l'envoi du formulaire.");
+  });
+};
     
     // Dans une implémentation réelle, vous enverriez les données à FormSpree ici
     console.log("Données du formulaire à envoyer:", formDataWithPrice);
