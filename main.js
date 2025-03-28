@@ -25,16 +25,13 @@ function isHighSeason(date) {
   return month >= 3 && month <= 10;
 }
 
+
+
 // Fonction pour initialiser le formulaire de réservation
 function initBookingForm() {
-  console.log("Initialisation du formulaire de réservation...");
-  
-  // Vérifier si le formulaire existe sur la page
-  const bookingForm = document.getElementById('bookingForm');
-  if (!bookingForm) {
-    console.log("Formulaire de réservation non trouvé");
-    return;
-  }
+  console.log("Ancien formulaire désactivé - utilisation du composant React à la place");
+  // Tout le code de la fonction est désactivé
+}
   
   console.log("Formulaire de réservation trouvé");
   
@@ -151,9 +148,9 @@ function initBookingForm() {
 
 // Fonction pour initialiser le calendrier personnalisé
 function initCalendar() {
-  // Vérifier si le conteneur existe
-  const calendarContainer = document.getElementById('calendarContainer');
-  if (!calendarContainer) return;
+  console.log("Ancien calendrier désactivé - utilisation du composant React à la place");
+  // Tout le code de la fonction est désactivé
+}
 
   // Fonction pour récupérer les événements depuis l'API Google Calendar
   async function fetchGoogleCalendarEvents(year, month) {
