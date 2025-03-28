@@ -337,26 +337,7 @@ const handleSubmit = (event) => {
   });
 };
     
-    // Dans une implémentation réelle, vous enverriez les données à FormSpree ici
-    console.log("Données du formulaire à envoyer:", formDataWithPrice);
-    alert("Demande de réservation envoyée avec succès!");
-    
-    // Réinitialiser le formulaire après soumission
-    setSelectedStartDate(null);
-    setSelectedEndDate(null);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      country: '',
-      checkin: '',
-      checkout: '',
-      accommodationType: '',
-      adults: 1,
-      children: 0,
-      message: ''
-    });
-  };
+   
   
   // Charger les événements au chargement initial et à chaque changement de mois
   useEffect(() => {
