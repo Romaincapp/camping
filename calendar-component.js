@@ -27,76 +27,33 @@ const CalendarBookingForm = () => {
     totalPrice: 0
   });
 
- // Fonction pour récupérer les événements du calendrier
-const fetchEvents = async () => {
-  console.log("Début du chargement des événements");
-  setIsLoading(true);
-  
-  try {
- // Fonction pour récupérer les événements du calendrier
-const fetchEvents = () => {
-  console.log("Début du chargement des événements simulés");
-  setIsLoading(true);
-  
-  // Utiliser directement les événements de démonstration avec un setTimeout
-  // pour simuler le temps de chargement
-  setTimeout(() => {
-    const demoEvents = generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth());
-    setEvents(demoEvents);
-    setIsLoading(false);
-    console.log("Événements de démonstration chargés");
-  }, 1000);
-};
-// Ajouter un effet de secours pour éviter un chargement infini
-React.useEffect(() => {
-  const timeoutId = setTimeout(() => {
-    if (isLoading) {
-      console.log("Délai d'attente dépassé, fin forcée du chargement");
+  // Fonction pour récupérer les événements du calendrier
+  const fetchEvents = () => {
+    console.log("Début du chargement des événements simulés");
+    setIsLoading(true);
+    
+    // Utiliser directement les événements de démonstration avec un setTimeout
+    // pour simuler le temps de chargement
+    setTimeout(() => {
+      const demoEvents = generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth());
+      setEvents(demoEvents);
       setIsLoading(false);
-      setEvents(generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth()));
-    }
-  }, 5000);  // Attendre 5 secondes maximum
-
-  return () => clearTimeout(timeoutId);
-}, [isLoading]);
-  // Fonction pour récupérer les événements depuis l'API Google Calendar
-  const fetchGoogleCalendarEvents = async (year, month) => {
-    // Calculer le premier et dernier jour du mois
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    
-    // Formater les dates pour l'API Google (format ISO)
-    const timeMin = firstDay.toISOString();
-    const timeMax = lastDay.toISOString();
-    
-    // ID de votre calendrier (généralement votre adresse email)
-    const calendarId = 'romainfrancedumoulin@gmail.com'; 
-    
-    // Votre clé API
-    const apiKey = 'AIzaSyCECx-Qj4APoyaDXEMKq9y4fVCidvxyOUk'; 
-    
-    // Construire l'URL de l'API
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
-    
-    console.log("Récupération des événements du calendrier...");
-    
-    // Faire la requête à l'API
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Erreur lors de la récupération des événements: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log(`${data.items ? data.items.length : 0} événements récupérés`);
-    
-    // Transformer les événements Google Calendar en format utilisable par notre calendrier
-    return data.items ? data.items.map(event => ({
-      id: event.id,
-      title: event.summary || 'Réservé',
-      start: new Date(event.start.dateTime || event.start.date),
-      end: new Date(event.end.dateTime || event.end.date)
-    })) : [];
+      console.log("Événements de démonstration chargés");
+    }, 1000);
   };
+
+  // Ajouter un effet de secours pour éviter un chargement infini
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        console.log("Délai d'attente dépassé, fin forcée du chargement");
+        setIsLoading(false);
+        setEvents(generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth()));
+      }
+    }, 5000);  // Attendre 5 secondes maximum
+
+    return () => clearTimeout(timeoutId);
+  }, [isLoading]);
   
   // Générer des événements de démonstration
   const generateDemoEvents = (year, month) => {
