@@ -33,18 +33,19 @@ const fetchEvents = async () => {
   setIsLoading(true);
   
   try {
-    // Utiliser directement les événements de démonstration pour le moment
-    setTimeout(() => {
-      console.log("Utilisation des événements de démonstration");
-      const demoEvents = generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth());
-      setEvents(demoEvents);
-      setIsLoading(false);
-      console.log("Événements de démonstration chargés");
-    }, 1000); // Court délai pour l'effet
-  } catch (error) {
-    console.error("Erreur lors du chargement:", error);
+ // Fonction pour récupérer les événements du calendrier
+const fetchEvents = () => {
+  console.log("Début du chargement des événements simulés");
+  setIsLoading(true);
+  
+  // Utiliser directement les événements de démonstration avec un setTimeout
+  // pour simuler le temps de chargement
+  setTimeout(() => {
+    const demoEvents = generateDemoEvents(currentDate.getFullYear(), currentDate.getMonth());
+    setEvents(demoEvents);
     setIsLoading(false);
-  }
+    console.log("Événements de démonstration chargés");
+  }, 1000);
 };
 
   // Fonction pour récupérer les événements depuis l'API Google Calendar
