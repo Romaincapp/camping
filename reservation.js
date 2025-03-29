@@ -1,41 +1,36 @@
-// Script pour rendre le composant CalendarBookingForm dans la page
-
-// Attendre que le DOM soit complètement chargé
 document.addEventListener('DOMContentLoaded', function() {
-  console.log("Initialisation du composant de réservation...");
+  console.log("Test d'initialisation du composant...");
   
-  // Rechercher le conteneur dans lequel nous allons monter le composant React
-  const reservationContainer = document.getElementById('reservation-container');
+  const container = document.getElementById('reservation-container');
   
-  // Vérifier si le conteneur existe
-  if (!reservationContainer) {
-    console.error('Conteneur de réservation non trouvé dans le DOM');
+  if (!container) {
+    console.error('Conteneur non trouvé');
     return;
   }
-
+  
   try {
-    // Assurer que React et ReactDOM sont disponibles
+    console.log("React disponible:", typeof React !== 'undefined');
+    console.log("ReactDOM disponible:", typeof ReactDOM !== 'undefined');
+    console.log("SimpleTest disponible:", typeof SimpleTest !== 'undefined');
+    
     if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
-      console.error('React ou ReactDOM non disponible');
-      return;
-    }
-
-    // Vérifier que le composant CalendarBookingForm existe
-    if (typeof CalendarBookingForm !== 'function') {
-      console.error('Le composant CalendarBookingForm n\'est pas défini');
-      reservationContainer.innerHTML = '<div class="p-4 bg-red-100 text-red-700 rounded">Erreur de chargement du calendrier</div>';
+      container.innerHTML = '<div style="color:red">Erreur: React ou ReactDOM non disponible</div>';
       return;
     }
     
-    // Rendre le composant React dans le conteneur
+    if (typeof SimpleTest !== 'function') {
+      container.innerHTML = '<div style="color:red">Erreur: Composant de test non disponible</div>';
+      return;
+    }
+    
     ReactDOM.render(
-      React.createElement(CalendarBookingForm),
-      reservationContainer
+      React.createElement(SimpleTest),
+      container
     );
     
-    console.log("Composant de réservation rendu avec succès");
+    console.log("Rendu du composant SimpleTest terminé");
   } catch (error) {
-    console.error('Erreur lors du rendu du composant:', error);
-    reservationContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded">Erreur: ${error.message}</div>`;
+    console.error('Erreur lors du test:', error);
+    container.innerHTML = `<div style="color:red">Erreur: ${error.message}</div>`;
   }
 });
