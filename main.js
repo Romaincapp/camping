@@ -147,6 +147,113 @@ document.addEventListener('DOMContentLoaded', function() {
     .floating, .text-yellow-400 {
       animation: float 3s ease-in-out infinite;
       transform: translate(0, 0); /* Valeur initiale explicite */
+
+// Fonction pour animer les économies dans l'affichage des prix
+function animateDiscountDisplay() {
+  // Surveiller l'élément discountInfo
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes' || mutation.type === 'childList') {
+        const discountInfo = document.getElementById('discountInfo');
+        
+        // Si l'élément est visible (n'a pas la classe 'hidden')
+        if (discountInfo && !discountInfo.classList.contains('hidden')) {
+          // Trouver l'élément de prix avec la réduction
+          const priceElement = document.getElementById('totalPrice');
+          if (priceElement) {
+            const newPriceElement = priceElement.querySelector('.text-green-600');
+            
+            if (newPriceElement) {
+              // Ajouter une classe pour l'effet de pulse
+              newPriceElement.classList.add('discount-pulse');
+              
+              // Appliquer une animation de pulse
+              gsap.fromTo(
+                newPriceElement, 
+                { scale: 1 }, 
+                { 
+                  scale: 1.1, 
+                  duration: 0.5, 
+                  repeat: 2, 
+                  yoyo: true,
+                  onComplete: () => {
+                    // Reset de l'échelle à la fin
+                    gsap.to(newPriceElement, { scale: 1, duration: 0.2 });
+                  }
+                }
+              );
+              
+              // Animer aussi la notification de réduction
+              gsap.fromTo(
+                discountInfo.querySelector('div'), 
+                { opacity: 0, y: 20 }, 
+                { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+              );
+            }
+          }
+        }
+      }
+    });
+  });
+  
+  // Observer tout changement dans le DOM de l'élément price-estimation
+  const priceEstimation = document.getElementById('price-estimation');
+  if (priceEstimation) {
+    observer.observe(priceEstimation, { 
+      attributes: true, 
+      childList: true, 
+      subtree: true 
+    });
+  }
+}
+
+// Ajouter un style pour l'animation de pulse des prix
+function addDiscountStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes discount-highlight {
+      0%, 100% { background-color: transparent; }
+      50% { background-color: rgba(22, 163, 74, 0.1); }
+    }
+    
+    .discount-pulse {
+      animation: discount-highlight 2s ease-in-out;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Appeler ces fonctions après le chargement du DOM
+document.addEventListener('DOMContentLoaded', function() {
+  // Ajouter les styles personnalisés
+  addDiscountStyles();
+  
+  // Initialiser l'animation des remises
+  animateDiscountDisplay();
+  
+  // Autres initialisations d'événements pour les sections promotionnelles
+  const promoCards = document.querySelectorAll('.feature-card, [class*="bg-gradient-to-br"]');
+  
+  promoCards.forEach(card => {
+    // Effet de survol pour les cartes promo
+    card.addEventListener('mouseenter', function() {
+      gsap.to(this, { 
+        y: -10, 
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', 
+        duration: 0.3 
+      });
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      gsap.to(this, { 
+        y: 0, 
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', 
+        duration: 0.3 
+      });
+    });
+  });      
     }
   `;
   document.head.appendChild(styleElement);
