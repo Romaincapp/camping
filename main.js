@@ -37,6 +37,32 @@ function initCalendar() {
   // Fonction désactivée
 }
 
+// Initialiser GLightbox
+function initGLightbox() {
+  if (typeof GLightbox !== 'undefined') {
+    const lightbox = GLightbox({
+      selector: '.glightbox',
+      touchNavigation: true,
+      loop: true,
+      autoplayVideos: true,
+      openEffect: 'zoom',
+      closeEffect: 'fade',
+      cssEfects: {
+        fade: { in: 'fadeIn', out: 'fadeOut' },
+        zoom: { in: 'zoomIn', out: 'zoomOut' }
+      },
+      zoomable: true,
+      draggable: true
+    });
+    
+    console.log('GLightbox initialized');
+    return lightbox;
+  } else {
+    console.error('GLightbox library not found');
+    return null;
+  }
+}
+
 // Attendre que le DOM soit complètement chargé
 document.addEventListener('DOMContentLoaded', function() {
   // Initialisation du Swiper avec des paramètres optimisés
@@ -66,9 +92,30 @@ document.addEventListener('DOMContentLoaded', function() {
       1024: {
         slidesPerView: 1,
       }
+    },
+    // Ajout d'un peu de zoom au survol des slides
+    on: {
+      init: function() {
+        // Ajouter un style hover aux slides
+        const style = document.createElement('style');
+        style.textContent = `
+          .swiper-slide {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+          }
+          .swiper-slide:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+          }
+        `;
+        document.head.appendChild(style);
+      }
     }
   });
     
+  // Initialiser GLightbox
+  const lightbox = initGLightbox();
+  
   // Animations GSAP
   gsap.registerPlugin(ScrollTrigger);
   // Animation des cartes de fonctionnalités
