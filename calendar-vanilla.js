@@ -413,9 +413,7 @@ function updatePriceDisplay() {
   }
 }
 
-  // Remplacer la fonction calculatePrice dans calendar-vanilla.js
-
-function calculatePrice() {
+  function calculatePrice() {
   if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) {
     calendarState.priceInfo = {
       nights: 0,
@@ -458,15 +456,24 @@ function calculatePrice() {
         totalPrice = Math.round(regularPrice * discountFactor);
         originalTotalPrice = regularPrice;
         discountReason = 'Tarif groupe appliqué';
-      } else if (totalPersons >= 10 && totalPersons <= 20) {
-        // Prix fixe pour groupes de 10-20 personnes
-        const baseGroupPrice = 150;  // 150€ pour 10 personnes
-        const pricePerAdditionalPerson = totalPersons > 10 ? 
-                                        (200 - 150) / 10 : 0;  // De 150€ à 200€ pour 10-20 personnes
-        const dailyPrice = baseGroupPrice + pricePerAdditionalPerson * (totalPersons - 10);
+      } else if (totalPersons >= 10 && totalPersons <= 14) {
+        // Prix fixe pour groupes de 10-14 personnes: 100€/nuit max
+        const dailyPrice = 100;
         totalPrice = dailyPrice * nights;
         originalTotalPrice = (adults * 19 + children * 13) * nights;
-        discountReason = 'Forfait groupe appliqué';
+        discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
+      } else if (totalPersons >= 15 && totalPersons <= 19) {
+        // Prix fixe pour groupes de 15-19 personnes: 150€/nuit max
+        const dailyPrice = 150;
+        totalPrice = dailyPrice * nights;
+        originalTotalPrice = (adults * 19 + children * 13) * nights;
+        discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
+      } else if (totalPersons >= 20) {
+        // Prix fixe pour groupes de 20+ personnes: 200€/nuit max
+        const dailyPrice = 200;
+        totalPrice = dailyPrice * nights;
+        originalTotalPrice = (adults * 19 + children * 13) * nights;
+        discountReason = 'Forfait groupe appliqué (max 200€/nuit)';
       } else {
         // Tarif standard pour moins de 6 personnes
         totalPrice = (adults * 19 + children * 13) * nights;
@@ -487,17 +494,22 @@ function calculatePrice() {
         totalPrice = Math.round(regularPrice * discountFactor);
         originalTotalPrice = regularPrice;
         discountReason = 'Tarif groupe appliqué';
-      } else if (totalPersons >= 10 && totalPersons <= 20) {
-        // Prix fixe pour groupes de 10-20 personnes
-        const baseGroupPrice = 100;  // 100€ pour 10 personnes en basse saison
-        const pricePerAdditionalPerson = totalPersons > 10 ? 
-                                        (150 - 100) / 10 : 0;  // De 100€ à 150€ pour 10-20 personnes
-        const dailyPrice = baseGroupPrice + pricePerAdditionalPerson * (totalPersons - 10);
+      } else if (totalPersons >= 10 && totalPersons <= 19) {
+        // Prix fixe pour groupes de 10-19 personnes: 100€/nuit max
+        const dailyPrice = 100;
         totalPrice = dailyPrice * nights;
         originalTotalPrice = totalPersons > 0 
           ? (19 + (totalPersons - 1) * 10) * nights 
           : 0;
-        discountReason = 'Forfait groupe appliqué';
+        discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
+      } else if (totalPersons >= 20) {
+        // Prix fixe pour groupes de 20+ personnes: 150€/nuit max
+        const dailyPrice = 150;
+        totalPrice = dailyPrice * nights;
+        originalTotalPrice = totalPersons > 0 
+          ? (19 + (totalPersons - 1) * 10) * nights 
+          : 0;
+        discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
       } else {
         // Tarif standard pour moins de 6 personnes
         totalPrice = totalPersons > 0 
@@ -546,7 +558,6 @@ function calculatePrice() {
   // Mettre à jour l'affichage des prix
   updatePriceDisplay();
 }
-
   // Configurer les écouteurs d'événements pour le formulaire
   function setupFormEventListeners() {
     // Gestionnaire pour la soumission du formulaire
