@@ -807,4 +807,5 @@ const handleSubmit = (event) => {
   );
 };
 
-export default CalendarBookingForm;
+// Rendre le composant disponible globalement pour que reservation.js puisse y accéder
+window.CalendarBookingForm = CalendarBookingForm;
