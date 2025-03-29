@@ -81,10 +81,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.css"/>
     <link rel="stylesheet" href="CalendarStyles.css">
 
-    <!-- Scripts React sans modules ES6 -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 </head>
 <body class="bg-green-50">
     <!-- Hero Section -->
@@ -359,20 +355,20 @@
         </div>
     </div>
 </footer>
-   <!-- Scripts React sans modules ES6 -->
+  <!-- D'abord charger React et ReactDOM -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Ensuite Babel pour la transpilation JSX -->
 <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
-<!-- Scripts du système de réservation (chargés dans le bon ordre) -->
-<script type="text/babel" src="calendar-component.js"></script>
-<script type="text/babel" src="reservation.js"></script>
-
-<!-- Autres scripts -->
+<!-- Charger TailwindCSS avant vos composants pour que les styles soient disponibles -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Animations et autres bibliothèques -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/ScrollTrigger.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.js"></script>
-<script src="main.js"></script>
+<!-- Vos scripts, charger calendar-component.js avant reservation.js -->
+<script type="text/babel" src="calendar-component.js"></script>
+<script type="text/babel" src="main.js"></script>
+<script type="text/babel" src="reservation.js"></script>
 </body>
 </html>
