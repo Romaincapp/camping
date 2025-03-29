@@ -140,89 +140,77 @@ function addDiscountStyles() {
   document.head.appendChild(style);
 }
 
-// Fonction pour initialiser le Swiper - ré-extraite pour éviter les conflits potentiels
-function initSwiper() {
-  console.log('Initialisation du Swiper...');
-  // Vérifier si Swiper est chargé
-  if (typeof Swiper === 'undefined') {
-    console.error('La bibliothèque Swiper n\'est pas chargée!');
-    return null;
-  }
-  
-  // Vérifier si l'élément .swiper existe
-  const swiperEl = document.querySelector('.swiper');
-  if (!swiperEl) {
-    console.error('Élément .swiper non trouvé dans le DOM');
-    return null;
-  }
-  
-  try {
-    // Initialisation directe du Swiper
-    return new Swiper('.swiper', {
-      loop: true,
-      effect: "fade",
-      autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
+// Attendre que le DOM soit complètement chargé
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialisation du Swiper avec des paramètres optimisés
+  const swiper = new Swiper('.swiper', {
+    loop: true,
+    effect: "fade",
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    speed: 1000,
+    breakpoints: {
+      320: {
+        slidesPerView: 1,
       },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
+      768: {
+        slidesPerView: 1,
       },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
-      speed: 1000,
-      breakpoints: {
-        320: {
-          slidesPerView: 1,
-        },
-        768: {
-          slidesPerView: 1,
-        },
-        1024: {
-          slidesPerView: 1,
-        }
+      1024: {
+        slidesPerView: 1,
       }
-    });
-  } catch (error) {
-    console.error('Erreur lors de l\'initialisation du Swiper:', error);
-    return null;
-  }
-}
-
-// Attendre que la page soit complètement chargée (tous les assets inclus)
-window.addEventListener('load', function() {
-  console.log('Page complètement chargée, initialisation des fonctionnalités...');
-  
-  // Initialiser le Swiper
-  const swiper = initSwiper();
-  if (swiper) {
-    console.log('Swiper initialisé avec succès!');
-  }
-  
+    },
+    // Ajout d'un peu de zoom au survol des slides
+    on: {
+      init: function() {
+        // Ajouter un style hover aux slides
+        const style = document.createElement('style');
+        style.textContent = `
+          .swiper-slide {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+          }
+          .swiper-slide:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+  });
+    
   // Initialiser GLightbox
   const lightbox = initGLightbox();
   
   // Animations GSAP
-  if (typeof gsap !== 'undefined' && gsap.registerPlugin) {
-    gsap.registerPlugin(ScrollTrigger);
-    // Animation des cartes de fonctionnalités
-    gsap.from('.feature-card', {
-      scrollTrigger: {
-        trigger: '.feature-card',
-        start: 'top bottom-=100',
-        toggleActions: 'play none none reverse'
-      },
-      y: 50,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.2
-    });
-  } else {
-    console.warn('GSAP ou ScrollTrigger non chargé');
-  }
+  gsap.registerPlugin(ScrollTrigger);
+  // Animation des cartes de fonctionnalités
+  gsap.from('.feature-card', {
+    scrollTrigger: {
+      trigger: '.feature-card',
+      start: 'top bottom-=100',
+      toggleActions: 'play none none reverse'
+    },
+    y: 50,
+    opacity: 0,
+    duration: 0.8,
+    stagger: 0.2
+  });
+
+  // Les appels à initCalendar() et initBookingForm() sont désactivés
+  // initCalendar();
+  // initBookingForm();
   
   // Appliquer des styles corrects pour l'animation float
   const styleElement = document.createElement('style');
@@ -252,29 +240,19 @@ window.addEventListener('load', function() {
   promoCards.forEach(card => {
     // Effet de survol pour les cartes promo
     card.addEventListener('mouseenter', function() {
-      if (typeof gsap !== 'undefined') {
-        gsap.to(this, { 
-          y: -10, 
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', 
-          duration: 0.3 
-        });
-      }
+      gsap.to(this, { 
+        y: -10, 
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', 
+        duration: 0.3 
+      });
     });
     
     card.addEventListener('mouseleave', function() {
-      if (typeof gsap !== 'undefined') {
-        gsap.to(this, { 
-          y: 0, 
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', 
-          duration: 0.3 
-        });
-      }
+      gsap.to(this, { 
+        y: 0, 
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', 
+        duration: 0.3 
+      });
     });
   });
-});
-
-// Pour la compatibilité, conserver également l'événement DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM chargé, init des fonctionnalités de base...');
-  // Pour les fonctionnalités qui n'ont pas besoin que tous les assets soient chargés
 });
