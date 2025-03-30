@@ -413,7 +413,7 @@ function updatePriceDisplay() {
   }
 }
 
-  function calculatePrice() {
+ function calculatePrice() {
   if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) {
     calendarState.priceInfo = {
       nights: 0,
@@ -439,52 +439,57 @@ function updatePriceDisplay() {
     const children = parseInt(calendarState.formData.children) || 0;
     const totalPersons = adults + children;
     
-    let adultPrice, childPrice, totalPrice, originalTotalPrice;
+    let adultPrice, childPrice, totalPrice;
     let discountReason = '';
     
-    // --- Calcul du prix de base ---
+    // --- Calcul du prix de base (sans aucune réduction) ---
+    // Ce prix sera toujours utilisé comme prix barré
+    let fullPriceWithoutReduction;
+    
     if (isHighSeason) {
-      // Haute saison: 19€ par adulte, 13€ par enfant
+      // Haute saison: 19€ par adulte, 13€ par enfant sans AUCUNE réduction
       adultPrice = '19 €';
       childPrice = '13 €';
-      
-      // Appliquer tarif dégressif pour les groupes
+      fullPriceWithoutReduction = (adults * 19 + children * 13) * nights;
+    } else {
+      // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
+      adultPrice = '19€ (1er) / 10€ (autres)';
+      childPrice = '10 €';
+      fullPriceWithoutReduction = totalPersons > 0 
+        ? (19 + (totalPersons - 1) * 10) * nights 
+        : 0;
+    }
+    
+    // --- Calcul du prix avec les réductions de groupe ---
+    if (isHighSeason) {
+      // Haute saison
       if (totalPersons >= 6 && totalPersons < 10) {
         // Tarif dégressif pour 6-9 personnes
         const regularPrice = (adults * 19 + children * 13) * nights;
         const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
         totalPrice = Math.round(regularPrice * discountFactor);
-        originalTotalPrice = regularPrice;
         discountReason = 'Tarif groupe appliqué';
       } else if (totalPersons >= 10 && totalPersons <= 14) {
         // Prix fixe pour groupes de 10-14 personnes: 100€/nuit max
         const dailyPrice = 100;
         totalPrice = dailyPrice * nights;
-        originalTotalPrice = (adults * 19 + children * 13) * nights;
         discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
       } else if (totalPersons >= 15 && totalPersons <= 19) {
         // Prix fixe pour groupes de 15-19 personnes: 150€/nuit max
         const dailyPrice = 150;
         totalPrice = dailyPrice * nights;
-        originalTotalPrice = (adults * 19 + children * 13) * nights;
         discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
       } else if (totalPersons >= 20) {
         // Prix fixe pour groupes de 20+ personnes: 200€/nuit max
         const dailyPrice = 200;
         totalPrice = dailyPrice * nights;
-        originalTotalPrice = (adults * 19 + children * 13) * nights;
         discountReason = 'Forfait groupe appliqué (max 200€/nuit)';
       } else {
         // Tarif standard pour moins de 6 personnes
         totalPrice = (adults * 19 + children * 13) * nights;
-        originalTotalPrice = totalPrice;
       }
     } else {
-      // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
-      adultPrice = '19€ (1er) / 10€ (autres)';
-      childPrice = '10 €';
-      
-      // Appliquer tarif dégressif pour les groupes
+      // Basse saison
       if (totalPersons >= 6 && totalPersons < 10) {
         // Tarif dégressif pour 6-9 personnes
         const regularPrice = totalPersons > 0 
@@ -492,32 +497,27 @@ function updatePriceDisplay() {
           : 0;
         const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
         totalPrice = Math.round(regularPrice * discountFactor);
-        originalTotalPrice = regularPrice;
         discountReason = 'Tarif groupe appliqué';
       } else if (totalPersons >= 10 && totalPersons <= 19) {
         // Prix fixe pour groupes de 10-19 personnes: 100€/nuit max
         const dailyPrice = 100;
         totalPrice = dailyPrice * nights;
-        originalTotalPrice = totalPersons > 0 
-          ? (19 + (totalPersons - 1) * 10) * nights 
-          : 0;
         discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
       } else if (totalPersons >= 20) {
         // Prix fixe pour groupes de 20+ personnes: 150€/nuit max
         const dailyPrice = 150;
         totalPrice = dailyPrice * nights;
-        originalTotalPrice = totalPersons > 0 
-          ? (19 + (totalPersons - 1) * 10) * nights 
-          : 0;
         discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
       } else {
         // Tarif standard pour moins de 6 personnes
         totalPrice = totalPersons > 0 
           ? (19 + (totalPersons - 1) * 10) * nights 
           : 0;
-        originalTotalPrice = totalPrice;
       }
     }
+    
+    // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
+    let priceAfterGroupDiscount = totalPrice;
     
     // --- Appliquer réduction sur la durée du séjour ---
     let stayDiscount = 0;
@@ -531,26 +531,19 @@ function updatePriceDisplay() {
       discountReason += 'Réduction 5% pour séjour de 2-3 nuits';
     }
     
-    // Appliquer la réduction sur durée du séjour (si applicable)
+    // Appliquer la réduction sur durée du séjour
     if (stayDiscount > 0) {
-      // Si le prix est déjà réduit par le tarif groupe, appliquer sur le prix déjà réduit
-      if (originalTotalPrice !== totalPrice) {
-        originalTotalPrice = totalPrice; // Le prix groupe devient le prix "original" pour la remise durée
-        totalPrice = Math.round(totalPrice * (1 - stayDiscount));
-      } else {
-        // Sinon, appliquer la réduction sur le prix standard
-        originalTotalPrice = totalPrice;
-        totalPrice = Math.round(totalPrice * (1 - stayDiscount));
-      }
+      totalPrice = Math.round(totalPrice * (1 - stayDiscount));
     }
     
+    // Utiliser fullPriceWithoutReduction comme prix barré original
     calendarState.priceInfo = {
       nights,
       adultPrice,
       childPrice,
       totalPrice,
-      originalTotalPrice,
-      discount: originalTotalPrice - totalPrice,
+      originalTotalPrice: fullPriceWithoutReduction,
+      discount: fullPriceWithoutReduction - totalPrice,
       discountReason
     };
   }
