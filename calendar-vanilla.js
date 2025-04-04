@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="ml-3">
                   <p class="text-sm text-yellow-700">
-                    Ce formulaire est uniquement une demande d'information et ne confirme pas votre réservation. Un lien de paiement vous sera envoyé une fois vos dates validées.
+                    Ce formulaire est uniquement une demande d'information et ne confirme pas votre réservation. Un lien de paiement ainsi que l'adresse exacte du camp vous seront envoyés une fois vos dates validées.
                   </p>
                 </div>
               </div>
