@@ -1095,7 +1095,6 @@ function renderBookingForm() {
       <div class="mt-4 text-xs text-gray-600">
     <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
     <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
-    <p class="mt-1 text-red-600 font-semibold">Promo dernière minute: réservez aujourd'hui pour ce soir et bénéficiez d'un tarif exceptionnel de 10€/personne pour la première nuit!</p>
     <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
   </div>
     </div>
