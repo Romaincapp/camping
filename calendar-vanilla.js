@@ -413,7 +413,7 @@ function updatePriceDisplay() {
   }
 }
 
- function calculatePrice() {
+function calculatePrice() {
   if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) {
     calendarState.priceInfo = {
       nights: 0,
@@ -442,6 +442,13 @@ function updatePriceDisplay() {
     let adultPrice, childPrice, totalPrice;
     let discountReason = '';
     
+    // --- Vérifier si c'est une réservation de dernière minute (jour même) ---
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDateOnly = new Date(start);
+    startDateOnly.setHours(0, 0, 0, 0);
+    const isLastMinute = startDateOnly.getTime() === today.getTime();
+    
     // --- Calcul du prix de base (sans aucune réduction) ---
     // Ce prix sera toujours utilisé comme prix barré
     let fullPriceWithoutReduction;
@@ -460,80 +467,146 @@ function updatePriceDisplay() {
         : 0;
     }
     
-    // --- Calcul du prix avec les réductions de groupe ---
-    if (isHighSeason) {
-      // Haute saison
-      if (totalPersons >= 6 && totalPersons < 10) {
-        // Tarif dégressif pour 6-9 personnes
-        const regularPrice = (adults * 19 + children * 13) * nights;
-        const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
-        totalPrice = Math.round(regularPrice * discountFactor);
-        discountReason = 'Tarif groupe appliqué';
-      } else if (totalPersons >= 10 && totalPersons <= 14) {
-        // Prix fixe pour groupes de 10-14 personnes: 100€/nuit max
-        const dailyPrice = 100;
-        totalPrice = dailyPrice * nights;
-        discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
-      } else if (totalPersons >= 15 && totalPersons <= 19) {
-        // Prix fixe pour groupes de 15-19 personnes: 150€/nuit max
-        const dailyPrice = 150;
-        totalPrice = dailyPrice * nights;
-        discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
-      } else if (totalPersons >= 20) {
-        // Prix fixe pour groupes de 20+ personnes: 200€/nuit max
-        const dailyPrice = 200;
-        totalPrice = dailyPrice * nights;
-        discountReason = 'Forfait groupe appliqué (max 200€/nuit)';
+    // --- Appliquer la promo dernière minute si applicable ---
+    if (isLastMinute) {
+      // Promo dernière minute: 10€ par personne pour la première nuit, tarif normal pour les suivantes
+      let firstNightPrice = totalPersons * 10;
+      let remainingNightsPrice = 0;
+      
+      if (nights > 1) {
+        // Calculer le prix normal pour les nuits restantes
+        if (isHighSeason) {
+          // Haute saison pour les nuits restantes
+          if (totalPersons >= 6 && totalPersons < 10) {
+            // Tarif dégressif pour 6-9 personnes
+            const regularPrice = (adults * 19 + children * 13) * (nights - 1);
+            const discountFactor = 1 - ((totalPersons - 5) * 0.05);
+            remainingNightsPrice = Math.round(regularPrice * discountFactor);
+          } else if (totalPersons >= 10 && totalPersons <= 14) {
+            remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-14 personnes
+          } else if (totalPersons >= 15 && totalPersons <= 19) {
+            remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 15-19 personnes
+          } else if (totalPersons >= 20) {
+            remainingNightsPrice = 200 * (nights - 1); // 200€/nuit pour 20+ personnes
+          } else {
+            remainingNightsPrice = (adults * 19 + children * 13) * (nights - 1);
+          }
+        } else {
+          // Basse saison pour les nuits restantes
+          if (totalPersons >= 6 && totalPersons < 10) {
+            const regularPrice = totalPersons > 0 
+              ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
+              : 0;
+            const discountFactor = 1 - ((totalPersons - 5) * 0.05);
+            remainingNightsPrice = Math.round(regularPrice * discountFactor);
+          } else if (totalPersons >= 10 && totalPersons <= 19) {
+            remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-19 personnes
+          } else if (totalPersons >= 20) {
+            remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 20+ personnes
+          } else {
+            remainingNightsPrice = totalPersons > 0 
+              ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
+              : 0;
+          }
+        }
+        
+        // Appliquer réduction séjour sur les nuits restantes
+        let stayDiscount = 0;
+        if (nights >= 4) {
+          stayDiscount = 0.10; // 10% pour 4 nuits ou plus
+        } else if (nights >= 2) {
+          stayDiscount = 0.05; // 5% pour 2-3 nuits
+        }
+        
+        if (stayDiscount > 0) {
+          remainingNightsPrice = Math.round(remainingNightsPrice * (1 - stayDiscount));
+        }
+      }
+      
+      // Prix total = promo première nuit + prix normal pour les nuits restantes
+      totalPrice = firstNightPrice + remainingNightsPrice;
+      
+      if (nights === 1) {
+        discountReason = 'Promo dernière minute (10€/personne)';
       } else {
-        // Tarif standard pour moins de 6 personnes
-        totalPrice = (adults * 19 + children * 13) * nights;
+        discountReason = `Promo dernière minute pour la 1ère nuit (10€/personne) + tarif normal pour les ${nights-1} nuits suivantes`;
       }
     } else {
-      // Basse saison
-      if (totalPersons >= 6 && totalPersons < 10) {
-        // Tarif dégressif pour 6-9 personnes
-        const regularPrice = totalPersons > 0 
-          ? (19 + (totalPersons - 1) * 10) * nights 
-          : 0;
-        const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
-        totalPrice = Math.round(regularPrice * discountFactor);
-        discountReason = 'Tarif groupe appliqué';
-      } else if (totalPersons >= 10 && totalPersons <= 19) {
-        // Prix fixe pour groupes de 10-19 personnes: 100€/nuit max
-        const dailyPrice = 100;
-        totalPrice = dailyPrice * nights;
-        discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
-      } else if (totalPersons >= 20) {
-        // Prix fixe pour groupes de 20+ personnes: 150€/nuit max
-        const dailyPrice = 150;
-        totalPrice = dailyPrice * nights;
-        discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
+      // --- Calcul du prix avec les réductions de groupe ---
+      if (isHighSeason) {
+        // Haute saison
+        if (totalPersons >= 6 && totalPersons < 10) {
+          // Tarif dégressif pour 6-9 personnes
+          const regularPrice = (adults * 19 + children * 13) * nights;
+          const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
+          totalPrice = Math.round(regularPrice * discountFactor);
+          discountReason = 'Tarif groupe appliqué';
+        } else if (totalPersons >= 10 && totalPersons <= 14) {
+          // Prix fixe pour groupes de 10-14 personnes: 100€/nuit max
+          const dailyPrice = 100;
+          totalPrice = dailyPrice * nights;
+          discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
+        } else if (totalPersons >= 15 && totalPersons <= 19) {
+          // Prix fixe pour groupes de 15-19 personnes: 150€/nuit max
+          const dailyPrice = 150;
+          totalPrice = dailyPrice * nights;
+          discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
+        } else if (totalPersons >= 20) {
+          // Prix fixe pour groupes de 20+ personnes: 200€/nuit max
+          const dailyPrice = 200;
+          totalPrice = dailyPrice * nights;
+          discountReason = 'Forfait groupe appliqué (max 200€/nuit)';
+        } else {
+          // Tarif standard pour moins de 6 personnes
+          totalPrice = (adults * 19 + children * 13) * nights;
+        }
       } else {
-        // Tarif standard pour moins de 6 personnes
-        totalPrice = totalPersons > 0 
-          ? (19 + (totalPersons - 1) * 10) * nights 
-          : 0;
+        // Basse saison
+        if (totalPersons >= 6 && totalPersons < 10) {
+          // Tarif dégressif pour 6-9 personnes
+          const regularPrice = totalPersons > 0 
+            ? (19 + (totalPersons - 1) * 10) * nights 
+            : 0;
+          const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
+          totalPrice = Math.round(regularPrice * discountFactor);
+          discountReason = 'Tarif groupe appliqué';
+        } else if (totalPersons >= 10 && totalPersons <= 19) {
+          // Prix fixe pour groupes de 10-19 personnes: 100€/nuit max
+          const dailyPrice = 100;
+          totalPrice = dailyPrice * nights;
+          discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
+        } else if (totalPersons >= 20) {
+          // Prix fixe pour groupes de 20+ personnes: 150€/nuit max
+          const dailyPrice = 150;
+          totalPrice = dailyPrice * nights;
+          discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
+        } else {
+          // Tarif standard pour moins de 6 personnes
+          totalPrice = totalPersons > 0 
+            ? (19 + (totalPersons - 1) * 10) * nights 
+            : 0;
+        }
       }
-    }
-    
-    // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
-    let priceAfterGroupDiscount = totalPrice;
-    
-    // --- Appliquer réduction sur la durée du séjour ---
-    let stayDiscount = 0;
-    if (nights >= 4) {
-      stayDiscount = 0.10; // 10% pour 4 nuits ou plus
-      if (discountReason) discountReason += ' + ';
-      discountReason += 'Réduction 10% pour séjour de 4 nuits ou plus';
-    } else if (nights >= 2) {
-      stayDiscount = 0.05; // 5% pour 2-3 nuits
-      if (discountReason) discountReason += ' + ';
-      discountReason += 'Réduction 5% pour séjour de 2-3 nuits';
-    }
-    
-    // Appliquer la réduction sur durée du séjour
-    if (stayDiscount > 0) {
-      totalPrice = Math.round(totalPrice * (1 - stayDiscount));
+      
+      // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
+      let priceAfterGroupDiscount = totalPrice;
+      
+      // --- Appliquer réduction sur la durée du séjour ---
+      let stayDiscount = 0;
+      if (nights >= 4) {
+        stayDiscount = 0.10; // 10% pour 4 nuits ou plus
+        if (discountReason) discountReason += ' + ';
+        discountReason += 'Réduction 10% pour séjour de 4 nuits ou plus';
+      } else if (nights >= 2) {
+        stayDiscount = 0.05; // 5% pour 2-3 nuits
+        if (discountReason) discountReason += ' + ';
+        discountReason += 'Réduction 5% pour séjour de 2-3 nuits';
+      }
+      
+      // Appliquer la réduction sur durée du séjour
+      if (stayDiscount > 0) {
+        totalPrice = Math.round(totalPrice * (1 - stayDiscount));
+      }
     }
     
     // Utiliser fullPriceWithoutReduction comme prix barré original
@@ -1020,10 +1093,11 @@ function renderBookingForm() {
       <!-- Nouvel élément pour afficher les informations de réduction -->
       <div id="discountInfo" class="hidden"></div>
       <div class="mt-4 text-xs text-gray-600">
-        <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
-        <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
-        <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
-      </div>
+    <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
+    <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
+    <p class="mt-1 text-red-600 font-semibold">Promo dernière minute: réservez aujourd'hui pour ce soir et bénéficiez d'un tarif exceptionnel de 10€/personne pour la première nuit!</p>
+    <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
+  </div>
     </div>
 
     <!-- Bouton d'envoi -->
