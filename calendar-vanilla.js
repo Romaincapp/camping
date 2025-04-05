@@ -1071,11 +1071,21 @@ function renderBookingForm() {
         </div>
         <div class="flex justify-between">
           <span>Prix par adulte:</span>
-          <span id="pricePerAdult">${calendarState.priceInfo.adultPrice.discount}</span>
+          <span id="pricePerAdult">
+            ${calendarState.priceInfo.adultPriceOriginal && calendarState.priceInfo.adultPriceOriginal !== calendarState.priceInfo.adultPrice
+              ? `<span class="line-through text-gray-500">${calendarState.priceInfo.adultPriceOriginal} €</span>
+                 <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.adultPrice} €</span>`
+              : `${calendarState.priceInfo.adultPrice} €`}
+          </span>
         </div>
         <div class="flex justify-between">
           <span>Prix par enfant:</span>
-          <span id="pricePerChild">${calendarState.priceInfo.childPrice.discount}</span>
+          <span id="pricePerChild">
+            ${calendarState.priceInfo.childPriceOriginal && calendarState.priceInfo.childPriceOriginal !== calendarState.priceInfo.childPrice
+              ? `<span class="line-through text-gray-500">${calendarState.priceInfo.childPriceOriginal} €</span>
+                 <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.childPrice} €</span>`
+              : `${calendarState.priceInfo.childPrice} €`}
+          </span>
         </div>
         <div class="flex justify-between">
           <span>Nombre d'adultes:</span>
@@ -1088,15 +1098,23 @@ function renderBookingForm() {
       </div>
       <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
         <span>Total estimé:</span>
-        <span id="totalPrice">${calendarState.priceInfo.totalPrice} €</span>
+        <span id="totalPrice">
+          ${calendarState.priceInfo.discount > 0 
+            ? `<span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
+               <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>`
+            : `${calendarState.priceInfo.totalPrice} €`}
+        </span>
       </div>
       <!-- Nouvel élément pour afficher les informations de réduction -->
-      <div id="discountInfo" class="hidden"></div>
+      <div id="discountInfo" class="${calendarState.priceInfo.discount > 0 ? '' : 'hidden'} mt-2 bg-green-100 text-green-800 p-2 rounded-md">
+        <span class="font-semibold">Économisez ${calendarState.priceInfo.discount} € :</span>
+        ${calendarState.priceInfo.discountReason}
+      </div>
       <div class="mt-4 text-xs text-gray-600">
-    <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
-    <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
-    <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
-  </div>
+        <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
+        <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
+        <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
+      </div>
     </div>
 
     <!-- Bouton d'envoi -->
