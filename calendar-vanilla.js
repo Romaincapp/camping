@@ -1071,11 +1071,11 @@ function renderBookingForm() {
         </div>
         <div class="flex justify-between">
           <span>Prix par adulte:</span>
-          <span id="pricePerAdult">${calendarState.priceInfo.adultPrice}</span>
+          <span id="pricePerAdult">${calendarState.priceInfo.adultPrice.discount}</span>
         </div>
         <div class="flex justify-between">
           <span>Prix par enfant:</span>
-          <span id="pricePerChild">${calendarState.priceInfo.childPrice}</span>
+          <span id="pricePerChild">${calendarState.priceInfo.childPrice.discount}</span>
         </div>
         <div class="flex justify-between">
           <span>Nombre d'adultes:</span>
