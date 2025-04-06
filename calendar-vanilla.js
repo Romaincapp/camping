@@ -1070,6 +1070,14 @@ function renderBookingForm() {
           <span id="numberOfNights">${calendarState.priceInfo.nights}</span>
         </div>
         <div class="flex justify-between">
+          <span>Prix par adulte:</span>
+          <span id="pricePerAdult">${calendarState.priceInfo.adultPrice}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Prix par enfant:</span>
+          <span id="pricePerChild">${calendarState.priceInfo.childPrice}</span>
+        </div>
+        <div class="flex justify-between">
           <span>Nombre d'adultes:</span>
           <span id="numberOfAdults">${calendarState.formData.adults}</span>
         </div>
