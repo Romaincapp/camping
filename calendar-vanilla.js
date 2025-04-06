@@ -1070,24 +1070,6 @@ function renderBookingForm() {
           <span id="numberOfNights">${calendarState.priceInfo.nights}</span>
         </div>
         <div class="flex justify-between">
-          <span>Prix par adulte:</span>
-          <span id="pricePerAdult">
-            ${calendarState.priceInfo.adultPriceOriginal && calendarState.priceInfo.adultPriceOriginal !== calendarState.priceInfo.adultPrice
-              ? `<span class="line-through text-gray-500">${calendarState.priceInfo.adultPriceOriginal} €</span>
-                 <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.adultPrice} €</span>`
-              : `${calendarState.priceInfo.adultPrice} €`}
-          </span>
-        </div>
-        <div class="flex justify-between">
-          <span>Prix par enfant:</span>
-          <span id="pricePerChild">
-            ${calendarState.priceInfo.childPriceOriginal && calendarState.priceInfo.childPriceOriginal !== calendarState.priceInfo.childPrice
-              ? `<span class="line-through text-gray-500">${calendarState.priceInfo.childPriceOriginal} €</span>
-                 <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.childPrice} €</span>`
-              : `${calendarState.priceInfo.childPrice} €`}
-          </span>
-        </div>
-        <div class="flex justify-between">
           <span>Nombre d'adultes:</span>
           <span id="numberOfAdults">${calendarState.formData.adults}</span>
         </div>
