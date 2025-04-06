@@ -140,56 +140,69 @@ function addDiscountStyles() {
   document.head.appendChild(style);
 }
 
+// Nouvelle fonction pour initialiser la galerie horizontale
+function initHorizontalGallery() {
+  const gallery = document.querySelector('.horizontal-gallery');
+  const scrollThumb = document.querySelector('.scroll-thumb');
+  
+  if (!gallery || !scrollThumb) return;
+  
+  function updateScrollThumb() {
+    const scrollPercentage = gallery.scrollLeft / (gallery.scrollWidth - gallery.clientWidth);
+    const maxTranslate = 100 - (scrollThumb.clientWidth / scrollThumb.parentElement.clientWidth * 100);
+    const translateValue = scrollPercentage * maxTranslate;
+    const boundedTranslate = Math.max(0, Math.min(translateValue, maxTranslate));
+    scrollThumb.style.transform = `translateX(${boundedTranslate}%)`;
+  }
+  
+  gallery.addEventListener('scroll', updateScrollThumb);
+  updateScrollThumb();
+  
+  setTimeout(() => {
+    const firstItem = gallery.querySelector('.gallery-item');
+    if (firstItem) {
+      const itemWidth = firstItem.offsetWidth;
+      const containerWidth = gallery.offsetWidth;
+      const scrollPosition = (itemWidth - containerWidth) / 2;
+      gallery.scrollLeft = scrollPosition > 0 ? scrollPosition : 0;
+    }
+  }, 100);
+  
+  const galleryItems = document.querySelectorAll('.gallery-item');
+  
+  if (typeof gsap !== 'undefined') {
+    galleryItems.forEach(item => {
+      item.addEventListener('mouseenter', function() {
+        gsap.to(this, { scale: 1.03, duration: 0.3, ease: "power2.out" });
+      });
+      
+      item.addEventListener('mouseleave', function() {
+        gsap.to(this, { scale: 1, duration: 0.3, ease: "power2.out" });
+      });
+    });
+
+    gsap.from('.gallery-item', {
+      scrollTrigger: {
+        trigger: '.horizontal-gallery',
+        start: 'top bottom',
+        end: 'bottom top',
+        toggleActions: 'play none none reverse'
+      },
+      y: 30,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1
+    });
+  }
+  
+  return gallery;
+}
+
 // Attendre que le DOM soit complètement chargé
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialisation du Swiper avec des paramètres optimisés
-  const swiper = new Swiper('.swiper', {
-    loop: true,
-    effect: "fade",
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false,
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
-    },
-    speed: 1000,
-    breakpoints: {
-      320: {
-        slidesPerView: 1,
-      },
-      768: {
-        slidesPerView: 1,
-      },
-      1024: {
-        slidesPerView: 1,
-      }
-    },
-    // Ajout d'un peu de zoom au survol des slides
-    on: {
-      init: function() {
-        // Ajouter un style hover aux slides
-        const style = document.createElement('style');
-        style.textContent = `
-          .swiper-slide {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-          }
-          .swiper-slide:hover {
-            transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-          }
-        `;
-        document.head.appendChild(style);
-      }
-    }
-  });
-    
+  // Initialisation de la galerie horizontale
+  initHorizontalGallery();
+  
   // Initialiser GLightbox
   const lightbox = initGLightbox();
   

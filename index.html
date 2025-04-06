@@ -224,53 +224,56 @@
     </div>
 </section>
 
-   <!-- Carrousel Section -->
-<section class="py-16 md:py-20 px-4">
-    <div class="container mx-auto">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-green-800 mb-8 md:mb-12">Découvrez notre site</h2>
-        <div class="swiper">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <a href="images/kayak.jpg" class="glightbox" data-gallery="gallery1">
-                        <img src="images/kayak.jpg" 
-                             alt="Activité kayak au camping"
-                             loading="lazy" />
-                    </a>
-                </div>
-                <div class="swiper-slide">
-                    <a href="images/cuisine.jpg" class="glightbox" data-gallery="gallery1">
-                        <img src="images/cuisine.jpg" 
-                             alt="Espace cuisine du camping"
-                             loading="lazy" />
-                    </a>
-                </div>
-                <div class="swiper-slide">
-                    <a href="images/drone.jpg" class="glightbox" data-gallery="gallery1">
-                        <img src="images/drone.jpg" 
-                             alt="Vue aérienne du camping"
-                             loading="lazy" />
-                    </a>
-                </div>
-                <div class="swiper-slide">
-                    <a href="images/tente.jpg" class="glightbox" data-gallery="gallery1">
-                        <img src="images/tente.jpg" 
-                             alt="Emplacement de tente"
-                             loading="lazy" />
-                    </a>
-                 </div>
-                <div class="swiper-slide">
-                    <a href="images/hero.jpg" class="glightbox" data-gallery="gallery1">
-                        <img src="images/hero.jpg" 
-                             alt="Vue panoramique du site"
-                             loading="lazy" />
-                    </a>                         
-                </div>
-            </div>
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
-        </div>
-    </div>
+   <!-- défilement horizontal -->
+<section class="horizontal-gallery-section py-16 md:py-20 px-4">
+  <div class="container mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center text-green-800 mb-8 md:mb-12">Découvrez notre site</h2>
+      <div class="horizontal-gallery-container">
+          <div class="horizontal-gallery">
+              <div class="gallery-item">
+                  <a href="images/kayak.jpg" class="glightbox" data-gallery="gallery1">
+                      <img src="images/kayak.jpg" 
+                           alt="Activité kayak au camping"
+                           loading="lazy" />
+                  </a>
+              </div>
+              <div class="gallery-item">
+                  <a href="images/cuisine.jpg" class="glightbox" data-gallery="gallery1">
+                      <img src="images/cuisine.jpg" 
+                           alt="Espace cuisine du camping"
+                           loading="lazy" />
+                  </a>
+              </div>
+              <div class="gallery-item">
+                  <a href="images/drone.jpg" class="glightbox" data-gallery="gallery1">
+                      <img src="images/drone.jpg" 
+                           alt="Vue aérienne du camping"
+                           loading="lazy" />
+                  </a>
+              </div>
+              <div class="gallery-item">
+                  <a href="images/tente.jpg" class="glightbox" data-gallery="gallery1">
+                      <img src="images/tente.jpg" 
+                           alt="Emplacement de tente"
+                           loading="lazy" />
+                  </a>
+              </div>
+              <div class="gallery-item">
+                  <a href="images/hero.jpg" class="glightbox" data-gallery="gallery1">
+                      <img src="images/hero.jpg" 
+                           alt="Vue panoramique du site"
+                           loading="lazy" />
+                  </a>                         
+              </div>
+          </div>
+          <!-- Indicateurs de défilement -->
+          <div class="scroll-indicator">
+              <div class="scroll-track">
+                  <div class="scroll-thumb"></div>
+              </div>
+          </div>
+      </div>
+  </div>
 </section>
     <!-- Features Section -->
     <section class="py-16 md:py-20 px-4">
