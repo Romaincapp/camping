@@ -198,10 +198,56 @@ function initHorizontalGallery() {
   return gallery;
 }
 
+// Nouvelle fonction pour initialiser la navigation dans la galerie
+function initGalleryNavigation() {
+  const gallery = document.querySelector('.horizontal-gallery');
+  const prevBtn = document.querySelector('.gallery-prev');
+  const nextBtn = document.querySelector('.gallery-next');
+  
+  if (!gallery || !prevBtn || !nextBtn) return;
+  
+  const scrollAmount = 800; // Ajustez selon la largeur de vos images
+  
+  prevBtn.addEventListener('click', () => {
+    gallery.scrollBy({
+      left: -scrollAmount,
+      behavior: 'smooth'
+    });
+  });
+  
+  nextBtn.addEventListener('click', () => {
+    gallery.scrollBy({
+      left: scrollAmount,
+      behavior: 'smooth'
+    });
+  });
+  
+  // Mise à jour de la visibilité des boutons
+  const updateButtonsVisibility = () => {
+    const isAtStart = gallery.scrollLeft <= 0;
+    const isAtEnd = gallery.scrollLeft >= gallery.scrollWidth - gallery.clientWidth;
+    
+    prevBtn.style.opacity = isAtStart ? '0' : '1';
+    prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
+    
+    nextBtn.style.opacity = isAtEnd ? '0' : '1';
+    nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+  };
+  
+  gallery.addEventListener('scroll', updateButtonsVisibility);
+  window.addEventListener('resize', updateButtonsVisibility);
+  
+  // Initial check
+  updateButtonsVisibility();
+}
+
 // Attendre que le DOM soit complètement chargé
 document.addEventListener('DOMContentLoaded', function() {
   // Initialisation de la galerie horizontale
   initHorizontalGallery();
+  
+  // Initialisation de la navigation dans la galerie
+  initGalleryNavigation();
   
   // Initialiser GLightbox
   const lightbox = initGLightbox();
