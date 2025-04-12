@@ -272,8 +272,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialisation du Swiper avec des paramètres optimisés
   const swiper = new Swiper('.swiper', {
     loop: true,
-    slidesPerView: 5,  // Augmenté pour desktop
-    spaceBetween: 30,  // Plus d'espace entre les slides
+    slidesPerView: 5,
+    spaceBetween: 0,    // Réduit l'espace pour permettre un meilleur scaling
     centeredSlides: true,
     autoplay: {
       delay: 4000,     // Délai augmenté
@@ -320,53 +320,52 @@ document.addEventListener('DOMContentLoaded', function() {
         const style = document.createElement('style');
         style.textContent = `
           .swiper-slide {
-            transition: transform 0.4s ease, box-shadow 0.3s ease;
+            transition: all 0.4s ease;
             cursor: pointer;
-            height: 350px;  // Hauteur réduite
-            padding: 5px;   // Padding réduit
-            filter: brightness(0.9);
+            height: 300px;  // Hauteur de base réduite
+            padding: 5px;
+            filter: brightness(0.7);  // Plus sombre pour les slides inactives
+            transform: scale(0.8);    // Plus petit par défaut
           }
-          .swiper-slide:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-            filter: brightness(1);
-            z-index: 1;
-          }
-          .swiper-slide-active {
-            transform: scale(1.1);
-            filter: brightness(1);
-            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
-            z-index: 2;
-          }
+          
           .swiper-slide img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 12px;
+            transition: all 0.4s ease;
           }
+
+          .swiper-slide-active {
+            transform: scale(1.3);    // Slide active significativement plus grande
+            height: 400px;           // Hauteur augmentée pour la slide active
+            filter: brightness(1);    // Luminosité normale
+            z-index: 10;             // Au-dessus des autres slides
+          }
+
+          .swiper-slide-prev,
+          .swiper-slide-next {
+            transform: scale(1);      // Slides adjacentes un peu plus grandes
+            filter: brightness(0.8);  // Un peu plus lumineuses que les autres
+            z-index: 5;
+          }
+
           .swiper-button-next,
           .swiper-button-prev {
             color: #16a34a;
             background: rgba(255, 255, 255, 0.9);
-            padding: 25px;  // Padding réduit
+            padding: 25px;
             border-radius: 50%;
             transform: scale(0.6);
+            z-index: 20;             // Au-dessus de toutes les slides
           }
-          .swiper-button-next:hover,
-          .swiper-button-prev:hover {
-            background: white;
-            transform: scale(0.7);
-          }
-          .swiper-pagination-bullet-active {
-            background: #16a34a;
-          }
-          
+
           @media (min-width: 1440px) {
             .swiper-container {
-              padding: 20px 0;  // Padding vertical pour les ombres
+              padding: 40px 0;        // Plus d'espace vertical
             }
-            .swiper-slide {
-              height: 400px;
+            .swiper-wrapper {
+              align-items: center;    // Centre verticalement les slides
             }
           }
         `;
