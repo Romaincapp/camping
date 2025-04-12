@@ -319,13 +319,18 @@ document.addEventListener('DOMContentLoaded', function() {
       init: function() {
         const style = document.createElement('style');
         style.textContent = `
+          .swiper-container {
+            padding: 60px 0;  // Plus d'espace pour les transformations
+          }
+
           .swiper-slide {
             transition: all 0.4s ease;
             cursor: pointer;
-            height: 300px;  // Hauteur de base réduite
-            padding: 5px;
-            filter: brightness(0.7);  // Plus sombre pour les slides inactives
-            transform: scale(0.8);    // Plus petit par défaut
+            height: 250px;     // Hauteur réduite pour les slides inactives
+            width: 350px;      // Largeur de base
+            filter: brightness(0.7);
+            transform: scale(0.7);
+            overflow: hidden;
           }
           
           .swiper-slide img {
@@ -337,16 +342,17 @@ document.addEventListener('DOMContentLoaded', function() {
           }
 
           .swiper-slide-active {
-            transform: scale(1.3);    // Slide active significativement plus grande
-            height: 400px;           // Hauteur augmentée pour la slide active
-            filter: brightness(1);    // Luminosité normale
-            z-index: 10;             // Au-dessus des autres slides
+            transform: scale(1.6);     // Scale augmenté significativement
+            height: 350px;            // Hauteur plus importante
+            width: 600px;             // Largeur plus importante
+            filter: brightness(1);
+            z-index: 10;
           }
 
           .swiper-slide-prev,
           .swiper-slide-next {
-            transform: scale(1);      // Slides adjacentes un peu plus grandes
-            filter: brightness(0.8);  // Un peu plus lumineuses que les autres
+            transform: scale(0.9);
+            filter: brightness(0.8);
             z-index: 5;
           }
 
@@ -357,15 +363,18 @@ document.addEventListener('DOMContentLoaded', function() {
             padding: 25px;
             border-radius: 50%;
             transform: scale(0.6);
-            z-index: 20;             // Au-dessus de toutes les slides
+            z-index: 20;
           }
 
           @media (min-width: 1440px) {
             .swiper-container {
-              padding: 40px 0;        // Plus d'espace vertical
+              padding: 80px 0;
             }
             .swiper-wrapper {
-              align-items: center;    // Centre verticalement les slides
+              align-items: center;
+            }
+            .swiper-slide-active {
+              transform: scale(1.8);   // Encore plus grand sur les grands écrans
             }
           }
         `;
