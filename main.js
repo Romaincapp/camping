@@ -268,4 +268,73 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   });
+
+  // Initialisation du Swiper avec des paramètres optimisés
+  const swiper = new Swiper('.swiper', {
+    loop: true,
+    slidesPerView: 3,
+    spaceBetween: 20,
+    centeredSlides: true,
+    autoplay: {
+      delay: 3000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+      dynamicBullets: true,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    speed: 800,
+    breakpoints: {
+      320: {
+        slidesPerView: 1,
+        spaceBetween: 10
+      },
+      640: {
+        slidesPerView: 2,
+        spaceBetween: 15
+      },
+      1024: {
+        slidesPerView: 3,
+        spaceBetween: 20
+      }
+    },
+    effect: 'coverflow',
+    coverflowEffect: {
+      rotate: 30,
+      stretch: 0,
+      depth: 100,
+      modifier: 1,
+      slideShadows: true,
+    },
+    on: {
+      init: function() {
+        const style = document.createElement('style');
+        style.textContent = `
+          .swiper-slide {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+          }
+          .swiper-slide:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+          }
+          .swiper-slide-active {
+            transform: scale(1.1);
+          }
+          .swiper-slide img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+  });
 });
