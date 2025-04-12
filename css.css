@@ -237,21 +237,38 @@
 .scroll-indicator {
     position: relative;
     height: 4px;
-    margin-top: 1rem;
+    margin-top: 20px;
+    padding: 0 20px;
 }
 
 .scroll-track {
-    background: rgba(0, 0, 0, 0.1);
-    height: 100%;
+    position: relative;
+    height: 4px;
+    background: rgba(22, 163, 74, 0.1);
     border-radius: 2px;
+    margin-bottom: 8px;
 }
 
 .scroll-thumb {
     position: absolute;
     height: 100%;
-    width: 20%;
+    width: 33.33%;
     background: #16a34a;
     border-radius: 2px;
     cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.scroll-text {
+    text-align: center;
+    color: #666;
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+@media (hover: none) {
+    .scroll-text {
+        display: none;
+    }
 }
 
