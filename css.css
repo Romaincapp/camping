@@ -20,23 +20,6 @@
     color: #ddd;
 }
 
-/* Styles pour les images du carrousel */
-.swiper-slide a {
-    display: block;
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.swiper-slide img {
-    transition: transform 0.5s ease;
-}
-
-.swiper-slide:hover img {
-    transform: scale(1.05);
-}
-
 /* Icône de zoom pour indiquer que l'image est cliquable */
 .swiper-slide a::after {
     content: '';
@@ -119,72 +102,76 @@
     animation: gradient 15s ease infinite;
 }
 
-/* Swiper Styles */
-.swiper {
+/* Horizontal Gallery Styles */
+.gallery-container {
     width: 100%;
-    height: 300px;
-    border-radius: 12px;
-    padding: 10px;
-    margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-    .swiper {
-        height: 500px;
-        max-width: 90%;
-    }
-}
-
-@media (min-width: 1024px) {
-    .swiper {
-        height: 600px;
-        max-width: 80%;
-    }
-}
-
-.swiper-slide {
-    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    position: relative;
+    padding: 20px 0;
 }
 
-.swiper-slide img {
+.horizontal-gallery {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    cursor: grab;
+}
+
+.horizontal-gallery::-webkit-scrollbar {
+    display: none;  /* Chrome and Safari */
+}
+
+.horizontal-gallery:active {
+    cursor: grabbing;
+}
+
+.gallery-item {
+    flex: 0 0 auto;
+    width: 800px;
+    height: 450px;
+    scroll-snap-align: center;
+    transition: all 0.3s ease;
+}
+
+.gallery-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.swiper-button-next,
-.swiper-button-prev {
-    color: #16a34a !important;
-    background: rgba(255, 255, 255, 0.9);
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 20px;
-    display: none;
+.gallery-item:hover {
+    transform: scale(1.02);
 }
 
-@media (min-width: 768px) {
-    .swiper-button-next,
-    .swiper-button-prev {
-        display: flex;
+/* Media Queries pour la galerie */
+@media (max-width: 1024px) {
+    .gallery-item {
+        width: 600px;
+        height: 338px;
     }
 }
 
-.swiper-button-next:after,
-.swiper-button-prev:after {
-    font-size: 18px !important;
+@media (max-width: 768px) {
+    .gallery-item {
+        width: 400px;
+        height: 225px;
+    }
 }
 
-.swiper-pagination-bullet {
-    width: 10px;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.9);
-}
-
-.swiper-pagination-bullet-active {
-    background: #16a34a !important;
+@media (max-width: 480px) {
+    .gallery-item {
+        width: 300px;
+        height: 169px;
+    }
+    .horizontal-gallery {
+        gap: 15px;
+    }
 }
 
 /* Feature Cards */
