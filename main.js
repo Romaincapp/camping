@@ -272,11 +272,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialisation du Swiper avec des paramètres optimisés
   const swiper = new Swiper('.swiper', {
     loop: true,
-    slidesPerView: 3,
-    spaceBetween: 20,
+    slidesPerView: 5,  // Augmenté pour desktop
+    spaceBetween: 30,  // Plus d'espace entre les slides
     centeredSlides: true,
     autoplay: {
-      delay: 3000,
+      delay: 4000,     // Délai augmenté
       disableOnInteraction: false,
     },
     pagination: {
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev',
     },
-    speed: 800,
+    speed: 1000,       // Transition plus douce
     breakpoints: {
       320: {
         slidesPerView: 1,
@@ -296,18 +296,22 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       640: {
         slidesPerView: 2,
-        spaceBetween: 15
+        spaceBetween: 20
       },
       1024: {
         slidesPerView: 3,
-        spaceBetween: 20
+        spaceBetween: 25
+      },
+      1440: {          // Nouveau breakpoint pour grands écrans
+        slidesPerView: 5,
+        spaceBetween: 30
       }
     },
     effect: 'coverflow',
     coverflowEffect: {
-      rotate: 30,
+      rotate: 20,      // Rotation réduite
       stretch: 0,
-      depth: 100,
+      depth: 200,      // Profondeur augmentée
       modifier: 1,
       slideShadows: true,
     },
@@ -316,21 +320,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const style = document.createElement('style');
         style.textContent = `
           .swiper-slide {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
             cursor: pointer;
+            height: 400px;  // Hauteur fixe pour desktop
           }
           .swiper-slide:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transform: scale(1.08);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
           }
           .swiper-slide-active {
-            transform: scale(1.1);
+            transform: scale(1.15);
           }
           .swiper-slide img {
             width: 100%;
-            height: 300px;
+            height: 100%;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 12px;
+          }
+          .swiper-button-next,
+          .swiper-button-prev {
+            color: #16a34a;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 50%;
+            transform: scale(0.7);
+          }
+          .swiper-button-next:hover,
+          .swiper-button-prev:hover {
+            background: white;
+            transform: scale(0.8);
+          }
+          .swiper-pagination-bullet-active {
+            background: #16a34a;
           }
         `;
         document.head.appendChild(style);
