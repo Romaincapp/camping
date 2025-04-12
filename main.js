@@ -320,38 +320,54 @@ document.addEventListener('DOMContentLoaded', function() {
         const style = document.createElement('style');
         style.textContent = `
           .swiper-slide {
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            transition: transform 0.4s ease, box-shadow 0.3s ease;
             cursor: pointer;
-            height: 400px;  // Hauteur fixe pour desktop
+            height: 350px;  // Hauteur réduite
+            padding: 5px;   // Padding réduit
+            filter: brightness(0.9);
           }
           .swiper-slide:hover {
-            transform: scale(1.08);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            filter: brightness(1);
+            z-index: 1;
           }
           .swiper-slide-active {
-            transform: scale(1.15);
+            transform: scale(1.1);
+            filter: brightness(1);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+            z-index: 2;
           }
           .swiper-slide img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 12px;
+            border-radius: 8px;
           }
           .swiper-button-next,
           .swiper-button-prev {
             color: #16a34a;
             background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
+            padding: 25px;  // Padding réduit
             border-radius: 50%;
-            transform: scale(0.7);
+            transform: scale(0.6);
           }
           .swiper-button-next:hover,
           .swiper-button-prev:hover {
             background: white;
-            transform: scale(0.8);
+            transform: scale(0.7);
           }
           .swiper-pagination-bullet-active {
             background: #16a34a;
+          }
+          
+          @media (min-width: 1440px) {
+            .swiper-container {
+              padding: 20px 0;  // Padding vertical pour les ombres
+            }
+            .swiper-slide {
+              height: 400px;
+            }
           }
         `;
         document.head.appendChild(style);
