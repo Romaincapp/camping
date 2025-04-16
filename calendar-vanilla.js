@@ -379,278 +379,293 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
- // Remplacer la fonction updatePriceDisplay dans calendar-vanilla.js
-
-function updatePriceDisplay() {
-  // Mettre à jour les informations de prix dans le DOM
-  document.getElementById('numberOfNights').textContent = calendarState.priceInfo.nights;
-  document.getElementById('pricePerAdult').textContent = calendarState.priceInfo.adultPrice;
-  document.getElementById('pricePerChild').textContent = calendarState.priceInfo.childPrice;
-  document.getElementById('numberOfAdults').textContent = calendarState.formData.adults;
-  document.getElementById('numberOfChildren').textContent = calendarState.formData.children;
-  
-  // Ajouter l'affichage du prix du bois dans la section d'estimation des frais
-  const woodPriceElement = document.getElementById('woodPrice');
-  const woodQuantityElement = document.getElementById('displayWoodQuantity');
-  const woodTypeElement = document.getElementById('displayWoodType');
-  
-  if (woodPriceElement && woodQuantityElement && woodTypeElement) {
-    if (calendarState.formData.woodOption) {
-      const woodType = calendarState.formData.woodOption === 'brouette' ? 'Brouette(s)' : 'Caisse(s)';
-      woodTypeElement.textContent = woodType;
-      woodQuantityElement.textContent = calendarState.formData.woodQuantity || 0;
-      woodPriceElement.textContent = `${calendarState.priceInfo.woodPrice} €`;
-      document.getElementById('woodPriceSection').classList.remove('hidden');
-    } else {
-      document.getElementById('woodPriceSection').classList.add('hidden');
-    }
-  }
-  
-  // Mettre à jour l'affichage du prix total avec ou sans réduction
-  const priceElement = document.getElementById('totalPrice');
-  if (calendarState.priceInfo.discount > 0) {
-    // Afficher le prix original barré et le nouveau prix
-    priceElement.innerHTML = `
-      <span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
-      <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>
-    `;
+  function updatePriceDisplay() {
+    // Mettre à jour les informations de prix dans le DOM
+    document.getElementById('numberOfNights').textContent = calendarState.priceInfo.nights;
+    document.getElementById('pricePerAdult').textContent = calendarState.priceInfo.adultPrice;
+    document.getElementById('pricePerChild').textContent = calendarState.priceInfo.childPrice;
+    document.getElementById('numberOfAdults').textContent = calendarState.formData.adults;
+    document.getElementById('numberOfChildren').textContent = calendarState.formData.children;
     
-    // Afficher la raison de la réduction
-    const discountElement = document.getElementById('discountInfo');
-    if (discountElement) {
-      discountElement.innerHTML = `
-        <div class="mt-2 bg-green-100 text-green-800 p-2 rounded-md">
-          <span class="font-semibold">Économisez ${calendarState.priceInfo.discount} € : </span>
-          ${calendarState.priceInfo.discountReason}
-        </div>
+    // Ajouter l'affichage du prix du bois dans la section d'estimation des frais
+    const woodPriceElement = document.getElementById('woodPrice');
+    const woodQuantityElement = document.getElementById('displayWoodQuantity');
+    const woodTypeElement = document.getElementById('displayWoodType');
+    
+    if (woodPriceElement && woodQuantityElement && woodTypeElement) {
+      if (calendarState.formData.woodOption) {
+        const woodType = calendarState.formData.woodOption === 'brouette' ? 'Brouette(s)' : 'Caisse(s)';
+        woodTypeElement.textContent = woodType;
+        woodQuantityElement.textContent = calendarState.formData.woodQuantity || 0;
+        woodPriceElement.textContent = `${calendarState.priceInfo.woodPrice} €`;
+        document.getElementById('woodPriceSection').classList.remove('hidden');
+      } else {
+        document.getElementById('woodPriceSection').classList.add('hidden');
+      }
+    }
+    
+    // Mettre à jour l'affichage du prix total avec ou sans réduction
+    const priceElement = document.getElementById('totalPrice');
+    if (calendarState.priceInfo.discount > 0) {
+      // Afficher le prix original barré et le nouveau prix
+      priceElement.innerHTML = `
+        <span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
+        <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>
       `;
-      discountElement.classList.remove('hidden');
-    }
-  } else {
-    // Afficher le prix normal sans barré
-    priceElement.innerHTML = `${calendarState.priceInfo.totalPrice} €`;
-    
-    // Masquer la section de réduction
-    const discountElement = document.getElementById('discountInfo');
-    if (discountElement) {
-      discountElement.classList.add('hidden');
+      
+      // Afficher la raison de la réduction
+      const discountElement = document.getElementById('discountInfo');
+      if (discountElement) {
+        discountElement.innerHTML = `
+          <div class="mt-2 bg-green-100 text-green-800 p-2 rounded-md">
+            <span class="font-semibold">Économisez ${calendarState.priceInfo.discount} € : </span>
+            ${calendarState.priceInfo.discountReason}
+          </div>
+        `;
+        discountElement.classList.remove('hidden');
+      }
+    } else {
+      // Afficher le prix normal sans barré
+      priceElement.innerHTML = `${calendarState.priceInfo.totalPrice} €`;
+      
+      // Masquer la section de réduction
+      const discountElement = document.getElementById('discountInfo');
+      if (discountElement) {
+        discountElement.classList.add('hidden');
+      }
     }
   }
-}
 
-function calculatePrice() {
-  if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) {
-    calendarState.priceInfo = {
-      nights: 0,
-      adultPrice: '19 €',
-      childPrice: '13 €',
-      totalPrice: 0,
-      originalTotalPrice: 0,
-      discount: 0,
-      discountReason: '',
-      woodPrice: 0
-    };
-  } else {
-    // Calculer le nombre de nuits
-    const start = new Date(calendarState.selectedStartDate);
-    const end = new Date(calendarState.selectedEndDate);
-    const diffTime = Math.abs(end - start);
-    const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    // Déterminer si c'est la haute saison
-    const isHighSeason = start.getMonth() >= 3 && start.getMonth() <= 10;
-    
-    // Nombre total de personnes
-    const adults = parseInt(calendarState.formData.adults) || 0;
-    const children = parseInt(calendarState.formData.children) || 0;
-    const totalPersons = adults + children;
-    
-    let adultPrice, childPrice, totalPrice;
-    let discountReason = '';
-    
-    // --- Vérifier si c'est une réservation de dernière minute (jour même) ---
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const startDateOnly = new Date(start);
-    startDateOnly.setHours(0, 0, 0, 0);
-    const isLastMinute = startDateOnly.getTime() === today.getTime();
-    
-    // --- Calcul du prix de base (sans aucune réduction) ---
-    // Ce prix sera toujours utilisé comme prix barré
-    let fullPriceWithoutReduction;
-    
-    if (isHighSeason) {
-      // Haute saison: 19€ par adulte, 13€ par enfant sans AUCUNE réduction
-      adultPrice = '19 €';
-      childPrice = '13 €';
-      fullPriceWithoutReduction = (adults * 19 + children * 13) * nights;
+  function calculatePrice() {
+    if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) {
+      calendarState.priceInfo = {
+        nights: 0,
+        adultPrice: '19 €',
+        childPrice: '13 €',
+        totalPrice: 0,
+        originalTotalPrice: 0,
+        discount: 0,
+        discountReason: '',
+        woodPrice: 0
+      };
     } else {
-      // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
-      adultPrice = '19€ (1er) / 10€ (autres)';
-      childPrice = '10 €';
-      fullPriceWithoutReduction = totalPersons > 0 
-        ? (19 + (totalPersons - 1) * 10) * nights 
-        : 0;
-    }
-    
-    // --- Appliquer la promo dernière minute si applicable ---
-    if (isLastMinute) {
-      // Promo dernière minute: 10€ par personne pour la première nuit, tarif normal pour les suivantes
-      let firstNightPrice = totalPersons * 10;
-      let remainingNightsPrice = 0;
+      // Calculer le nombre de nuits
+      const start = new Date(calendarState.selectedStartDate);
+      const end = new Date(calendarState.selectedEndDate);
+      const diffTime = Math.abs(end - start);
+      const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      if (nights > 1) {
-        // Calculer le prix normal pour les nuits restantes
+      // Déterminer si c'est la haute saison
+      const isHighSeason = start.getMonth() >= 3 && start.getMonth() <= 10;
+      
+      // Nombre total de personnes
+      const adults = parseInt(calendarState.formData.adults) || 0;
+      const children = parseInt(calendarState.formData.children) || 0;
+      const totalPersons = adults + children;
+      
+      // Calculer le prix du bois
+      let woodPrice = 0;
+      if (calendarState.formData.woodOption && calendarState.formData.woodQuantity > 0) {
+        const woodQuantity = parseInt(calendarState.formData.woodQuantity) || 0;
+        if (calendarState.formData.woodOption === 'brouette') {
+          woodPrice = woodQuantity * 10; // 10€ par brouette
+        } else if (calendarState.formData.woodOption === 'caisse') {
+          woodPrice = woodQuantity * 5;  // 5€ par caisse
+        }
+      }
+      
+      let adultPrice, childPrice, totalPrice;
+      let discountReason = '';
+      
+      // --- Vérifier si c'est une réservation de dernière minute (jour même) ---
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDateOnly = new Date(start);
+      startDateOnly.setHours(0, 0, 0, 0);
+      const isLastMinute = startDateOnly.getTime() === today.getTime();
+      
+      // --- Calcul du prix de base (sans aucune réduction) ---
+      // Ce prix sera toujours utilisé comme prix barré
+      let fullPriceWithoutReduction;
+      
+      if (isHighSeason) {
+        // Haute saison: 19€ par adulte, 13€ par enfant sans AUCUNE réduction
+        adultPrice = '19 €';
+        childPrice = '13 €';
+        fullPriceWithoutReduction = (adults * 19 + children * 13) * nights;
+      } else {
+        // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
+        adultPrice = '19€ (1er) / 10€ (autres)';
+        childPrice = '10 €';
+        fullPriceWithoutReduction = totalPersons > 0 
+          ? (19 + (totalPersons - 1) * 10) * nights 
+          : 0;
+      }
+      
+      // --- Appliquer la promo dernière minute si applicable ---
+      if (isLastMinute) {
+        // Promo dernière minute: 10€ par personne pour la première nuit, tarif normal pour les suivantes
+        let firstNightPrice = totalPersons * 10;
+        let remainingNightsPrice = 0;
+        
+        if (nights > 1) {
+          // Calculer le prix normal pour les nuits restantes
+          if (isHighSeason) {
+            // Haute saison pour les nuits restantes
+            if (totalPersons >= 6 && totalPersons < 10) {
+              // Tarif dégressif pour 6-9 personnes
+              const regularPrice = (adults * 19 + children * 13) * (nights - 1);
+              const discountFactor = 1 - ((totalPersons - 5) * 0.05);
+              remainingNightsPrice = Math.round(regularPrice * discountFactor);
+            } else if (totalPersons >= 10 && totalPersons <= 14) {
+              remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-14 personnes
+            } else if (totalPersons >= 15 && totalPersons <= 19) {
+              remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 15-19 personnes
+            } else if (totalPersons >= 20) {
+              remainingNightsPrice = 200 * (nights - 1); // 200€/nuit pour 20+ personnes
+            } else {
+              remainingNightsPrice = (adults * 19 + children * 13) * (nights - 1);
+            }
+          } else {
+            // Basse saison pour les nuits restantes
+            if (totalPersons >= 6 && totalPersons < 10) {
+              const regularPrice = totalPersons > 0 
+                ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
+                : 0;
+              const discountFactor = 1 - ((totalPersons - 5) * 0.05);
+              remainingNightsPrice = Math.round(regularPrice * discountFactor);
+            } else if (totalPersons >= 10 && totalPersons <= 19) {
+              remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-19 personnes
+            } else if (totalPersons >= 20) {
+              remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 20+ personnes
+            } else {
+              remainingNightsPrice = totalPersons > 0 
+                ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
+                : 0;
+            }
+          }
+          
+          // Appliquer réduction séjour sur les nuits restantes
+          let stayDiscount = 0;
+          if (nights >= 4) {
+            stayDiscount = 0.10; // 10% pour 4 nuits ou plus
+          } else if (nights >= 2) {
+            stayDiscount = 0.05; // 5% pour 2-3 nuits
+          }
+          
+          if (stayDiscount > 0) {
+            remainingNightsPrice = Math.round(remainingNightsPrice * (1 - stayDiscount));
+          }
+        }
+        
+        // Prix total = promo première nuit + prix normal pour les nuits restantes
+        totalPrice = firstNightPrice + remainingNightsPrice;
+        
+        if (nights === 1) {
+          discountReason = 'Promo dernière minute (10€/personne)';
+        } else {
+          discountReason = `Promo dernière minute pour la 1ère nuit (10€/personne) + tarif normal pour les ${nights-1} nuits suivantes`;
+        }
+      } else {
+        // --- Calcul du prix avec les réductions de groupe ---
         if (isHighSeason) {
-          // Haute saison pour les nuits restantes
+          // Haute saison
           if (totalPersons >= 6 && totalPersons < 10) {
             // Tarif dégressif pour 6-9 personnes
-            const regularPrice = (adults * 19 + children * 13) * (nights - 1);
-            const discountFactor = 1 - ((totalPersons - 5) * 0.05);
-            remainingNightsPrice = Math.round(regularPrice * discountFactor);
+            const regularPrice = (adults * 19 + children * 13) * nights;
+            const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
+            totalPrice = Math.round(regularPrice * discountFactor);
+            discountReason = 'Tarif groupe appliqué';
           } else if (totalPersons >= 10 && totalPersons <= 14) {
-            remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-14 personnes
+            // Prix fixe pour groupes de 10-14 personnes: 100€/nuit max
+            const dailyPrice = 100;
+            totalPrice = dailyPrice * nights;
+            discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
           } else if (totalPersons >= 15 && totalPersons <= 19) {
-            remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 15-19 personnes
+            // Prix fixe pour groupes de 15-19 personnes: 150€/nuit max
+            const dailyPrice = 150;
+            totalPrice = dailyPrice * nights;
+            discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
           } else if (totalPersons >= 20) {
-            remainingNightsPrice = 200 * (nights - 1); // 200€/nuit pour 20+ personnes
+            // Prix fixe pour groupes de 20+ personnes: 200€/nuit max
+            const dailyPrice = 200;
+            totalPrice = dailyPrice * nights;
+            discountReason = 'Forfait groupe appliqué (max 200€/nuit)';
           } else {
-            remainingNightsPrice = (adults * 19 + children * 13) * (nights - 1);
+            // Tarif standard pour moins de 6 personnes
+            totalPrice = (adults * 19 + children * 13) * nights;
           }
         } else {
-          // Basse saison pour les nuits restantes
+          // Basse saison
           if (totalPersons >= 6 && totalPersons < 10) {
+            // Tarif dégressif pour 6-9 personnes
             const regularPrice = totalPersons > 0 
-              ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
+              ? (19 + (totalPersons - 1) * 10) * nights 
               : 0;
-            const discountFactor = 1 - ((totalPersons - 5) * 0.05);
-            remainingNightsPrice = Math.round(regularPrice * discountFactor);
+            const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
+            totalPrice = Math.round(regularPrice * discountFactor);
+            discountReason = 'Tarif groupe appliqué';
           } else if (totalPersons >= 10 && totalPersons <= 19) {
-            remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-19 personnes
+            // Prix fixe pour groupes de 10-19 personnes: 100€/nuit max
+            const dailyPrice = 100;
+            totalPrice = dailyPrice * nights;
+            discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
           } else if (totalPersons >= 20) {
-            remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 20+ personnes
+            // Prix fixe pour groupes de 20+ personnes: 150€/nuit max
+            const dailyPrice = 150;
+            totalPrice = dailyPrice * nights;
+            discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
           } else {
-            remainingNightsPrice = totalPersons > 0 
-              ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
+            // Tarif standard pour moins de 6 personnes
+            totalPrice = totalPersons > 0 
+              ? (19 + (totalPersons - 1) * 10) * nights 
               : 0;
           }
         }
         
-        // Appliquer réduction séjour sur les nuits restantes
+        // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
+        let priceAfterGroupDiscount = totalPrice;
+        
+        // --- Appliquer réduction sur la durée du séjour ---
         let stayDiscount = 0;
         if (nights >= 4) {
           stayDiscount = 0.10; // 10% pour 4 nuits ou plus
+          if (discountReason) discountReason += ' + ';
+          discountReason += 'Réduction 10% pour séjour de 4 nuits ou plus';
         } else if (nights >= 2) {
           stayDiscount = 0.05; // 5% pour 2-3 nuits
+          if (discountReason) discountReason += ' + ';
+          discountReason += 'Réduction 5% pour séjour de 2-3 nuits';
         }
         
+        // Appliquer la réduction sur durée du séjour
         if (stayDiscount > 0) {
-          remainingNightsPrice = Math.round(remainingNightsPrice * (1 - stayDiscount));
+          totalPrice = Math.round(totalPrice * (1 - stayDiscount));
         }
       }
       
-      // Prix total = promo première nuit + prix normal pour les nuits restantes
-      totalPrice = firstNightPrice + remainingNightsPrice;
+      // Ajouter le prix du bois au prix total
+      totalPrice += woodPrice;
       
-      if (nights === 1) {
-        discountReason = 'Promo dernière minute (10€/personne)';
-    } else {
-        discountReason = `Promo dernière minute pour la 1ère nuit (10€/personne) + tarif normal pour les ${nights-1} nuits suivantes`;
-      }
-    } else {
-      // --- Calcul du prix avec les réductions de groupe ---
-      if (isHighSeason) {
-        // Haute saison
-        if (totalPersons >= 6 && totalPersons < 10) {
-          // Tarif dégressif pour 6-9 personnes
-          const regularPrice = (adults * 19 + children * 13) * nights;
-          const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
-          totalPrice = Math.round(regularPrice * discountFactor);
-          discountReason = 'Tarif groupe appliqué';
-        } else if (totalPersons >= 10 && totalPersons <= 14) {
-          // Prix fixe pour groupes de 10-14 personnes: 100€/nuit max
-          const dailyPrice = 100;
-          totalPrice = dailyPrice * nights;
-          discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
-        } else if (totalPersons >= 15 && totalPersons <= 19) {
-          // Prix fixe pour groupes de 15-19 personnes: 150€/nuit max
-          const dailyPrice = 150;
-          totalPrice = dailyPrice * nights;
-          discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
-        } else if (totalPersons >= 20) {
-          // Prix fixe pour groupes de 20+ personnes: 200€/nuit max
-          const dailyPrice = 200;
-          totalPrice = dailyPrice * nights;
-          discountReason = 'Forfait groupe appliqué (max 200€/nuit)';
-        } else {
-          // Tarif standard pour moins de 6 personnes
-          totalPrice = (adults * 19 + children * 13) * nights;
-        }
-      } else {
-        // Basse saison
-        if (totalPersons >= 6 && totalPersons < 10) {
-          // Tarif dégressif pour 6-9 personnes
-          const regularPrice = totalPersons > 0 
-            ? (19 + (totalPersons - 1) * 10) * nights 
-            : 0;
-          const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
-          totalPrice = Math.round(regularPrice * discountFactor);
-          discountReason = 'Tarif groupe appliqué';
-        } else if (totalPersons >= 10 && totalPersons <= 19) {
-          // Prix fixe pour groupes de 10-19 personnes: 100€/nuit max
-          const dailyPrice = 100;
-          totalPrice = dailyPrice * nights;
-          discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
-        } else if (totalPersons >= 20) {
-          // Prix fixe pour groupes de 20+ personnes: 150€/nuit max
-          const dailyPrice = 150;
-          totalPrice = dailyPrice * nights;
-          discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
-        } else {
-          // Tarif standard pour moins de 6 personnes
-          totalPrice = totalPersons > 0 
-            ? (19 + (totalPersons - 1) * 10) * nights 
-            : 0;
-        }
+      // Calculer le discount total
+      const discount = fullPriceWithoutReduction - totalPrice + woodPrice;
+      
+      // Mettre à jour les informations de prix
+      calendarState.priceInfo = {
+        nights,
+        adultPrice,
+        childPrice,
+        totalPrice,
+        originalTotalPrice: fullPriceWithoutReduction + woodPrice,
+        discount,
+        discountReason,
+        woodPrice
+      };
     }
     
-    // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
-      let priceAfterGroupDiscount = totalPrice;
-      
-      // --- Appliquer réduction sur la durée du séjour ---
-      let stayDiscount = 0;
-      if (nights >= 4) {
-        stayDiscount = 0.10; // 10% pour 4 nuits ou plus
-        if (discountReason) discountReason += ' + ';
-        discountReason += 'Réduction 10% pour séjour de 4 nuits ou plus';
-      } else if (nights >= 2) {
-        stayDiscount = 0.05; // 5% pour 2-3 nuits
-        if (discountReason) discountReason += ' + ';
-        discountReason += 'Réduction 5% pour séjour de 2-3 nuits';
-      }
-      
-      // Appliquer la réduction sur durée du séjour
-      if (stayDiscount > 0) {
-        totalPrice = Math.round(totalPrice * (1 - stayDiscount));
-      }
-    }
-    
-    // Utiliser fullPriceWithoutReduction comme prix barré original
-    calendarState.priceInfo = {
-      nights,
-      adultPrice,
-      childPrice,
-      totalPrice,
-      originalTotalPrice: fullPriceWithoutReduction + woodPrice, // Ajouter le bois au prix original aussi
-      discount: (fullPriceWithoutReduction - totalPrice) + woodPrice,
-      discountReason,
-      woodPrice
-    };
+    // Mettre à jour l'affichage des prix
+    updatePriceDisplay();
   }
-  
-  // Mettre à jour l'affichage des prix
-  updatePriceDisplay();
-}
 
   // Configurer les écouteurs d'événements pour le formulaire
   function setupFormEventListeners() {
@@ -975,240 +990,238 @@ function calculatePrice() {
     calendarWrapper.innerHTML = calendarHTML;
   }
 
- // Modifier la fonction renderBookingForm dans calendar-vanilla.js
-
-function renderBookingForm() {
-  const bookingForm = document.getElementById('booking-form');
-  if (!bookingForm) return;
-  
-  bookingForm.innerHTML = `
-    <!-- Section dates -->
-    <div class="mb-6">
-      <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Dates sélectionnées</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label for="checkin" class="block text-gray-700 font-medium mb-2">Date d'arrivée (Check-in 14h) *</label>
-          <input 
-            type="date" 
-            id="checkin" 
-            value="${calendarState.formData.checkin}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            readonly
-            required
-          />
-          <p class="text-sm text-gray-500 mt-1">Sélectionnez une date dans le calendrier</p>
-        </div>
-        <div>
-          <label for="checkout" class="block text-gray-700 font-medium mb-2">Date de départ (Check-out 12h) *</label>
-          <input 
-            type="date" 
-            id="checkout" 
-            value="${calendarState.formData.checkout}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            readonly
-            required
-          />
-          <p class="text-sm text-gray-500 mt-1">
-            ${calendarState.selectedStartDate && !calendarState.selectedEndDate
-              ? 'Sélectionnez une date de fin'
-              : 'Date de départ'}
-          </p>
-        </div>
-      </div>
-    </div>
+  function renderBookingForm() {
+    const bookingForm = document.getElementById('booking-form');
+    if (!bookingForm) return;
     
-    <!-- Coordonnées -->
-    <div class="mb-6">
-      <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Vos coordonnées</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label for="name" class="block text-gray-700 font-medium mb-2">Nom complet *</label>
-          <input 
-            type="text" 
-            id="name" 
-            value="${calendarState.formData.name}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
+    bookingForm.innerHTML = `
+      <!-- Section dates -->
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Dates sélectionnées</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="checkin" class="block text-gray-700 font-medium mb-2">Date d'arrivée (Check-in 14h) *</label>
+            <input 
+              type="date" 
+              id="checkin" 
+              value="${calendarState.formData.checkin}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              readonly
+              required
+            />
+            <p class="text-sm text-gray-500 mt-1">Sélectionnez une date dans le calendrier</p>
+          </div>
+          <div>
+            <label for="checkout" class="block text-gray-700 font-medium mb-2">Date de départ (Check-out 12h) *</label>
+            <input 
+              type="date" 
+              id="checkout" 
+              value="${calendarState.formData.checkout}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              readonly
+              required
+            />
+            <p class="text-sm text-gray-500 mt-1">
+              ${calendarState.selectedStartDate && !calendarState.selectedEndDate
+                ? 'Sélectionnez une date de fin'
+                : 'Date de départ'}
+            </p>
+          </div>
         </div>
-        <div>
-          <label for="email" class="block text-gray-700 font-medium mb-2">Email *</label>
-          <input 
-            type="email" 
-            id="email" 
-            value="${calendarState.formData.email}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-        <div>
-          <label for="phone" class="block text-gray-700 font-medium mb-2">Téléphone *</label>
-          <input 
-            type="tel" 
-            id="phone" 
-            value="${calendarState.formData.phone}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-        <div>
-          <label for="country" class="block text-gray-700 font-medium mb-2">Pays</label>
-          <input 
-            type="text" 
-            id="country" 
-            value="${calendarState.formData.country}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-    </div>
-    
-    <!-- Détails du séjour -->
-    <div class="mb-6">
-      <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Détails du séjour</h3>
-      <div class="mb-4">
-        <label for="accommodationType" class="block text-gray-700 font-medium mb-2">Type d'hébergement *</label>
-        <select 
-          id="accommodationType" 
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          required
-        >
-          <option value="" ${calendarState.formData.accommodationType === '' ? 'selected' : ''}>-- Sélectionnez --</option>
-          <option value="Tente" ${calendarState.formData.accommodationType === 'Tente' ? 'selected' : ''}>Tente</option>
-          <option value="Van" ${calendarState.formData.accommodationType === 'Van' ? 'selected' : ''}>Van</option>
-          <option value="Camping-car" ${calendarState.formData.accommodationType === 'Camping-car' ? 'selected' : ''}>Camping-car</option>
-          <option value="Tente de toit" ${calendarState.formData.accommodationType === 'Tente de toit' ? 'selected' : ''}>Tente de toit</option>
-        </select>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label for="adults" class="block text-gray-700 font-medium mb-2">Nombre d'adultes *</label>
+      <!-- Coordonnées -->
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Vos coordonnées</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="name" class="block text-gray-700 font-medium mb-2">Nom complet *</label>
+            <input 
+              type="text" 
+              id="name" 
+              value="${calendarState.formData.name}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label for="email" class="block text-gray-700 font-medium mb-2">Email *</label>
+            <input 
+              type="email" 
+              id="email" 
+              value="${calendarState.formData.email}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label for="phone" class="block text-gray-700 font-medium mb-2">Téléphone *</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              value="${calendarState.formData.phone}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label for="country" class="block text-gray-700 font-medium mb-2">Pays</label>
+            <input 
+              type="text" 
+              id="country" 
+              value="${calendarState.formData.country}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Détails du séjour -->
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Détails du séjour</h3>
+        <div class="mb-4">
+          <label for="accommodationType" class="block text-gray-700 font-medium mb-2">Type d'hébergement *</label>
+          <select 
+            id="accommodationType" 
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            required
+          >
+            <option value="" ${calendarState.formData.accommodationType === '' ? 'selected' : ''}>-- Sélectionnez --</option>
+            <option value="Tente" ${calendarState.formData.accommodationType === 'Tente' ? 'selected' : ''}>Tente</option>
+            <option value="Van" ${calendarState.formData.accommodationType === 'Van' ? 'selected' : ''}>Van</option>
+            <option value="Camping-car" ${calendarState.formData.accommodationType === 'Camping-car' ? 'selected' : ''}>Camping-car</option>
+            <option value="Tente de toit" ${calendarState.formData.accommodationType === 'Tente de toit' ? 'selected' : ''}>Tente de toit</option>
+          </select>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="adults" class="block text-gray-700 font-medium mb-2">Nombre d'adultes *</label>
+            <input 
+              type="number" 
+              id="adults" 
+              min="1" 
+              value="${calendarState.formData.adults}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label for="children" class="block text-gray-700 font-medium mb-2">Nombre d'enfants</label>
+            <input 
+              type="number" 
+              id="children" 
+              min="0" 
+              value="${calendarState.formData.children}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Option Bois de Chauffage -->
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Bois de Chauffage</h3>
+        <div class="mb-4">
+          <label for="woodOption" class="block text-gray-700 font-medium mb-2">Besoin de bois pour le feu ?</label>
+          <select 
+            id="woodOption" 
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          >
+            <option value="" ${calendarState.formData.woodOption === '' ? 'selected' : ''}>Non, merci</option>
+            <option value="brouette" ${calendarState.formData.woodOption === 'brouette' ? 'selected' : ''}>Brouette de bois (10€)</option>
+            <option value="caisse" ${calendarState.formData.woodOption === 'caisse' ? 'selected' : ''}>Caisse de bois (5€)</option>
+          </select>
+        </div>
+        
+        <div id="woodQuantityContainer" class="${calendarState.formData.woodOption ? '' : 'hidden'}">
+          <label for="woodQuantity" class="block text-gray-700 font-medium mb-2">
+            Quantité de ${calendarState.formData.woodOption === 'brouette' ? 'brouettes' : 'caisses'}
+          </label>
           <input 
             type="number" 
-            id="adults" 
+            id="woodQuantity" 
             min="1" 
-            value="${calendarState.formData.adults}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            required
-          />
-        </div>
-        <div>
-          <label for="children" class="block text-gray-700 font-medium mb-2">Nombre d'enfants</label>
-          <input 
-            type="number" 
-            id="children" 
-            min="0" 
-            value="${calendarState.formData.children}"
+            max="10"
+            value="${calendarState.formData.woodQuantity || 1}"
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>
-      </div>
-    </div>
-    
-    <!-- Option Bois de Chauffage -->
-    <div class="mb-6">
-      <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Bois de Chauffage</h3>
-      <div class="mb-4">
-        <label for="woodOption" class="block text-gray-700 font-medium mb-2">Besoin de bois pour le feu ?</label>
-        <select 
-          id="woodOption" 
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        >
-          <option value="" ${calendarState.formData.woodOption === '' ? 'selected' : ''}>Non, merci</option>
-          <option value="brouette" ${calendarState.formData.woodOption === 'brouette' ? 'selected' : ''}>Brouette de bois (10€)</option>
-          <option value="caisse" ${calendarState.formData.woodOption === 'caisse' ? 'selected' : ''}>Caisse de bois (5€)</option>
-        </select>
       </div>
       
-      <div id="woodQuantityContainer" class="${calendarState.formData.woodOption ? '' : 'hidden'}">
-        <label for="woodQuantity" class="block text-gray-700 font-medium mb-2">
-          Quantité de ${calendarState.formData.woodOption === 'brouette' ? 'brouettes' : 'caisses'}
-        </label>
-        <input 
-          type="number" 
-          id="woodQuantity" 
-          min="1" 
-          max="10"
-          value="${calendarState.formData.woodQuantity || 1}"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        />
-      </div>
-    </div>
-    
-    <!-- Information supplémentaire -->
-    <div class="mb-6">
-      <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
-      <div>
-        <label for="message" class="block text-gray-700 font-medium mb-2">Message (questions, requêtes spéciales...)</label>
-        <textarea 
-          id="message" 
-          rows="4"
-          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        >${calendarState.formData.message}</textarea>
-      </div>
-    </div>
-    
-    <!-- Calcul des frais -->
-    <div id="price-estimation" class="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
-      <h3 class="text-xl font-semibold text-green-800 mb-4">Estimation des frais</h3>
-      <div class="space-y-2 mb-4">
-        <div class="flex justify-between">
-          <span>Nombre de nuits:</span>
-          <span id="numberOfNights">${calendarState.priceInfo.nights}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Prix par adulte:</span>
-          <span id="pricePerAdult">${calendarState.priceInfo.adultPrice}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Prix par enfant:</span>
-          <span id="pricePerChild">${calendarState.priceInfo.childPrice}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Nombre d'adultes:</span>
-          <span id="numberOfAdults">${calendarState.formData.adults}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Nombre d'enfants:</span>
-          <span id="numberOfChildren">${calendarState.formData.children}</span>
-        </div>
-        <!-- Prix du bois -->
-        <div id="woodPriceSection" class="${calendarState.formData.woodOption ? '' : 'hidden'} flex justify-between">
-          <span><span id="displayWoodQuantity">0</span> <span id="displayWoodType">-</span> de bois:</span>
-          <span id="woodPrice">0 €</span>
+      <!-- Information supplémentaire -->
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
+        <div>
+          <label for="message" class="block text-gray-700 font-medium mb-2">Message (questions, requêtes spéciales...)</label>
+          <textarea 
+            id="message" 
+            rows="4"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          >${calendarState.formData.message}</textarea>
         </div>
       </div>
-      <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
-        <span>Total estimé:</span>
-        <span id="totalPrice">
-          ${calendarState.priceInfo.discount > 0 
-            ? `<span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
-               <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>`
-            : `${calendarState.priceInfo.totalPrice} €`}
-        </span>
+      
+      <!-- Calcul des frais -->
+      <div id="price-estimation" class="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
+        <h3 class="text-xl font-semibold text-green-800 mb-4">Estimation des frais</h3>
+        <div class="space-y-2 mb-4">
+          <div class="flex justify-between">
+            <span>Nombre de nuits:</span>
+            <span id="numberOfNights">${calendarState.priceInfo.nights}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Prix par adulte:</span>
+            <span id="pricePerAdult">${calendarState.priceInfo.adultPrice}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Prix par enfant:</span>
+            <span id="pricePerChild">${calendarState.priceInfo.childPrice}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Nombre d'adultes:</span>
+            <span id="numberOfAdults">${calendarState.formData.adults}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Nombre d'enfants:</span>
+            <span id="numberOfChildren">${calendarState.formData.children}</span>
+          </div>
+          <!-- Prix du bois -->
+          <div id="woodPriceSection" class="${calendarState.formData.woodOption ? '' : 'hidden'} flex justify-between">
+            <span><span id="displayWoodQuantity">0</span> <span id="displayWoodType">-</span> de bois:</span>
+            <span id="woodPrice">0 €</span>
+          </div>
+        </div>
+        <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
+          <span>Total estimé:</span>
+          <span id="totalPrice">
+            ${calendarState.priceInfo.discount > 0 
+              ? `<span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
+                 <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>`
+              : `${calendarState.priceInfo.totalPrice} €`}
+          </span>
+        </div>
+        <!-- Nouvel élément pour afficher les informations de réduction -->
+        <div id="discountInfo" class="${calendarState.priceInfo.discount > 0 ? '' : 'hidden'} mt-2 bg-green-100 text-green-800 p-2 rounded-md">
+          <span class="font-semibold">Économisez ${calendarState.priceInfo.discount} € :</span>
+          ${calendarState.priceInfo.discountReason}
+        </div>
+        <div class="mt-4 text-xs text-gray-600">
+          <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
+          <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
+          <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
+        </div>
       </div>
-      <!-- Nouvel élément pour afficher les informations de réduction -->
-      <div id="discountInfo" class="${calendarState.priceInfo.discount > 0 ? '' : 'hidden'} mt-2 bg-green-100 text-green-800 p-2 rounded-md">
-        <span class="font-semibold">Économisez ${calendarState.priceInfo.discount} € :</span>
-        ${calendarState.priceInfo.discountReason}
-      </div>
-      <div class="mt-4 text-xs text-gray-600">
-        <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
-        <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
-        <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
-      </div>
-    </div>
 
-    <!-- Bouton d'envoi -->
-    <div class="text-center">
-      <button 
-        type="submit"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 inline-block"
-      >
-        Envoyer ma demande
-      </button>
-    </div>
-  `;
-}
+      <!-- Bouton d'envoi -->
+      <div class="text-center">
+        <button 
+          type="submit"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 inline-block"
+        >
+          Envoyer ma demande
+        </button>
+      </div>
+    `;
+  }
 });
