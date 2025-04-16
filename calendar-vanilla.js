@@ -18,13 +18,21 @@ document.addEventListener('DOMContentLoaded', function() {
       children: 0,
       message: '',
       checkin: '',
-      checkout: ''
+      checkout: '',
+      // Nouvelles propriétés pour le bois
+      woodOption: '',
+      woodQuantity: 0
     },
     priceInfo: {
       nights: 0,
       adultPrice: '19 €',
       childPrice: '13 €',
-      totalPrice: 0
+      totalPrice: 0,
+      originalTotalPrice: 0,
+      discount: 0,
+      discountReason: '',
+      // Ajouter le prix du bois
+      woodPrice: 0
     }
   };
 
@@ -381,6 +389,23 @@ function updatePriceDisplay() {
   document.getElementById('numberOfAdults').textContent = calendarState.formData.adults;
   document.getElementById('numberOfChildren').textContent = calendarState.formData.children;
   
+  // Ajouter l'affichage du prix du bois dans la section d'estimation des frais
+  const woodPriceElement = document.getElementById('woodPrice');
+  const woodQuantityElement = document.getElementById('displayWoodQuantity');
+  const woodTypeElement = document.getElementById('displayWoodType');
+  
+  if (woodPriceElement && woodQuantityElement && woodTypeElement) {
+    if (calendarState.formData.woodOption) {
+      const woodType = calendarState.formData.woodOption === 'brouette' ? 'Brouette(s)' : 'Caisse(s)';
+      woodTypeElement.textContent = woodType;
+      woodQuantityElement.textContent = calendarState.formData.woodQuantity || 0;
+      woodPriceElement.textContent = `${calendarState.priceInfo.woodPrice} €`;
+      document.getElementById('woodPriceSection').classList.remove('hidden');
+    } else {
+      document.getElementById('woodPriceSection').classList.add('hidden');
+    }
+  }
+  
   // Mettre à jour l'affichage du prix total avec ou sans réduction
   const priceElement = document.getElementById('totalPrice');
   if (calendarState.priceInfo.discount > 0) {
@@ -422,7 +447,8 @@ function calculatePrice() {
       totalPrice: 0,
       originalTotalPrice: 0,
       discount: 0,
-      discountReason: ''
+      discountReason: '',
+      woodPrice: 0
     };
   } else {
     // Calculer le nombre de nuits
@@ -528,7 +554,7 @@ function calculatePrice() {
       
       if (nights === 1) {
         discountReason = 'Promo dernière minute (10€/personne)';
-      } else {
+    } else {
         discountReason = `Promo dernière minute pour la 1ère nuit (10€/personne) + tarif normal pour les ${nights-1} nuits suivantes`;
       }
     } else {
@@ -586,9 +612,9 @@ function calculatePrice() {
             ? (19 + (totalPersons - 1) * 10) * nights 
             : 0;
         }
-      }
-      
-      // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
+    }
+    
+    // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
       let priceAfterGroupDiscount = totalPrice;
       
       // --- Appliquer réduction sur la durée du séjour ---
@@ -615,15 +641,17 @@ function calculatePrice() {
       adultPrice,
       childPrice,
       totalPrice,
-      originalTotalPrice: fullPriceWithoutReduction,
-      discount: fullPriceWithoutReduction - totalPrice,
-      discountReason
+      originalTotalPrice: fullPriceWithoutReduction + woodPrice, // Ajouter le bois au prix original aussi
+      discount: (fullPriceWithoutReduction - totalPrice) + woodPrice,
+      discountReason,
+      woodPrice
     };
   }
   
   // Mettre à jour l'affichage des prix
   updatePriceDisplay();
 }
+
   // Configurer les écouteurs d'événements pour le formulaire
   function setupFormEventListeners() {
     // Gestionnaire pour la soumission du formulaire
@@ -642,9 +670,37 @@ function calculatePrice() {
         calendarState.formData[id] = target.value;
         
         // Recalculer le prix si nécessaire
-        if (id === 'adults' || id === 'children') {
+        if (id === 'adults' || id === 'children' || id === 'woodQuantity') {
           calculatePrice();
         }
+      }
+      
+      if (target.id === 'woodOption') {
+        calendarState.formData.woodOption = target.value;
+        
+        // Afficher/masquer le champ de quantité en fonction de la sélection
+        const woodQuantityContainer = document.getElementById('woodQuantityContainer');
+        if (woodQuantityContainer) {
+          if (target.value) {
+            woodQuantityContainer.classList.remove('hidden');
+            const woodTypeLabel = target.value === 'brouette' ? 'brouettes' : 'caisses';
+            const quantityLabel = woodQuantityContainer.querySelector('label');
+            if (quantityLabel) {
+              quantityLabel.textContent = `Quantité de ${woodTypeLabel}`;
+            }
+          } else {
+            woodQuantityContainer.classList.add('hidden');
+            calendarState.formData.woodQuantity = 0;
+          }
+        }
+        
+        // Recalculer le prix
+        calculatePrice();
+      }
+      
+      if (target.id === 'woodQuantity') {
+        calendarState.formData.woodQuantity = parseInt(target.value) || 0;
+        calculatePrice();
       }
     });
     
@@ -723,7 +779,9 @@ function calculatePrice() {
           children: 0,
           message: '',
           checkin: '',
-          checkout: ''
+          checkout: '',
+          woodOption: '',
+          woodQuantity: 0
         };
         // Mettre à jour l'interface
         updateFormFields();
@@ -1048,6 +1106,36 @@ function renderBookingForm() {
       </div>
     </div>
     
+    <!-- Option Bois de Chauffage -->
+    <div class="mb-6">
+      <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Bois de Chauffage</h3>
+      <div class="mb-4">
+        <label for="woodOption" class="block text-gray-700 font-medium mb-2">Besoin de bois pour le feu ?</label>
+        <select 
+          id="woodOption" 
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        >
+          <option value="" ${calendarState.formData.woodOption === '' ? 'selected' : ''}>Non, merci</option>
+          <option value="brouette" ${calendarState.formData.woodOption === 'brouette' ? 'selected' : ''}>Brouette de bois (10€)</option>
+          <option value="caisse" ${calendarState.formData.woodOption === 'caisse' ? 'selected' : ''}>Caisse de bois (5€)</option>
+        </select>
+      </div>
+      
+      <div id="woodQuantityContainer" class="${calendarState.formData.woodOption ? '' : 'hidden'}">
+        <label for="woodQuantity" class="block text-gray-700 font-medium mb-2">
+          Quantité de ${calendarState.formData.woodOption === 'brouette' ? 'brouettes' : 'caisses'}
+        </label>
+        <input 
+          type="number" 
+          id="woodQuantity" 
+          min="1" 
+          max="10"
+          value="${calendarState.formData.woodQuantity || 1}"
+          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        />
+      </div>
+    </div>
+    
     <!-- Information supplémentaire -->
     <div class="mb-6">
       <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
@@ -1084,6 +1172,11 @@ function renderBookingForm() {
         <div class="flex justify-between">
           <span>Nombre d'enfants:</span>
           <span id="numberOfChildren">${calendarState.formData.children}</span>
+        </div>
+        <!-- Prix du bois -->
+        <div id="woodPriceSection" class="${calendarState.formData.woodOption ? '' : 'hidden'} flex justify-between">
+          <span><span id="displayWoodQuantity">0</span> <span id="displayWoodType">-</span> de bois:</span>
+          <span id="woodPrice">0 €</span>
         </div>
       </div>
       <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
