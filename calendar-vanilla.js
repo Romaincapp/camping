@@ -1206,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <input 
             type="number" 
             id="woodQuantity" 
-            min="1" 
+            min="0" 
             max="10" 
             value="${calendarState.formData.woodQuantity || 1}"
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
