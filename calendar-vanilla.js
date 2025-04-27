@@ -703,9 +703,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (quantityLabel) {
               quantityLabel.textContent = `Quantité de ${woodTypeLabel}`;
             }
+            // Définir une valeur par défaut de 1 lorsqu'on sélectionne une option
+            calendarState.formData.woodQuantity = 1;
+            const woodQuantityInput = document.getElementById('woodQuantity');
+            if (woodQuantityInput) {
+              woodQuantityInput.value = 1;
+            }
           } else {
+            // Si "Non merci" est sélectionné (valeur "")
             woodQuantityContainer.classList.add('hidden');
             calendarState.formData.woodQuantity = 0;
+            // S'assurer que le formulaire considère cette valeur comme valide
+            calendarState.formData.woodOption = ''; // Valeur vide explicite
           }
         }
         
@@ -714,7 +723,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       if (target.id === 'woodQuantity') {
-        calendarState.formData.woodQuantity = parseInt(target.value) || 0;
+        // S'assurer que la valeur n'est jamais négative
+        const value = parseInt(target.value) || 0;
+        if (value < 0) {
+          target.value = 0;
+          calendarState.formData.woodQuantity = 0;
+        } else {
+          calendarState.formData.woodQuantity = value;
+        }
         calculatePrice();
       }
     });
@@ -761,6 +777,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (calendarState.selectedEndDate <= calendarState.selectedStartDate) {
       alert("La date de départ doit être postérieure à la date d'arrivée.");
       return;
+    }
+    
+    // Pour l'option de bois, s'assurer que les valeurs sont cohérentes
+    // Si une option est sélectionnée mais pas de quantité, définir à 1
+    if (calendarState.formData.woodOption && (!calendarState.formData.woodQuantity || calendarState.formData.woodQuantity <= 0)) {
+      calendarState.formData.woodQuantity = 1;
+      const woodQuantityInput = document.getElementById('woodQuantity');
+      if (woodQuantityInput) {
+        woodQuantityInput.value = 1;
+      }
+    }
+    
+    // Si aucune option n'est sélectionnée (ou "Non merci"), s'assurer que la quantité est à 0
+    if (!calendarState.formData.woodOption) {
+      calendarState.formData.woodQuantity = 0;
     }
     
     // Ajouter le résumé du prix aux données du formulaire
