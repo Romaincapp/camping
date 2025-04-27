@@ -51,6 +51,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Fonction pour initialiser l'interface utilisateur
   function initializeCalendarUI() {
+    // S'assurer que currentDate n'est pas dans le passé (toujours au moins le mois actuel)
+    const today = new Date();
+    if (calendarState.currentDate.getFullYear() < today.getFullYear() || 
+        (calendarState.currentDate.getFullYear() === today.getFullYear() && 
+         calendarState.currentDate.getMonth() < today.getMonth())) {
+      calendarState.currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    }
+    
     // Créer la structure de base
     container.innerHTML = `
       <div class="container mx-auto max-w-6xl">
@@ -741,8 +749,15 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Gérer le clic sur le bouton du mois précédent
       if (target.closest('#prev-month-btn')) {
-        calendarState.currentDate = new Date(calendarState.currentDate.getFullYear(), calendarState.currentDate.getMonth() - 1, 1);
-        fetchEvents();
+        // Vérifier si le mois précédent n'est pas dans le passé
+        const prevMonth = calendarState.currentDate.getMonth() - 1;
+        const prevYear = prevMonth < 0 ? calendarState.currentDate.getFullYear() - 1 : calendarState.currentDate.getFullYear();
+        const normalizedPrevMonth = prevMonth < 0 ? 11 : prevMonth;
+        
+        if (!isPastMonth(prevYear, normalizedPrevMonth)) {
+          calendarState.currentDate = new Date(prevYear, normalizedPrevMonth, 1);
+          fetchEvents();
+        }
       }
       
       // Gérer le clic sur le bouton du mois suivant
@@ -761,6 +776,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
+
+    // S'assurer que woodOption a une valeur définie même quand "Non, merci" est sélectionné
+    const woodOptionSelect = document.getElementById('woodOption');
+    if (woodOptionSelect && !calendarState.formData.woodOption) {
+      calendarState.formData.woodOption = '';
+    }
   }
 
   // Gérer la soumission du formulaire
@@ -776,138 +797,145 @@ document.addEventListener('DOMContentLoaded', function() {
     // Vérifier si la date de départ est après la date d'arrivée
     if (calendarState.selectedEndDate <= calendarState.selectedStartDate) {
       alert("La date de départ doit être postérieure à la date d'arrivée.");
-      return;
+      return;nnée (valeur vide), s'assurer que c'est explicitement défini
     }
-    
-    // Pour l'option de bois, s'assurer que les valeurs sont cohérentes
+    .woodOption = '';
+    // Pour l'option de bois, s'assurer que les valeurs sont cohérentesuantity = 0;
     // Si une option est sélectionnée mais pas de quantité, définir à 1
     if (calendarState.formData.woodOption && (!calendarState.formData.woodQuantity || calendarState.formData.woodQuantity <= 0)) {
       calendarState.formData.woodQuantity = 1;
       const woodQuantityInput = document.getElementById('woodQuantity');
-      if (woodQuantityInput) {
-        woodQuantityInput.value = 1;
-      }
-    }
+      if (woodQuantityInput) {s de quantité, définir à 1
+        woodQuantityInput.value = 1;!calendarState.formData.woodQuantity || calendarState.formData.woodQuantity <= 0)) {
+      } calendarState.formData.woodQuantity = 1;
+    }  const woodQuantityInput = document.getElementById('woodQuantity');
     
-    // Si aucune option n'est sélectionnée (ou "Non merci"), s'assurer que la quantité est à 0
+    // Si aucune option n'est sélectionnée (ou "Non merci"), s'assurer que la quantité est à 0 = 1;
     if (!calendarState.formData.woodOption) {
       calendarState.formData.woodQuantity = 0;
     }
-    
-    // Ajouter le résumé du prix aux données du formulaire
+    // Si aucune option n'est sélectionnée (ou "Non merci"), s'assurer que la quantité est à 0
+    // Ajouter le résumé du prix aux données du formulairemData.woodOption) {
     const formDataWithPrice = {
       ...calendarState.formData,
       priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Prix total estimé: ${calendarState.priceInfo.totalPrice} €`
-    };
+    };données du formulaire
     
-    // Envoyer à FormSpree
-    fetch('https://formspree.io/f/xzzdykyq', {
+    // Envoyer à FormSpree.calendarState.formData,
+    fetch('https://formspree.io/f/xzzdykyq', {darState.priceInfo.nights}, Prix total estimé: ${calendarState.priceInfo.totalPrice} €`
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        'Accept': 'application/json',ee
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(formDataWithPrice)
     })
-    .then(response => {
+    .then(response => {on/json'
       if (response.ok) {
-        alert("Demande de réservation envoyée avec succès!");
+        alert("Demande de réservation envoyée avec succès!");ingify(formDataWithPrice)
         // Réinitialiser le formulaire
-        calendarState.selectedStartDate = null;
+        calendarState.selectedStartDate = null;{
         calendarState.selectedEndDate = null;
-        calendarState.formData = {
-          name: '',
-          email: '',
-          phone: '',
-          country: '',
+        calendarState.formData = {de de réservation envoyée avec succès!");
+          name: '',er le formulaire
+          email: '',selectedStartDate = null;
+          phone: '',selectedEndDate = null;
+          country: '',ormData = {
           accommodationType: '',
           adults: 1,
-          children: 0,
+          children: 0,phone: '',
           message: '',
-          checkin: '',
+          checkin: '',: '',
           checkout: '',
           woodOption: '',
-          woodQuantity: 0
+          woodQuantity: 0age: '',
         };
-        // Mettre à jour l'interface
-        updateFormFields();
-        renderCalendar();
+        // Mettre à jour l'interface   checkout: '',
+        updateFormFields();    woodOption: '',
+        renderCalendar();y: 0
         calculatePrice();
       } else {
-        alert("Une erreur est survenue lors de l'envoi du formulaire.");
-      }
-    })
+        alert("Une erreur est survenue lors de l'envoi du formulaire."); updateFormFields();
+      }     renderCalendar();
+    })        calculatePrice();
     .catch(error => {
-      console.error('Erreur:', error);
+      console.error('Erreur:', error); survenue lors de l'envoi du formulaire.");
       alert("Une erreur est survenue lors de l'envoi du formulaire.");
     });
-  }
+  }.catch(error => {
 
-  // Rendre le calendrier
-  function renderCalendar() {
+  // Rendre le calendrier formulaire.");
+  function renderCalendar() {});
     const calendarWrapper = document.getElementById('calendar-wrapper');
     if (!calendarWrapper) return;
     
     const year = calendarState.currentDate.getFullYear();
     const month = calendarState.currentDate.getMonth();
+    if (!calendarWrapper) return;
+    // Vérifier si le mois précédent est dans le passé pour désactiver le bouton si nécessaire
+    const prevMonth = month - 1;
+    const prevYear = prevMonth < 0 ? year - 1 : year;
+    const normalizedPrevMonth = prevMonth < 0 ? 11 : prevMonth;
+    const isPrevMonthDisabled = isPastMonth(prevYear, normalizedPrevMonth);sé pour désactiver le bouton si nécessaire
     
-    // Obtenir les informations sur le mois
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    let firstDay = new Date(year, month, 1).getDay(); // 0 = Dimanche
+    // Obtenir les informations sur le moisconst prevYear = prevMonth < 0 ? year - 1 : year;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();Month = prevMonth < 0 ? 11 : prevMonth;
+    let firstDay = new Date(year, month, 1).getDay(); // 0 = DimanchealizedPrevMonth);
     
-    // Ajuster pour que la semaine commence le lundi
+    // Ajuster pour que la semaine commence le lundins sur le mois
     firstDay = firstDay === 0 ? 6 : firstDay - 1;
-    
+    (); // 0 = Dimanche
     let calendarHTML = `
       <div class="flex justify-between items-center mb-4">
         <button 
           id="prev-month-btn"
-          class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition-colors"
+          class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition-colors ${isPrevMonthDisabled ? 'opacity-50 cursor-not-allowed' : ''}"TML = `
+          ${isPrevMonthDisabled ? 'disabled' : ''}iv class="flex justify-between items-center mb-4">
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>ss="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition-colors ${isPrevMonthDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
+          </svg>  ${isPrevMonthDisabled ? 'disabled' : ''}
         </button>
-        
-        <h3 class="text-xl font-bold text-green-800">
-          ${monthNames[month]} ${year}
+        " fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <h3 class="text-xl font-bold text-green-800">7 7-7"></path>
+          ${monthNames[month]} ${year} </svg>
         </h3>
         
-        <button 
-          id="next-month-btn"
-          class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition-colors"
-        >
+        <button s="text-xl font-bold text-green-800">
+          id="next-month-btn"Names[month]} ${year}
+          class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition-colors">
+        >  
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-          </svg>
+          </svg>ext-white p-2 rounded-full hover:bg-green-700 transition-colors"
         </button>
-      </div>
-      
+      </div>ss="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      h stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
       <!-- En-tête des jours de la semaine -->
-      <div class="grid grid-cols-7 mb-2">
-        ${weekDays.map(day => `
+      <div class="grid grid-cols-7 mb-2">tton>
+        ${weekDays.map(day => `</div>
           <div class="text-center font-medium text-gray-600 text-sm py-2">
             ${day}
-          </div>
-        `).join('')}
-      </div>
+          </div><div class="grid grid-cols-7 mb-2">
+        `).join('')}    ${weekDays.map(day => `
+      </div>2">
       
       <!-- Grille du calendrier -->
-      <div class="grid grid-cols-7 border-r border-b rounded-lg overflow-hidden">
-    `;
+      <div class="grid grid-cols-7 border-r border-b rounded-lg overflow-hidden">   `).join('')}
+    `;  </div>
     
-    // Ajouter des cellules vides pour les jours avant le début du mois
-    for (let i = 0; i < firstDay; i++) {
+    // Ajouter des cellules vides pour les jours avant le début du moiser -->
+    for (let i = 0; i < firstDay; i++) {-b rounded-lg overflow-hidden">
       calendarHTML += `<div class="p-2 border-t border-l bg-gray-50"></div>`;
     }
-    
+    ours avant le début du mois
     // Ajouter les jours du mois
-    const today = new Date();
+    const today = new Date();ray-50"></div>`;
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       
       // Vérifier si la date est aujourd'hui
-      const isToday = date.getDate() === today.getDate() && 
+      const isToday = date.getDate() === today.getDate() && y++) {
                      date.getMonth() === today.getMonth() && 
                      date.getFullYear() === today.getFullYear();
       
@@ -915,69 +943,69 @@ document.addEventListener('DOMContentLoaded', function() {
       const booked = isDateBooked(date);
       const isCheckIn = isCheckInDate(date);
       const isCheckOut = isCheckOutDate(date);
-      
+      // Vérifier si la date est réservée
       // Vérifier si la date est sélectionnée
       const isStartDate = calendarState.selectedStartDate && 
                        date.getDate() === calendarState.selectedStartDate.getDate() && 
                        date.getMonth() === calendarState.selectedStartDate.getMonth() && 
-                       date.getFullYear() === calendarState.selectedStartDate.getFullYear();
+                       date.getFullYear() === calendarState.selectedStartDate.getFullYear();// Vérifier si la date est sélectionnée
       
       const isEndDate = calendarState.selectedEndDate && 
-                     date.getDate() === calendarState.selectedEndDate.getDate() && 
-                     date.getMonth() === calendarState.selectedEndDate.getMonth() && 
+                     date.getDate() === calendarState.selectedEndDate.getDate() &&                  date.getMonth() === calendarState.selectedStartDate.getMonth() && 
+                     date.getMonth() === calendarState.selectedEndDate.getMonth() && tedStartDate.getFullYear();
                      date.getFullYear() === calendarState.selectedEndDate.getFullYear();
       
-      const isInRange = calendarState.selectedStartDate && calendarState.selectedEndDate && 
-                     date > calendarState.selectedStartDate && date < calendarState.selectedEndDate;
-      
+      const isInRange = calendarState.selectedStartDate && calendarState.selectedEndDate &&                date.getDate() === calendarState.selectedEndDate.getDate() && 
+                     date > calendarState.selectedStartDate && date < calendarState.selectedEndDate; date.getMonth() === calendarState.selectedEndDate.getMonth() && 
+      r() === calendarState.selectedEndDate.getFullYear();
       // Définir les classes CSS en fonction de l'état de la date
-      let cellClass = "p-2 border-t border-l relative cursor-pointer ";
-      let dateClass = "inline-block rounded-full w-7 h-7 leading-7 text-center text-sm ";
+      let cellClass = "p-2 border-t border-l relative cursor-pointer ";tDate && calendarState.selectedEndDate && 
+      let dateClass = "inline-block rounded-full w-7 h-7 leading-7 text-center text-sm ";            date > calendarState.selectedStartDate && date < calendarState.selectedEndDate;
       
-      if (isToday) {
-        cellClass += "bg-green-50 ";
-        if (!booked && !isStartDate && !isEndDate) {
+      if (isToday) {en fonction de l'état de la date
+        cellClass += "bg-green-50 ";et cellClass = "p-2 border-t border-l relative cursor-pointer ";
+        if (!booked && !isStartDate && !isEndDate) {let dateClass = "inline-block rounded-full w-7 h-7 leading-7 text-center text-sm ";
           dateClass += "bg-green-600 text-white ";
         }
-      } else {
-        cellClass += "bg-white ";
-      }
+      } else { cellClass += "bg-green-50 ";
+        cellClass += "bg-white ";  if (!booked && !isStartDate && !isEndDate) {
+      }bg-green-600 text-white ";
       
       if (booked && !isCheckIn && !isCheckOut) {
         cellClass += "cursor-not-allowed ";
       }
       
-      if (isStartDate) {
-        dateClass += "bg-blue-600 text-white ";
+      if (isStartDate) {f (booked && !isCheckIn && !isCheckOut) {
+        dateClass += "bg-blue-600 text-white ";  cellClass += "cursor-not-allowed ";
       } else if (isEndDate) {
         dateClass += "bg-blue-600 text-white ";
       } else if (isInRange) {
-        cellClass += "bg-blue-100 ";
-      }
+        cellClass += "bg-blue-100 ";e ";
+      }lse if (isEndDate) {
       
       calendarHTML += `
-        <div 
+        <div llClass += "bg-blue-100 ";
           class="${cellClass} calendar-day"
           data-date="${date.toISOString()}"
         >
           ${booked && !isCheckIn && !isCheckOut ? 
-            `<div class="absolute inset-0 bg-red-500 opacity-70 z-5"></div>` : ''}
-          
+            `<div class="absolute inset-0 bg-red-500 opacity-70 z-5"></div>` : ''}class="${cellClass} calendar-day"
+          te.toISOString()}"
           ${isCheckIn ? 
             `<div class="absolute inset-0 overflow-hidden z-5">
-              <div class="absolute top-0 right-0 w-1/2 h-full bg-red-500 opacity-70"></div>
+              <div class="absolute top-0 right-0 w-1/2 h-full bg-red-500 opacity-70"></div>absolute inset-0 bg-red-500 opacity-70 z-5"></div>` : ''}
             </div>` : ''}
           
-          ${isCheckOut ? 
-            `<div class="absolute inset-0 overflow-hidden z-5">
-              <div class="absolute top-0 left-0 w-1/2 h-full bg-red-500 opacity-70"></div>
-            </div>` : ''}
-          
-          <span class="${dateClass}">
-            ${day}
-          </span>
-        </div>
-      `;
+          ${isCheckOut ? class="absolute inset-0 overflow-hidden z-5">
+            `<div class="absolute inset-0 overflow-hidden z-5">v class="absolute top-0 right-0 w-1/2 h-full bg-red-500 opacity-70"></div>
+              <div class="absolute top-0 left-0 w-1/2 h-full bg-red-500 opacity-70"></div>div>` : ''}
+            </div>` : ''}  
+               ${isCheckOut ? 
+          <span class="${dateClass}">        `<div class="absolute inset-0 overflow-hidden z-5">
+            ${day}ass="absolute top-0 left-0 w-1/2 h-full bg-red-500 opacity-70"></div>
+          </span></div>` : ''}
+        </div>    
+      `;"${dateClass}">
     }
     
     calendarHTML += `
@@ -990,35 +1018,35 @@ document.addEventListener('DOMContentLoaded', function() {
           <span class="text-sm text-gray-700">Sélectionné</span>
         </div>
         <div class="flex items-center">
-          <div class="w-4 h-4 bg-blue-100 mr-2 rounded-sm"></div>
-          <span class="text-sm text-gray-700">Plage sélectionnée</span>
+          <div class="w-4 h-4 bg-blue-100 mr-2 rounded-sm"></div> class="w-4 h-4 bg-blue-600 mr-2 rounded-sm"></div>
+          <span class="text-sm text-gray-700">Plage sélectionnée</span>y-700">Sélectionné</span>
         </div>
         <div class="flex items-center">
-          <div class="w-4 h-4 bg-red-500 opacity-30 mr-2 rounded-sm"></div>
-          <span class="text-sm text-gray-700">Réservé</span>
+          <div class="w-4 h-4 bg-red-500 opacity-30 mr-2 rounded-sm"></div>lass="w-4 h-4 bg-blue-100 mr-2 rounded-sm"></div>
+          <span class="text-sm text-gray-700">Réservé</span>pan>
         </div>
         <div class="flex items-center">
-          <div class="relative w-4 h-4 mr-2 rounded-sm">
+          <div class="relative w-4 h-4 mr-2 rounded-sm"> rounded-sm"></div>
             <div class="absolute bottom-0 right-0 w-0 h-0 border-b-[8px] border-r-[8px] border-b-red-500 border-r-red-500"></div>
           </div>
           <span class="text-sm text-gray-700">Check-in (14h)</span>
-        </div>
-        <div class="flex items-center">
-          <div class="relative w-4 h-4 mr-2 rounded-sm">
-            <div class="absolute top-0 left-0 w-0 h-0 border-t-[8px] border-l-[8px] border-t-red-500 border-l-red-500"></div>
+        </div> class="relative w-4 h-4 mr-2 rounded-sm">
+        <div class="flex items-center"><div class="absolute bottom-0 right-0 w-0 h-0 border-b-[8px] border-r-[8px] border-b-red-500 border-r-red-500"></div>
+          <div class="relative w-4 h-4 mr-2 rounded-sm">    </div>
+            <div class="absolute top-0 left-0 w-0 h-0 border-t-[8px] border-l-[8px] border-t-red-500 border-l-red-500"></div>gray-700">Check-in (14h)</span>
           </div>
           <span class="text-sm text-gray-700">Check-out (12h)</span>
-        </div>
-      </div>
-      
-      <div class="mt-6 text-center">
+        </div>iv class="relative w-4 h-4 mr-2 rounded-sm">
+      </div><div class="absolute top-0 left-0 w-0 h-0 border-t-[8px] border-l-[8px] border-t-red-500 border-l-red-500"></div>
+          </div>
+      <div class="mt-6 text-center">      <span class="text-sm text-gray-700">Check-out (12h)</span>
         <p class="text-sm text-gray-600">
-          Sélectionnez d'abord votre date d'arrivée, puis votre date de départ.
-        </p>
-      </div>
+          Sélectionnez d'abord votre date d'arrivée, puis votre date de départ.   </div>
+        </p>      
+      </div>er">
     `;
-    
-    calendarWrapper.innerHTML = calendarHTML;
+    d votre date d'arrivée, puis votre date de départ.
+    calendarWrapper.innerHTML = calendarHTML;    </p>
   }
 
   function renderBookingForm() {
@@ -1026,51 +1054,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!bookingForm) return;
     
     bookingForm.innerHTML = `
-      <!-- Section dates -->
-      <div class="mb-6">
+      <!-- Section dates -->rm = document.getElementById('booking-form');
+      <div class="mb-6">rn;
         <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Dates sélectionnées</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="checkin" class="block text-gray-700 font-medium mb-2">Date d'arrivée (Check-in 14h) *</label>
-            <input 
-              type="date" 
+            <label for="checkin" class="block text-gray-700 font-medium mb-2">Date d'arrivée (Check-in 14h) *</label>">
+            <input t-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Dates sélectionnées</h3>
+              type="date" lass="grid grid-cols-1 md:grid-cols-2 gap-4">
               id="checkin" 
-              value="${calendarState.formData.checkin}"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              value="${calendarState.formData.checkin}"el for="checkin" class="block text-gray-700 font-medium mb-2">Date d'arrivée (Check-in 14h) *</label>
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"put 
               readonly
-              required
-            />
-            <p class="text-sm text-gray-500 mt-1">Sélectionnez une date dans le calendrier</p>
+              requiredheckin" 
+            />endarState.formData.checkin}"
+            <p class="text-sm text-gray-500 mt-1">Sélectionnez une date dans le calendrier</p>px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           </div>
           <div>
             <label for="checkout" class="block text-gray-700 font-medium mb-2">Date de départ (Check-out 12h) *</label>
-            <input 
-              type="date" 
+            <input text-sm text-gray-500 mt-1">Sélectionnez une date dans le calendrier</p>
+              type="date" v>
               id="checkout" 
-              value="${calendarState.formData.checkout}"
+              value="${calendarState.formData.checkout}"te de départ (Check-out 12h) *</label>
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               readonly
-              required
-            />
-            <p class="text-sm text-gray-500 mt-1">
-              ${calendarState.selectedStartDate && !calendarState.selectedEndDate
-                ? 'Sélectionnez une date de fin'
+              required="checkout" 
+            />lue="${calendarState.formData.checkout}"
+            <p class="text-sm text-gray-500 mt-1">class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              ${calendarState.selectedStartDate && !calendarState.selectedEndDate  readonly
+                ? 'Sélectionnez une date de fin'        required
                 : 'Date de départ'}
-            </p>
+            </p>xt-sm text-gray-500 mt-1">
           </div>
         </div>
-      </div>
+      </div> : 'Date de départ'}
       
       <!-- Coordonnées -->
       <div class="mb-6">
         <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Vos coordonnées</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="name" class="block text-gray-700 font-medium mb-2">Nom complet *</label>
-            <input 
-              type="text" 
+            <label for="name" class="block text-gray-700 font-medium mb-2">Nom complet *</label>">
+            <input ass="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Vos coordonnées</h3>
+              type="text" ss="grid grid-cols-1 md:grid-cols-2 gap-4">
               id="name" 
-              value="${calendarState.formData.name}"
+              value="${calendarState.formData.name}"abel>
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
@@ -1082,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', function() {
               id="email" 
               value="${calendarState.formData.email}"
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
+              required" 
             />
           </div>
           <div>
@@ -1090,22 +1118,22 @@ document.addEventListener('DOMContentLoaded', function() {
             <input 
               type="tel" 
               id="phone" 
-              value="${calendarState.formData.phone}"
+              value="${calendarState.formData.phone}"abel>
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label for="country" class="block text-gray-700 font-medium mb-2">Pays</label>
+            <label for="country" class="block text-gray-700 font-medium mb-2">Pays</label>required
             <input 
-              type="text" 
-              id="country" 
-              value="${calendarState.formData.country}"
+              type="text" v>
+              id="country" iv>
+              value="${calendarState.formData.country}"      <label for="country" class="block text-gray-700 font-medium mb-2">Pays</label>
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+            />" 
           </div>
-        </div>
-      </div>
+        </div>endarState.formData.country}"
+      </div>-green-500 focus:border-transparent"
       
       <!-- Détails du séjour -->
       <div class="mb-6">
@@ -1117,142 +1145,159 @@ document.addEventListener('DOMContentLoaded', function() {
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             required
           >
-            <option value="" ${calendarState.formData.accommodationType === '' ? 'selected' : ''}>-- Sélectionnez --</option>
-            <option value="Tente" ${calendarState.formData.accommodationType === 'Tente' ? 'selected' : ''}>Tente</option>
+            <option value="" ${calendarState.formData.accommodationType === '' ? 'selected' : ''}>-- Sélectionnez --</option>="accommodationType" 
+            <option value="Tente" ${calendarState.formData.accommodationType === 'Tente' ? 'selected' : ''}>Tente</option>    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             <option value="Van" ${calendarState.formData.accommodationType === 'Van' ? 'selected' : ''}>Van</option>
             <option value="Camping-car" ${calendarState.formData.accommodationType === 'Camping-car' ? 'selected' : ''}>Camping-car</option>
-            <option value="Tente de toit" ${calendarState.formData.accommodationType === 'Tente de toit' ? 'selected' : ''}>Tente de toit</option>
-          </select>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <option value="Tente de toit" ${calendarState.formData.accommodationType === 'Tente de toit' ? 'selected' : ''}>Tente de toit</option>lectionnez --</option>
+          </select> value="Tente" ${calendarState.formData.accommodationType === 'Tente' ? 'selected' : ''}>Tente</option>
+        </div>an" ${calendarState.formData.accommodationType === 'Van' ? 'selected' : ''}>Van</option>
+        "Camping-car" ${calendarState.formData.accommodationType === 'Camping-car' ? 'selected' : ''}>Camping-car</option>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">lue="Tente de toit" ${calendarState.formData.accommodationType === 'Tente de toit' ? 'selected' : ''}>Tente de toit</option>
           <div>
             <label for="adults" class="block text-gray-700 font-medium mb-2">Nombre d'adultes *</label>
             <input 
-              type="number" 
+              type="number" lass="grid grid-cols-1 md:grid-cols-2 gap-4">
               id="adults" 
-              min="1" 
+              min="1" bel for="adults" class="block text-gray-700 font-medium mb-2">Nombre d'adultes *</label>
               value="${calendarState.formData.adults}"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent""number" 
               required
             />
-          </div>
-          <div>
+          </div>{calendarState.formData.adults}"
+          <div>-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             <label for="children" class="block text-gray-700 font-medium mb-2">Nombre d'enfants</label>
             <input 
               type="number" 
-              id="children" 
-              min="0" 
-              value="${calendarState.formData.children}"
+              id="children" >
+              min="0" <label for="children" class="block text-gray-700 font-medium mb-2">Nombre d'enfants</label>
+              value="${calendarState.formData.children}"      <input 
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+            />en" 
           </div>
-        </div>
-      </div>
+        </div>endarState.formData.children}"
+      </div>green-500 focus:border-transparent"
       
       <!-- Option Bois de Chauffage -->
       <div class="mb-6">
-        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Bois de Chauffage</h3>
+        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Bois de Chauffage</h3>>
         <div class="mb-4">
           <label for="woodOption" class="block text-gray-700 font-medium mb-2">Besoin de bois pour le feu ?</label>
           <select 
-            id="woodOption" 
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          >
+            id="woodOption" text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Bois de Chauffage</h3>
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"lass="mb-4">
+          >  <label for="woodOption" class="block text-gray-700 font-medium mb-2">Besoin de bois pour le feu ?</label>
             <option value="" ${calendarState.formData.woodOption === '' ? 'selected' : ''}>Non, merci</option>
             <option value="brouette" ${calendarState.formData.woodOption === 'brouette' ? 'selected' : ''}>Brouette de bois (10€)</option>
-            <option value="caisse" ${calendarState.formData.woodOption === 'caisse' ? 'selected' : ''}>Caisse de bois (5€)</option>
+            <option value="caisse" ${calendarState.formData.woodOption === 'caisse' ? 'selected' : ''}>Caisse de bois (5€)</option> focus:ring-green-500 focus:border-transparent"
           </select>
-        </div>
-        
-        <div id="woodQuantityContainer" class="${calendarState.formData.woodOption ? '' : 'hidden'}">
+        </div>on value="" ${calendarState.formData.woodOption === '' ? 'selected' : ''}>Non, merci</option>
+        "brouette" ${calendarState.formData.woodOption === 'brouette' ? 'selected' : ''}>Brouette de bois (10€)</option>
+        <div id="woodQuantityContainer" class="${calendarState.formData.woodOption ? '' : 'hidden'}">sse" ${calendarState.formData.woodOption === 'caisse' ? 'selected' : ''}>Caisse de bois (5€)</option>
           <label for="woodQuantity" class="block text-gray-700 font-medium mb-2">
             Quantité de ${calendarState.formData.woodOption === 'brouette' ? 'brouettes' : 'caisses'}
           </label>
           <input 
-            type="number" 
-            id="woodQuantity" 
-            min="1" 
-            max="10"
+            type="number" abel for="woodQuantity" class="block text-gray-700 font-medium mb-2">
+            id="woodQuantity" antité de ${calendarState.formData.woodOption === 'brouette' ? 'brouettes' : 'caisses'}
+            min="1" label>
+            max="10"    <input 
             value="${calendarState.formData.woodQuantity || 1}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"tity" 
           />
-        </div>
+        </div>ax="10"
       </div>
-      
+      -full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
       <!-- Information supplémentaire -->
       <div class="mb-6">
         <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
         <div>
-          <label for="message" class="block text-gray-700 font-medium mb-2">Message (questions, requêtes spéciales...)</label>
-          <textarea 
-            id="message" 
+          <label for="message" class="block text-gray-700 font-medium mb-2">Message (questions, requêtes spéciales...)</label>ormation supplémentaire -->
+          <textarea lass="mb-6">
+            id="message"   <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
             rows="4"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"equêtes spéciales...)</label>
           >${calendarState.formData.message}</textarea>
         </div>
       </div>
-      
+      r border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
       <!-- Calcul des frais -->
       <div id="price-estimation" class="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
         <h3 class="text-xl font-semibold text-green-800 mb-4">Estimation des frais</h3>
         <div class="space-y-2 mb-4">
           <div class="flex justify-between">
-            <span>Nombre de nuits:</span>
-            <span id="numberOfNights">${calendarState.priceInfo.nights}</span>
+            <span>Nombre de nuits:</span>rice-estimation" class="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
+            <span id="numberOfNights">${calendarState.priceInfo.nights}</span>t-green-800 mb-4">Estimation des frais</h3>
           </div>
           <div class="flex justify-between">
-            <span>Prix par adulte:</span>
-            <span id="pricePerAdult">${calendarState.priceInfo.adultPrice}</span>
+            <span>Prix par adulte:</span>n>Nombre de nuits:</span>
+            <span id="pricePerAdult">${calendarState.priceInfo.adultPrice}</span>ndarState.priceInfo.nights}</span>
           </div>
           <div class="flex justify-between">
-            <span>Prix par enfant:</span>
-            <span id="pricePerChild">${calendarState.priceInfo.childPrice}</span>
+            <span>Prix par enfant:</span>n>Prix par adulte:</span>
+            <span id="pricePerChild">${calendarState.priceInfo.childPrice}</span>darState.priceInfo.adultPrice}</span>
           </div>
           <div class="flex justify-between">
-            <span>Nombre d'adultes:</span>
-            <span id="numberOfAdults">${calendarState.formData.adults}</span>
+            <span>Nombre d'adultes:</span>n>Prix par enfant:</span>
+            <span id="numberOfAdults">${calendarState.formData.adults}</span>hild">${calendarState.priceInfo.childPrice}</span>
           </div>
           <div class="flex justify-between">
             <span>Nombre d'enfants:</span>
-            <span id="numberOfChildren">${calendarState.formData.children}</span>
-          </div>
+            <span id="numberOfChildren">${calendarState.formData.children}</span>n id="numberOfAdults">${calendarState.formData.adults}</span>
+          </div>v>
           <!-- Prix du bois -->
-          <div id="woodPriceSection" class="${calendarState.formData.woodOption ? '' : 'hidden'} flex justify-between">
-            <span><span id="displayWoodQuantity">0</span> <span id="displayWoodType">-</span> de bois:</span>
+          <div id="woodPriceSection" class="${calendarState.formData.woodOption ? '' : 'hidden'} flex justify-between">/span>
+            <span><span id="displayWoodQuantity">0</span> <span id="displayWoodType">-</span> de bois:</span>ildren">${calendarState.formData.children}</span>
             <span id="woodPrice">0 €</span>
           </div>
-        </div>
-        <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
-          <span>Total estimé:</span>
-          <span id="totalPrice">
+        </div>y-between">
+        <div class="border-t border-green-200 pt-2 flex justify-between font-bold"><span id="displayWoodType">-</span> de bois:</span>
+          <span>Total estimé:</span> id="woodPrice">0 €</span>
+          <span id="totalPrice">v>
             ${calendarState.priceInfo.discount > 0 
               ? `<span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
                  <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>`
               : `${calendarState.priceInfo.totalPrice} €`}
-          </span>
-        </div>
-        <!-- Nouvel élément pour afficher les informations de réduction -->
+          </span>calendarState.priceInfo.discount > 0 
+        </div>gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
+        <!-- Nouvel élément pour afficher les informations de réduction -->pan>`
         <div id="discountInfo" class="${calendarState.priceInfo.discount > 0 ? '' : 'hidden'} mt-2 bg-green-100 text-green-800 p-2 rounded-md">
           <span class="font-semibold">Économisez ${calendarState.priceInfo.discount} € :</span>
           ${calendarState.priceInfo.discountReason}
-        </div>
-        <div class="mt-4 text-xs text-gray-600">
-          <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
-          <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
+        </div> Nouvel élément pour afficher les informations de réduction -->
+        <div class="mt-4 text-xs text-gray-600">        <div id="discountInfo" class="${calendarState.priceInfo.discount > 0 ? '' : 'hidden'} mt-2 bg-green-100 text-green-800 p-2 rounded-md">
+          <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>emibold">Économisez ${calendarState.priceInfo.discount} € :</span>
+          <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>Info.discountReason}
           <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
-        </div>
+        </div>4 text-xs text-gray-600">
       </div>
-
-      <!-- Bouton d'envoi -->
+ <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
+      <!-- Bouton d'envoi -->n est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
       <div class="text-center">
         <button 
           type="submit"
-          class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 inline-block"
-        >
+          class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 inline-block"   <!-- Bouton d'envoi -->
+        >    <div class="text-center">
           Envoyer ma demande
         </button>
-      </div>
+      </div> hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 inline-block"
     `;
+  }
+       </button>
+  // Vérifier si un mois est dans le passé   </div>
+  function isPastMonth(year, month) {    `;
+
+
+
+
+
+
+});  }           (year === today.getFullYear() && month < today.getMonth());    return year < today.getFullYear() ||     const today = new Date();  }
+  
+  // Vérifier si un mois est dans le passé
+  function isPastMonth(year, month) {
+    const today = new Date();
+    return year < today.getFullYear() || 
+           (year === today.getFullYear() && month < today.getMonth());
   }
 });
