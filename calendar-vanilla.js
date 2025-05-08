@@ -1026,10 +1026,6 @@ function handleDateClick(date) {
     
     
 calendarHTML += `
-</div>
-
-
-// Remplacez la section "Légende" dans la fonction renderCalendar() par ce code:
 
 <!-- Légende -->
 <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
