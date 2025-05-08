@@ -298,69 +298,77 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Gérer le clic sur une date du calendrier
-  function handleDateClick(date) {
-    // Convertir en objets Date pour assurer une comparaison correcte
-    const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+function handleDateClick(date) {
+  // Convertir en objets Date pour assurer une comparaison correcte
+  const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Ne pas permettre de sélectionner des dates passées
+  if (currentDate < today) {
+    return;
+  }
+  
+  // Autoriser la sélection de TOUTES les dates de check-in ET check-out
+  // Ne bloquer que les dates complètement réservées qui ne sont ni check-in ni check-out
+  if (isDateBooked(date) && !isCheckInDate(date) && !isCheckOutDate(date)) {
+    return;
+  }
+  
+  // Mode Airbnb : Première sélection = début, deuxième = fin
+  if (!calendarState.selectedStartDate || (calendarState.selectedStartDate && calendarState.selectedEndDate)) {
+    // Premier clic ou réinitialisation après une plage complète
+    calendarState.selectedStartDate = currentDate;
+    calendarState.selectedEndDate = null;
     
-    // Ne pas permettre de sélectionner des dates passées
-    if (currentDate < today) {
-      return;
-    }
-    
-    // Autoriser la sélection de TOUTES les dates de check-in ET check-out
-    // Ne bloquer que les dates complètement réservées qui ne sont ni check-in ni check-out
-    if (isDateBooked(date) && !isCheckInDate(date) && !isCheckOutDate(date)) {
-      return;
-    }
-    
-    // Mode Airbnb : Première sélection = début, deuxième = fin
-    if (!calendarState.selectedStartDate || (calendarState.selectedStartDate && calendarState.selectedEndDate)) {
-      // Premier clic ou réinitialisation après une plage complète
+    // Mettre à jour les champs du formulaire
+    calendarState.formData.checkin = formatDateForInput(currentDate);
+    calendarState.formData.checkout = '';
+    updateFormFields();
+  } else {
+    // Deuxième clic pour date de fin
+    if (currentDate <= calendarState.selectedStartDate) {
+      // Si la date cliquée est avant ou égale à la date de début,
+      // on considère que l'utilisateur veut changer sa date de début
       calendarState.selectedStartDate = currentDate;
-      calendarState.selectedEndDate = null;
       
-      // Mettre à jour les champs du formulaire
+      // Mettre à jour uniquement le champ checkin
       calendarState.formData.checkin = formatDateForInput(currentDate);
+      updateFormFields();
+      renderCalendar(); // Mettre à jour l'affichage du calendrier
+      return;
+    }
+    
+    // Vérifier s'il y a des dates réservées entre le début et la fin
+    const hasConflict = checkDateRangeConflicts(calendarState.selectedStartDate, currentDate);
+    
+    if (hasConflict) {
+      alert("Il y a des dates déjà réservées dans cette plage. Veuillez choisir une autre date de fin.");
+      
+      // MODIFICATION: Réinitialiser la sélection en cas de conflit pour permettre à l'utilisateur de recommencer
+      calendarState.selectedStartDate = null;
+      calendarState.selectedEndDate = null;
+      calendarState.formData.checkin = '';
       calendarState.formData.checkout = '';
       updateFormFields();
-    } else {
-      // Deuxième clic pour date de fin
-      if (currentDate <= calendarState.selectedStartDate) {
-        // Si la date cliquée est avant ou égale à la date de début,
-        // on considère que l'utilisateur veut changer sa date de début
-        calendarState.selectedStartDate = currentDate;
-        
-        // Mettre à jour uniquement le champ checkin
-        calendarState.formData.checkin = formatDateForInput(currentDate);
-        updateFormFields();
-        renderCalendar(); // Mettre à jour l'affichage du calendrier
-        return;
-      }
-      
-      // Vérifier s'il y a des dates réservées entre le début et la fin
-      const hasConflict = checkDateRangeConflicts(calendarState.selectedStartDate, currentDate);
-      
-      if (hasConflict) {
-        alert("Il y a des dates déjà réservées dans cette plage. Veuillez choisir une autre date de fin.");
-        return;
-      }
-      
-      // Définir la date de fin
-      calendarState.selectedEndDate = currentDate;
-      
-      // Mettre à jour le champ checkout du formulaire
-      calendarState.formData.checkout = formatDateForInput(currentDate);
-      updateFormFields();
+      renderCalendar();
+      return;
     }
     
-    // Mettre à jour l'affichage du calendrier
-    renderCalendar();
+    // Définir la date de fin
+    calendarState.selectedEndDate = currentDate;
     
-    // Calculer le prix
-    calculatePrice();
+    // Mettre à jour le champ checkout du formulaire
+    calendarState.formData.checkout = formatDateForInput(currentDate);
+    updateFormFields();
   }
+  
+  // Mettre à jour l'affichage du calendrier
+  renderCalendar();
+  
+  // Calculer le prix
+  calculatePrice();
+}
 
   // Mettre à jour les champs de formulaire
   function updateFormFields() {
@@ -1016,43 +1024,33 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
     }
     
-    calendarHTML += `
-      </div>
-      
-      <!-- Légende -->
-      <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
-        <div class="flex items-center">
-          <div class="w-4 h-4 bg-blue-600 mr-2 rounded-sm"></div>
-          <span class="text-sm text-gray-700">Sélectionné</span>
-        </div>
-        <div class="flex items-center">
-          <div class="w-4 h-4 bg-blue-100 mr-2 rounded-sm"></div>
-          <span class="text-sm text-gray-700">Plage sélectionnée</span>
-        </div>
-        <div class="flex items-center">
-          <div class="w-4 h-4 bg-red-500 opacity-30 mr-2 rounded-sm"></div>
-          <span class="text-sm text-gray-700">Réservé</span>
-        </div>
-        <div class="flex items-center">
-          <div class="relative w-4 h-4 mr-2 rounded-sm">
-            <div class="absolute bottom-0 right-0 w-0 h-0 border-b-[8px] border-r-[8px] border-b-red-500 border-r-red-500"></div>
-          </div>
-          <span class="text-sm text-gray-700">Check-in (14h)</span>
-        </div>
-        <div class="flex items-center">
-          <div class="relative w-4 h-4 mr-2 rounded-sm">
-            <div class="absolute top-0 left-0 w-0 h-0 border-t-[8px] border-l-[8px] border-t-red-500 border-l-red-500"></div>
-          </div>
-          <span class="text-sm text-gray-700">Check-out (12h)</span>
-        </div>
-      </div>
-      
-      <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">
-          Sélectionnez d'abord votre date d'arrivée, puis votre date de départ.
-        </p>      
-      </div>
-    `;
+    
+calendarHTML += `
+</div>
+
+<!-- Légende -->
+<div class="mt-4 flex flex-wrap items-center justify-center gap-4">
+  <div class="flex items-center">
+    <div class="w-4 h-4 bg-blue-600 mr-2 rounded-sm"></div>
+    <span class="text-sm text-gray-700">Votre sélection</span>
+  </div>
+  <div class="flex items-center">
+    <div class="w-4 h-4 bg-blue-100 mr-2 rounded-sm"></div>
+    <span class="text-sm text-gray-700">Votre séjour</span>
+  </div>
+  <div class="flex items-center">
+    <div class="w-4 h-4 bg-red-500 opacity-70 mr-2 rounded-sm"></div>
+    <span class="text-sm text-gray-700">Déjà occupé</span>
+  </div>
+</div>
+
+<div class="mt-6 text-center">
+  <p class="text-sm text-gray-600 font-medium">
+    Sélectionnez d'abord votre date d'arrivée, puis votre date de départ.<br>
+    <span class="text-red-600">Les dates en rouge ne sont pas disponibles.</span>
+  </p>      
+</div>
+`;
     
     calendarWrapper.innerHTML = calendarHTML;
   }
