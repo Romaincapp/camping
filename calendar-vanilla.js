@@ -1029,6 +1029,8 @@ calendarHTML += `
 </div>
 
 
+// Remplacez la section "Légende" dans la fonction renderCalendar() par ce code:
+
 <!-- Légende -->
 <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
   <div class="flex items-center">
@@ -1039,6 +1041,13 @@ calendarHTML += `
     <div class="w-4 h-4 bg-red-500 opacity-70 mr-2 rounded-sm"></div>
     <span class="text-sm text-gray-700">Déjà occupé</span>
   </div>
+</div>
+
+<div class="mt-6 text-center">
+  <p class="text-sm text-gray-600 font-medium">
+    Sélectionnez d'abord votre date d'arrivée, puis votre date de départ.<br>
+    <span class="text-red-600">Les dates en rouge ne sont pas disponibles.</span>
+  </p>      
 </div>
 `;
     
