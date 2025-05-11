@@ -904,6 +904,7 @@ function handleDateClick(date) {
     firstDay = firstDay === 0 ? 6 : firstDay - 1;
     
     let calendarHTML = `
+    </div>
       <div class="flex justify-between items-center mb-4">
         <button 
           id="prev-month-btn"
@@ -1026,12 +1027,9 @@ function handleDateClick(date) {
     
     
 calendarHTML += `
-</div>
-
-
-// Remplacez la section "Légende" dans la fonction renderCalendar() par ce code:
 
 <!-- Légende -->
+</div>
 <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
   <div class="flex items-center">
     <div class="w-4 h-4 bg-blue-600 mr-2 rounded-sm"></div>
