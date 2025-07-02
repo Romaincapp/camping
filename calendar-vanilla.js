@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
       email: '',
       phone: '',
       country: '',
-      language: '', // Nouvelle propriété pour la langue
+      languages: [], // Nouvelle propriété pour les langues (tableau)
       accommodationType: '',
       adults: 1,
       children: 0,
@@ -144,6 +144,18 @@ document.addEventListener('DOMContentLoaded', function() {
           updateLoadingState();
           renderCalendar();
         });
+    
+    // Gestionnaire pour la saisie en temps réel (pour détecter quand l'utilisateur commence à taper)
+    document.addEventListener('input', function(event) {
+      const target = event.target;
+      const id = target.id;
+      
+      // Gérer les champs de contact en temps réel
+      if (id === 'name' || id === 'email' || id === 'phone') {
+        calendarState.formData[id] = target.value;
+        checkFormProgress();
+      }
+    });
     } catch (error) {
       console.error("Exception lors de la récupération des événements:", error);
       // Utiliser des événements de démonstration en cas d'erreur
@@ -374,7 +386,45 @@ function handleDateClick(date) {
   calculatePrice();
 }
 
-  // Mettre à jour les champs de formulaire
+  // Fonction pour révéler progressivement la section voilier
+  function revealSailingSection() {
+    const sailingSection = document.getElementById('sailingExperienceSection');
+    if (sailingSection && sailingSection.classList.contains('hidden')) {
+      // Ajouter une animation de révélation
+      sailingSection.classList.remove('hidden');
+      sailingSection.style.opacity = '0';
+      sailingSection.style.transform = 'translateY(20px)';
+      
+      // Animation CSS
+      setTimeout(() => {
+        sailingSection.style.transition = 'all 0.8s ease-out';
+        sailingSection.style.opacity = '1';
+        sailingSection.style.transform = 'translateY(0)';
+        
+        // Ajouter un effet de pulsation sur le badge "Nouveau"
+        const badge = sailingSection.querySelector('.bg-blue-600');
+        if (badge) {
+          badge.style.animation = 'pulse 2s infinite';
+        }
+      }, 100);
+    }
+  }
+
+  // Fonction pour vérifier si l'utilisateur a commencé à remplir le formulaire
+  function checkFormProgress() {
+    const { name, email, phone } = calendarState.formData;
+    
+    // Si l'utilisateur a commencé à remplir au moins un champ de contact
+    if (name.length > 2 || email.length > 3 || phone.length > 3) {
+      revealSailingSection();
+    }
+  }
+
+  // Fonction pour gérer les changements des checkboxes de langues
+  function handleLanguageChange() {
+    const checkboxes = document.querySelectorAll('input[name="languages"]:checked');
+    calendarState.formData.languages = Array.from(checkboxes).map(cb => cb.value);
+  }
   function updateFormFields() {
     // Mettre à jour la date d'arrivée
     const checkinInput = document.getElementById('checkin');
@@ -732,9 +782,20 @@ function handleDateClick(date) {
       const target = event.target;
       const id = target.id;
       
+      // Gérer les checkboxes de langues
+      if (target.name === 'languages') {
+        handleLanguageChange();
+        return;
+      }
+      
       // Vérifier si l'élément est un champ de notre formulaire
       if (calendarState.formData.hasOwnProperty(id)) {
         calendarState.formData[id] = target.value;
+        
+        // Vérifier le progrès du formulaire pour révéler la section voilier
+        if (id === 'name' || id === 'email' || id === 'phone') {
+          checkFormProgress();
+        }
         
         // Recalculer le prix si nécessaire
         if (id === 'adults' || id === 'children' || id === 'woodQuantity' || id === 'sailingDuration') {
@@ -870,6 +931,12 @@ function handleDateClick(date) {
       return;
     }
     
+    // Vérifier qu'au moins une langue est sélectionnée
+    if (calendarState.formData.languages.length === 0) {
+      alert("Veuillez sélectionner au moins une langue parlée.");
+      return;
+    }
+    
     // Assurer que l'option de bois a une valeur valide
     const woodOptionSelect = document.getElementById('woodOption');
     if (woodOptionSelect) {
@@ -903,6 +970,7 @@ function handleDateClick(date) {
     // Ajouter le résumé du prix aux données du formulaire
     const formDataWithPrice = {
       ...calendarState.formData,
+      languages: calendarState.formData.languages.join(', '), // Convertir le tableau en chaîne
       priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Prix total estimé: ${calendarState.priceInfo.totalPrice} €`
     };
     
@@ -926,7 +994,7 @@ function handleDateClick(date) {
           email: '',
           phone: '',
           country: '',
-          language: '',
+          languages: [],
           accommodationType: '',
           adults: 1,
           children: 0,
@@ -1206,20 +1274,33 @@ calendarHTML += `
             />
           </div>
           <div class="md:col-span-2">
-            <label for="language" class="block text-gray-700 font-medium mb-2">Langue(s) parlée(s) *</label>
-            <select 
-              id="language" 
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
-            >
-              <option value="" ${calendarState.formData.language === '' ? 'selected' : ''}>-- Sélectionnez --</option>
-              <option value="Français" ${calendarState.formData.language === 'Français' ? 'selected' : ''}>Français</option>
-              <option value="Nederlands" ${calendarState.formData.language === 'Nederlands' ? 'selected' : ''}>Nederlands</option>
-              <option value="English" ${calendarState.formData.language === 'English' ? 'selected' : ''}>English</option>
-              <option value="Deutsch" ${calendarState.formData.language === 'Deutsch' ? 'selected' : ''}>Deutsch</option>
-              <option value="Español" ${calendarState.formData.language === 'Español' ? 'selected' : ''}>Español</option>
-              <option value="Autre" ${calendarState.formData.language === 'Autre' ? 'selected' : ''}>Autre</option>
-            </select>
+            <label class="block text-gray-700 font-medium mb-3">Langue(s) parlée(s) * <span class="text-sm text-gray-500">(Sélectionnez toutes les langues que vous parlez)</span></label>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <label class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" name="languages" value="Français" class="text-green-600 focus:ring-green-500" ${calendarState.formData.languages.includes('Français') ? 'checked' : ''}>
+                <span class="text-sm">🇫🇷 Français</span>
+              </label>
+              <label class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" name="languages" value="Nederlands" class="text-green-600 focus:ring-green-500" ${calendarState.formData.languages.includes('Nederlands') ? 'checked' : ''}>
+                <span class="text-sm">🇳🇱 Nederlands</span>
+              </label>
+              <label class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" name="languages" value="English" class="text-green-600 focus:ring-green-500" ${calendarState.formData.languages.includes('English') ? 'checked' : ''}>
+                <span class="text-sm">🇬🇧 English</span>
+              </label>
+              <label class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" name="languages" value="Deutsch" class="text-green-600 focus:ring-green-500" ${calendarState.formData.languages.includes('Deutsch') ? 'checked' : ''}>
+                <span class="text-sm">🇩🇪 Deutsch</span>
+              </label>
+              <label class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" name="languages" value="Español" class="text-green-600 focus:ring-green-500" ${calendarState.formData.languages.includes('Español') ? 'checked' : ''}>
+                <span class="text-sm">🇪🇸 Español</span>
+              </label>
+              <label class="flex items-center space-x-2 p-2 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" name="languages" value="Autre" class="text-green-600 focus:ring-green-500" ${calendarState.formData.languages.includes('Autre') ? 'checked' : ''}>
+                <span class="text-sm">🌍 Autre</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -1308,23 +1389,23 @@ calendarHTML += `
         </div>
       </div>
       
-      <!-- Section Expérience Voilier - Style promotionnel -->
-      <div class="mb-6 bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-lg">
+      <!-- Section Expérience Voilier - Style promotionnel (cachée par défaut) -->
+      <div id="sailingExperienceSection" class="hidden mb-6 bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-lg">
         <div class="flex items-center mb-4">
           <div class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase mr-3">
             🎉 Expérience Exclusive
           </div>
-          <span class="text-blue-800 font-semibold">New!</span>
+          <span class="text-blue-800 font-semibold">Nouveau !</span>
         </div>
         
         <h3 class="text-2xl font-bold text-blue-800 mb-3">
-          ⛵ Balade en Voilier
+          ⛵ Balade en Voilier sur le Lac de l'Eau d'Heure
         </h3>
         
         <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
           <p class="text-gray-700 mb-3">
             <strong>Découvrez le plus grand lac de Belgique à bord de mon voilier de 7m10 !</strong><br>
-            Naviguons et allons nager ensemble autour du bateau à l'ancre dans une magnifique crique.
+            Naviguons et allons nager dans la plus belle crique du Lac de l'Eau d'Heure.
           </p>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -1378,10 +1459,10 @@ calendarHTML += `
           <p class="font-semibold mb-1">ℹ️ Informations importantes :</p>
           <ul class="list-disc ml-4 space-y-1">
             <li>Expérience soumise aux conditions météo</li>
-            <li>Maximum 5 personnes</li>
+            <li>Maximum 5 adultes</li>
             <li>Gilets de sauvetage fournis</li>
-            <li>Reservez maintenant, payez après la sortie</li>
-            
+            <li>Nous plannifions la sortie par message</li>
+            <li>Réservez maintenant, payez après la sortie</li>
           </ul>
         </div>
       </div>
