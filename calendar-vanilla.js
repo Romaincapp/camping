@@ -1314,17 +1314,17 @@ calendarHTML += `
           <div class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase mr-3">
             🎉 Expérience Exclusive
           </div>
-          <span class="text-blue-800 font-semibold">Nouveau !</span>
+          <span class="text-blue-800 font-semibold">New!</span>
         </div>
         
         <h3 class="text-2xl font-bold text-blue-800 mb-3">
-          ⛵ Balade en Voilier sur le Lac de l'Eau d'Heure
+          ⛵ Balade en Voilier
         </h3>
         
         <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
           <p class="text-gray-700 mb-3">
             <strong>Découvrez le plus grand lac de Belgique à bord de mon voilier de 7m10 !</strong><br>
-            Une expérience unique pour compléter votre séjour au camping. Naviguez sur les eaux cristallines et profitez d'un moment de détente absolue.
+            Naviguons et allons nager ensemble autour du bateau à l'ancre dans une magnifique crique.
           </p>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -1377,10 +1377,11 @@ calendarHTML += `
         <div class="mt-4 text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
           <p class="font-semibold mb-1">ℹ️ Informations importantes :</p>
           <ul class="list-disc ml-4 space-y-1">
-            <li>Réservation soumise aux conditions météo</li>
-            <li>Maximum 6 personnes à bord</li>
+            <li>Expérience soumise aux conditions météo</li>
+            <li>Maximum 5 personnes</li>
             <li>Gilets de sauvetage fournis</li>
-            <li>Rendez-vous directement au lac (15 min du camping)</li>
+            <li>Reservez maintenant, payez après la sortie</li>
+            
           </ul>
         </div>
       </div>
