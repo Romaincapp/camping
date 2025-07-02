@@ -13,15 +13,19 @@ document.addEventListener('DOMContentLoaded', function() {
       email: '',
       phone: '',
       country: '',
+      language: '', // Nouvelle propriété pour la langue
       accommodationType: '',
       adults: 1,
       children: 0,
       message: '',
       checkin: '',
       checkout: '',
-      // Nouvelles propriétés pour le bois
+      // Propriétés pour le bois
       woodOption: '',
-      woodQuantity: 0
+      woodQuantity: 0,
+      // Nouvelles propriétés pour l'expérience voilier
+      sailingExperience: '',
+      sailingDuration: ''
     },
     priceInfo: {
       nights: 0,
@@ -31,8 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
       originalTotalPrice: 0,
       discount: 0,
       discountReason: '',
-      // Ajouter le prix du bois
-      woodPrice: 0
+      woodPrice: 0,
+      sailingPrice: 0 // Nouveau prix pour l'expérience voilier
     }
   };
 
@@ -420,6 +424,20 @@ function handleDateClick(date) {
       }
     }
     
+    // Ajouter l'affichage du prix de l'expérience voilier
+    const sailingPriceElement = document.getElementById('sailingPrice');
+    const sailingDurationElement = document.getElementById('displaySailingDuration');
+    
+    if (sailingPriceElement && sailingDurationElement) {
+      if (calendarState.formData.sailingExperience === 'yes' && calendarState.formData.sailingDuration) {
+        sailingDurationElement.textContent = calendarState.formData.sailingDuration;
+        sailingPriceElement.textContent = `${calendarState.priceInfo.sailingPrice} €`;
+        document.getElementById('sailingPriceSection').classList.remove('hidden');
+      } else {
+        document.getElementById('sailingPriceSection').classList.add('hidden');
+      }
+    }
+    
     // Mettre à jour l'affichage du prix total avec ou sans réduction
     const priceElement = document.getElementById('totalPrice');
     if (calendarState.priceInfo.discount > 0) {
@@ -462,7 +480,8 @@ function handleDateClick(date) {
         originalTotalPrice: 0,
         discount: 0,
         discountReason: '',
-        woodPrice: 0
+        woodPrice: 0,
+        sailingPrice: 0
       };
     } else {
       // Calculer le nombre de nuits
@@ -487,6 +506,22 @@ function handleDateClick(date) {
           woodPrice = woodQuantity * 10; // 10€ par brouette
         } else if (calendarState.formData.woodOption === 'caisse') {
           woodPrice = woodQuantity * 5;  // 5€ par caisse
+        }
+      }
+      
+      // Calculer le prix de l'expérience voilier
+      let sailingPrice = 0;
+      if (calendarState.formData.sailingExperience === 'yes' && calendarState.formData.sailingDuration) {
+        switch (calendarState.formData.sailingDuration) {
+          case '2h':
+            sailingPrice = 90;
+            break;
+          case '3h':
+            sailingPrice = 120;
+            break;
+          case '4h':
+            sailingPrice = 140;
+            break;
         }
       }
       
@@ -660,11 +695,11 @@ function handleDateClick(date) {
         }
       }
       
-      // Ajouter le prix du bois au prix total
-      totalPrice += woodPrice;
+      // Ajouter le prix du bois et de l'expérience voilier au prix total
+      totalPrice += woodPrice + sailingPrice;
       
       // Calculer le discount total
-      const discount = fullPriceWithoutReduction - totalPrice + woodPrice;
+      const discount = fullPriceWithoutReduction - totalPrice + woodPrice + sailingPrice;
       
       // Mettre à jour les informations de prix
       calendarState.priceInfo = {
@@ -672,10 +707,11 @@ function handleDateClick(date) {
         adultPrice,
         childPrice,
         totalPrice,
-        originalTotalPrice: fullPriceWithoutReduction + woodPrice,
+        originalTotalPrice: fullPriceWithoutReduction + woodPrice + sailingPrice,
         discount,
         discountReason,
-        woodPrice
+        woodPrice,
+        sailingPrice
       };
     }
     
@@ -701,7 +737,7 @@ function handleDateClick(date) {
         calendarState.formData[id] = target.value;
         
         // Recalculer le prix si nécessaire
-        if (id === 'adults' || id === 'children' || id === 'woodQuantity') {
+        if (id === 'adults' || id === 'children' || id === 'woodQuantity' || id === 'sailingDuration') {
           calculatePrice();
         }
       }
@@ -747,6 +783,32 @@ function handleDateClick(date) {
         } else {
           calendarState.formData.woodQuantity = value;
         }
+        calculatePrice();
+      }
+      
+      // Gestionnaire pour l'expérience voilier
+      if (target.id === 'sailingExperience') {
+        calendarState.formData.sailingExperience = target.value;
+        
+        const sailingDurationContainer = document.getElementById('sailingDurationContainer');
+        if (sailingDurationContainer) {
+          if (target.value === 'yes') {
+            sailingDurationContainer.classList.remove('hidden');
+          } else {
+            sailingDurationContainer.classList.add('hidden');
+            calendarState.formData.sailingDuration = '';
+            const sailingDurationSelect = document.getElementById('sailingDuration');
+            if (sailingDurationSelect) {
+              sailingDurationSelect.value = '';
+            }
+          }
+        }
+        
+        calculatePrice();
+      }
+      
+      if (target.id === 'sailingDuration') {
+        calendarState.formData.sailingDuration = target.value;
         calculatePrice();
       }
     });
@@ -833,6 +895,11 @@ function handleDateClick(date) {
       calendarState.formData.woodQuantity = 0;
     }
     
+    // Gérer l'expérience voilier
+    if (calendarState.formData.sailingExperience !== 'yes') {
+      calendarState.formData.sailingDuration = '';
+    }
+    
     // Ajouter le résumé du prix aux données du formulaire
     const formDataWithPrice = {
       ...calendarState.formData,
@@ -859,6 +926,7 @@ function handleDateClick(date) {
           email: '',
           phone: '',
           country: '',
+          language: '',
           accommodationType: '',
           adults: 1,
           children: 0,
@@ -866,7 +934,9 @@ function handleDateClick(date) {
           checkin: '',
           checkout: '',
           woodOption: '',
-          woodQuantity: 0
+          woodQuantity: 0,
+          sailingExperience: '',
+          sailingDuration: ''
         };
         // Mettre à jour l'interface
         updateFormFields();
@@ -1135,6 +1205,22 @@ calendarHTML += `
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
+          <div class="md:col-span-2">
+            <label for="language" class="block text-gray-700 font-medium mb-2">Langue(s) parlée(s) *</label>
+            <select 
+              id="language" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            >
+              <option value="" ${calendarState.formData.language === '' ? 'selected' : ''}>-- Sélectionnez --</option>
+              <option value="Français" ${calendarState.formData.language === 'Français' ? 'selected' : ''}>Français</option>
+              <option value="Nederlands" ${calendarState.formData.language === 'Nederlands' ? 'selected' : ''}>Nederlands</option>
+              <option value="English" ${calendarState.formData.language === 'English' ? 'selected' : ''}>English</option>
+              <option value="Deutsch" ${calendarState.formData.language === 'Deutsch' ? 'selected' : ''}>Deutsch</option>
+              <option value="Español" ${calendarState.formData.language === 'Español' ? 'selected' : ''}>Español</option>
+              <option value="Autre" ${calendarState.formData.language === 'Autre' ? 'selected' : ''}>Autre</option>
+            </select>
+          </div>
         </div>
       </div>
       
@@ -1222,6 +1308,83 @@ calendarHTML += `
         </div>
       </div>
       
+      <!-- Section Expérience Voilier - Style promotionnel -->
+      <div class="mb-6 bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-lg">
+        <div class="flex items-center mb-4">
+          <div class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase mr-3">
+            🎉 Expérience Exclusive
+          </div>
+          <span class="text-blue-800 font-semibold">Nouveau !</span>
+        </div>
+        
+        <h3 class="text-2xl font-bold text-blue-800 mb-3">
+          ⛵ Balade en Voilier sur le Lac de l'Eau d'Heure
+        </h3>
+        
+        <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
+          <p class="text-gray-700 mb-3">
+            <strong>Découvrez le plus grand lac de Belgique à bord de mon voilier de 7m10 !</strong><br>
+            Une expérience unique pour compléter votre séjour au camping. Naviguez sur les eaux cristallines et profitez d'un moment de détente absolue.
+          </p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="text-center p-3 bg-blue-50 rounded-lg">
+              <div class="text-2xl font-bold text-blue-800">2h</div>
+              <div class="text-blue-600 font-semibold">90€</div>
+              <div class="text-sm text-gray-600">Découverte</div>
+            </div>
+            <div class="text-center p-3 bg-blue-50 rounded-lg border-2 border-blue-400">
+              <div class="text-2xl font-bold text-blue-800">3h</div>
+              <div class="text-blue-600 font-semibold">120€</div>
+              <div class="text-sm text-gray-600">Recommandé ⭐</div>
+            </div>
+            <div class="text-center p-3 bg-blue-50 rounded-lg">
+              <div class="text-2xl font-bold text-blue-800">4h</div>
+              <div class="text-blue-600 font-semibold">140€</div>
+              <div class="text-sm text-gray-600">Exploration</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="sailingExperience" class="block text-blue-800 font-semibold mb-2">
+            Souhaitez-vous ajouter cette expérience à votre séjour ?
+          </label>
+          <select 
+            id="sailingExperience" 
+            class="w-full px-4 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            <option value="" ${calendarState.formData.sailingExperience === '' ? 'selected' : ''}>Non, merci</option>
+            <option value="yes" ${calendarState.formData.sailingExperience === 'yes' ? 'selected' : ''}>Oui, je suis intéressé(e) !</option>
+          </select>
+        </div>
+        
+        <div id="sailingDurationContainer" class="${calendarState.formData.sailingExperience === 'yes' ? '' : 'hidden'}">
+          <label for="sailingDuration" class="block text-blue-800 font-semibold mb-2">
+            Choisissez la durée de votre balade
+          </label>
+          <select 
+            id="sailingDuration" 
+            class="w-full px-4 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            <option value="" ${calendarState.formData.sailingDuration === '' ? 'selected' : ''}>-- Sélectionnez la durée --</option>
+            <option value="2h" ${calendarState.formData.sailingDuration === '2h' ? 'selected' : ''}>2 heures - 90€</option>
+            <option value="3h" ${calendarState.formData.sailingDuration === '3h' ? 'selected' : ''}>3 heures - 120€ (Recommandé)</option>
+            <option value="4h" ${calendarState.formData.sailingDuration === '4h' ? 'selected' : ''}>4 heures - 140€</option>
+          </select>
+        </div>
+        
+        <div class="mt-4 text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
+          <p class="font-semibold mb-1">ℹ️ Informations importantes :</p>
+          <ul class="list-disc ml-4 space-y-1">
+            <li>Réservation soumise aux conditions météo</li>
+            <li>Maximum 6 personnes à bord</li>
+            <li>Gilets de sauvetage fournis</li>
+            <li>Rendez-vous directement au lac (15 min du camping)</li>
+          </ul>
+        </div>
+      </div>
+      
       <!-- Calcul des frais -->
       <div id="price-estimation" class="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
         <h3 class="text-xl font-semibold text-green-800 mb-4">Estimation des frais</h3>
@@ -1250,6 +1413,11 @@ calendarHTML += `
           <div id="woodPriceSection" class="${calendarState.formData.woodOption ? '' : 'hidden'} flex justify-between">
             <span><span id="displayWoodQuantity">0</span> <span id="displayWoodType">-</span> de bois:</span>
             <span id="woodPrice">0 €</span>
+          </div>
+          <!-- Prix de l'expérience voilier -->
+          <div id="sailingPriceSection" class="${calendarState.formData.sailingExperience === 'yes' && calendarState.formData.sailingDuration ? '' : 'hidden'} flex justify-between border-t border-blue-200 pt-2">
+            <span>⛵ Balade voilier (<span id="displaySailingDuration">-</span>):</span>
+            <span id="sailingPrice" class="text-blue-600 font-semibold">0 €</span>
           </div>
         </div>
         <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
