@@ -241,8 +241,53 @@ function initGalleryNavigation() {
   updateButtonsVisibility();
 }
 
+// Variables globales pour la modal Campspace
+let campspaceUrl = '';
+
+function openCampspaceModal(url) {
+  campspaceUrl = url;
+  const modal = document.getElementById('campspace-modal');
+  const content = document.getElementById('campspace-modal-content');
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+
+  // Animation d'entrée
+  setTimeout(() => {
+    content.classList.remove('scale-95', 'opacity-0');
+    content.classList.add('scale-100', 'opacity-100');
+  }, 10);
+}
+
+function closeCampspaceModal() {
+  const modal = document.getElementById('campspace-modal');
+  const content = document.getElementById('campspace-modal-content');
+
+  content.classList.remove('scale-100', 'opacity-100');
+  content.classList.add('scale-95', 'opacity-0');
+
+  setTimeout(() => {
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }, 300);
+}
+
+function goToCampspace() {
+  window.open(campspaceUrl, '_blank');
+  closeCampspaceModal();
+}
+
 // Attendre que le DOM soit complètement chargé
 document.addEventListener('DOMContentLoaded', function() {
+  // Intercepter les clics sur les liens Campspace
+  document.querySelectorAll('.campspace-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      openCampspaceModal(this.href);
+    });
+  });
   // Initialisation de la galerie horizontale
   initHorizontalGallery();
   
@@ -254,6 +299,22 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Animations GSAP
   gsap.registerPlugin(ScrollTrigger);
+
+  // Animation des logos hero - apparition séquentielle avec bounce
+  const heroLogos = document.querySelectorAll('.hero-logo');
+  if (heroLogos.length > 0) {
+    gsap.set(heroLogos, { opacity: 0, y: 50, scale: 0.5 });
+    gsap.to(heroLogos, {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.6,
+      stagger: 0.15,
+      ease: "back.out(1.7)",
+      delay: 0.5
+    });
+  }
+
   // Animation des cartes de fonctionnalités
   gsap.from('.feature-card', {
     scrollTrigger: {

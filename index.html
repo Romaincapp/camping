@@ -16,7 +16,7 @@
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camping Olloy-sur-Viroin - Location emplacement au camping du wignet | Viroinval</title>
+    <title>Camping privatif Olloy-sur-Viroin - privatisé ce camping | Viroinval</title>
     
     <!-- Balises SEO essentielles -->
     <meta name="description" content="Profitez d'un séjour nature au Camping du Wignet à Olloy-sur-Viroin. Emplacement unique et privatif, activités de plein air et découverte de la région de Viroinval.">
@@ -106,6 +106,9 @@
     <meta name="msapplication-TileImage" content="images/logofeu.png">
     <meta name="msapplication-TileColor" content="#4CAF50">
 
+    <!-- Tailwind CSS (doit être chargé en premier) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <!-- CSS -->
     <link rel="preload" href="images/hero.jpg" as="image" />
     <link rel="stylesheet" href="css.css">
@@ -120,31 +123,31 @@
   <!-- Hero Section -->
   <header class="hero-gradient relative flex items-center justify-center text-white">
     <div class="text-center px-4">
-      <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 floating">Camping du Wignet</h1>
-      <p class="text-lg md:text-xl lg:text-2xl mb-8">Camping privatif, pour vous seuls, à l'orée du bois sur les hauteurs d'Olloy</p>
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 floating">Camping privatif du Wignet</h1>
+      <p class="text-lg md:text-xl lg:text-2xl mb-8">Privatisez ce camping, pour vous seuls, à l'orée du bois sur les hauteurs d'Olloy</p>
       <a href="#reservation" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 inline-block mb-4">
         Réserver maintenant
       </a>
       
       <!-- Conteneur des logos - Déplacé juste sous le bouton -->
       <div class="flex items-center justify-center space-x-3 md:space-x-8 mt-4">
-        <!-- Logo 1 - Chaises -->
-        <div class="w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
+        <!-- Logo 1 - Tente -->
+        <div class="hero-logo w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
           <img src="images/logotente2.png" alt="Espace détente" class="w-full h-full object-contain">
         </div>
-        
-        <!-- Logo 2 - Tentes -->
-        <div class="w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
+
+        <!-- Logo 2 - Feu -->
+        <div class="hero-logo w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
           <img src="images/logofeu.png" alt="Camping" class="w-full h-full object-contain">
         </div>
-        
-        <!-- Logo 3 - Feu de camp -->
-        <div class="w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
+
+        <!-- Logo 3 - Van -->
+        <div class="hero-logo w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
           <img src="images/logovan2.png" alt="Feu de camp" class="w-full h-full object-contain">
         </div>
-        
-        <!-- Logo 4 - Van -->
-        <div class="w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
+
+        <!-- Logo 4 - Chaise -->
+        <div class="hero-logo w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
           <img src="images/logochaise.png" alt="Camping-car" class="w-full h-full object-contain">
         </div>
       </div>
@@ -173,9 +176,9 @@
                 </div>
                 
                 <!-- Note et Étoiles Mobile -->
-                <a href="https://campspace.com/fr/s/privatisez-un-etang-a-l-oree-du-bois-sur-les-hauteurs-d-olloy-viroinval_5459" 
-                   target="_blank" 
-                   class="group space-y-2 bg-white p-4 rounded-lg shadow-md w-full max-w-sm">
+                <a href="https://campspace.com/fr/s/privatisez-un-etang-a-l-oree-du-bois-sur-les-hauteurs-d-olloy-viroinval_5459"
+                   target="_blank"
+                   class="campspace-link group space-y-2 bg-white p-4 rounded-lg shadow-md w-full max-w-sm">
                     <div class="flex justify-center items-baseline space-x-1">
                         <span class="text-3xl font-bold text-green-800">4.93</span>
                         <span class="text-xl text-gray-600">/5</span>
@@ -225,9 +228,9 @@
             <div class="h-16 w-px bg-gray-200"></div>
 
             <!-- Note et Étoiles Desktop -->
-            <a href="https://campspace.com/fr/s/privatisez-un-etang-a-l-oree-du-bois-sur-les-hauteurs-d-olloy-viroinval_5459" 
-               target="_blank" 
-               class="group flex items-center gap-4 bg-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <a href="https://campspace.com/fr/s/privatisez-un-etang-a-l-oree-du-bois-sur-les-hauteurs-d-olloy-viroinval_5459"
+               target="_blank"
+               class="campspace-link group flex items-center gap-4 bg-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
                 <div class="flex items-center gap-2">
                     <!-- 5 étoiles en ligne -->
                     <div class="flex gap-1">
@@ -750,6 +753,42 @@
     </div>
 </div>
      
+<!-- Modal Campspace -->
+<div id="campspace-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCampspaceModal()"></div>
+    <!-- Modal Content -->
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300" id="campspace-modal-content">
+        <button onclick="closeCampspaceModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+        <div class="text-center">
+            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Vous allez quitter notre site</h3>
+            <p class="text-gray-600 mb-4">Vous serez redirigé vers Campspace.com pour voir nos avis.</p>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <p class="text-green-800 font-medium text-sm">
+                    Pour bénéficier de <span class="font-bold">tarifs avantageux</span> et de nos <span class="font-bold">réductions exclusives</span>, restez sur notre site et réservez directement !
+                </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="closeCampspaceModal()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+                    Rester et réserver
+                </button>
+                <button onclick="goToCampspace()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors">
+                    Voir les avis
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Footer optimisé -->
 <footer class="bg-green-800 text-white py-12">
     <div class="container mx-auto px-4">
@@ -822,8 +861,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!-- Scripts principaux -->
 <script src="main.js"></script>
 <script src="calendar-vanilla.js"></script>
