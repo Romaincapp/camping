@@ -14,19 +14,26 @@ const calendarState = {
 }
 ```
 
-## API Google Calendar
+## Flux iCal Google Calendar
+
+Le calendrier utilise le flux iCal public de Google Calendar (pas d'API key).
 
 ```javascript
-// Les clés sont dans config.js (gitignored)
-// Voir config.example.js pour le template
-const calendarId = CONFIG.googleCalendar.calendarId;
-const apiKey = CONFIG.googleCalendar.apiKey;
+// ID du calendrier (doit être public)
+const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
+
+// URL du flux iCal
+const icalUrl = `https://calendar.google.com/calendar/ical/${CALENDAR_ID}/public/basic.ics`;
+
+// Proxy CORS pour contourner les restrictions navigateur
+const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(icalUrl)}`;
 ```
 
-**loadGoogleCalendarEvents()** :
+**fetchGoogleCalendarEvents()** :
+- Récupère le flux iCal via proxy CORS
+- Parse le format iCal (VEVENT, DTSTART, DTEND)
 - Timeout 5 secondes
 - Fallback données démo si erreur
-- Parse événements → dates réservées
 
 ## Règles métier
 
@@ -61,15 +68,17 @@ function calculateDiscount(nights, guests) {
 
 ## Flow utilisateur
 
-1. Calendrier se charge → API récupère dates réservées
+1. Calendrier se charge → iCal récupère dates réservées
 2. Sélection check-in → jours disponibles affichés
 3. Sélection check-out → prix calculé
 4. Formulaire (nom, email, téléphone, personnes)
-5. Soumission (pas de backend actuellement)
+5. Soumission via FormSpree
 
 ## Fonctions principales
 
-- `loadGoogleCalendarEvents()` - Charge réservations
+- `fetchGoogleCalendarEvents()` - Charge réservations (iCal)
+- `parseICalEvents()` - Parse le format iCal
+- `parseICalDate()` - Convertit dates iCal → Date JS
 - `calculatePrice()` - Calcul dynamique prix
 - `renderCalendar()` - Génère grille calendrier
 - `validateForm()` - Validation champs

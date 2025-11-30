@@ -14,7 +14,7 @@ Site de réservation pour camping privatif à Olloy-sur-Viroin (Ardennes belges)
 ```
 HTML5 + CSS3 + Tailwind (CDN) + JavaScript Vanilla
 CDN: GSAP 3.12, Swiper 8.4.5, GLightbox 3.2.0
-Services: Google Calendar API, Analytics GA4, AdSense
+Services: Google Calendar (iCal public), Analytics GA4, AdSense
 ```
 
 ## Structure
@@ -24,9 +24,7 @@ camping/
 ├── index.html              # Page principale
 ├── privacy-policy.html     # Politique confidentialité
 ├── main.js                 # Animations GSAP, Swiper, GLightbox
-├── calendar-vanilla.js     # Calendrier, prix, réservation
-├── config.js               # Clés API (GITIGNORED)
-├── config.example.js       # Template de configuration
+├── calendar-vanilla.js     # Calendrier (iCal), prix, réservation
 ├── css.css                 # Styles principaux
 ├── CalendarStyles.css      # Styles calendrier
 ├── .gitignore              # Fichiers ignorés par git
@@ -35,14 +33,15 @@ camping/
 └── docs/                   # Documentation détaillée
 ```
 
-## Configuration
+## Calendrier
 
-Le fichier `config.js` contient les clés API sensibles et est gitignored.
+Le calendrier utilise le **flux iCal public** de Google Calendar (pas d'API key nécessaire).
 
-**Pour configurer un nouveau clone :**
-```bash
-cp config.example.js config.js
-# Puis éditer config.js avec vos vraies clés
+**Prérequis :** Le calendrier Google doit être public (Paramètres > Rendre accessible au public)
+
+**Modifier l'ID du calendrier :** `calendar-vanilla.js` ligne ~181
+```javascript
+const CALENDAR_ID = 'votre-email@gmail.com';
 ```
 
 ## Tâches courantes

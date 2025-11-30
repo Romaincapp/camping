@@ -149,13 +149,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('input', function(event) {
       const target = event.target;
       const id = target.id;
-      
+
       // Gérer les champs de contact en temps réel
       if (id === 'name' || id === 'email' || id === 'phone') {
         calendarState.formData[id] = target.value;
         checkFormProgress();
       }
     });
+
     } catch (error) {
       console.error("Exception lors de la récupération des événements:", error);
       // Utiliser des événements de démonstration en cas d'erreur
@@ -177,44 +178,108 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 5000);
   }
 
-  // Fonction pour récupérer les événements depuis l'API Google Calendar
+  // ID du calendrier Google (public)
+  const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
+
+  // Fonction pour récupérer les événements depuis le flux iCal public
   async function fetchGoogleCalendarEvents() {
-    const year = calendarState.currentDate.getFullYear();
-    const month = calendarState.currentDate.getMonth();
-    
-    // Calculer le premier et dernier jour du mois
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    
-    // Formater les dates pour l'API Google (format ISO)
-    const timeMin = firstDay.toISOString();
-    const timeMax = lastDay.toISOString();
-    
-    // Configuration depuis config.js (ne pas commiter config.js)
-    const calendarId = CONFIG.googleCalendar.calendarId;
-    const apiKey = CONFIG.googleCalendar.apiKey;
-    
-    // Construire l'URL de l'API
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
-    
-    console.log("Récupération des événements du calendrier...");
-    
-    // Faire la requête à l'API
-    const response = await fetch(url);
+    // URL du flux iCal public Google Calendar
+    const icalUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(CALENDAR_ID)}/public/basic.ics`;
+
+    // Utiliser un proxy CORS pour contourner les restrictions du navigateur
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(icalUrl)}`;
+
+    console.log("Récupération des événements du calendrier (iCal)...");
+
+    const response = await fetch(proxyUrl);
     if (!response.ok) {
-      throw new Error(`Erreur lors de la récupération des événements: ${response.status}`);
+      throw new Error(`Erreur lors de la récupération du calendrier: ${response.status}`);
     }
-    
-    const data = await response.json();
-    console.log(`${data.items ? data.items.length : 0} événements récupérés`);
-    
-    // Transformer les événements Google Calendar en format utilisable par notre calendrier
-    return data.items ? data.items.map(event => ({
-      id: event.id,
-      title: event.summary || 'Réservé',
-      start: new Date(event.start.dateTime || event.start.date),
-      end: new Date(event.end.dateTime || event.end.date)
-    })) : [];
+
+    const icalData = await response.text();
+    const events = parseICalEvents(icalData);
+
+    console.log(`${events.length} événements récupérés`);
+    return events;
+  }
+
+  // Parser les données iCal en objets événements
+  function parseICalEvents(icalData) {
+    const events = [];
+    const lines = icalData.split(/\r?\n/);
+
+    let currentEvent = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Gérer le "line folding" iCal (lignes qui commencent par espace = continuation)
+      while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
+        i++;
+        line += lines[i].substring(1);
+      }
+
+      if (line === 'BEGIN:VEVENT') {
+        currentEvent = { id: '', title: 'Réservé', start: null, end: null };
+      } else if (line === 'END:VEVENT' && currentEvent) {
+        if (currentEvent.start && currentEvent.end) {
+          events.push(currentEvent);
+        }
+        currentEvent = null;
+      } else if (currentEvent) {
+        if (line.startsWith('UID:')) {
+          currentEvent.id = line.substring(4);
+        } else if (line.startsWith('SUMMARY:')) {
+          currentEvent.title = line.substring(8) || 'Réservé';
+        } else if (line.startsWith('DTSTART')) {
+          currentEvent.start = parseICalDate(line);
+        } else if (line.startsWith('DTEND')) {
+          currentEvent.end = parseICalDate(line);
+        }
+      }
+    }
+
+    return events;
+  }
+
+  // Parser une date iCal en objet Date JavaScript
+  function parseICalDate(line) {
+    // Formats possibles:
+    // DTSTART:20231215T140000Z (UTC)
+    // DTSTART;VALUE=DATE:20231215 (journée entière)
+    // DTSTART;TZID=Europe/Brussels:20231215T140000 (avec timezone)
+
+    const colonIndex = line.indexOf(':');
+    if (colonIndex === -1) return null;
+
+    const dateStr = line.substring(colonIndex + 1);
+
+    // Événement journée entière (DATE seulement, pas d'heure)
+    if (dateStr.length === 8) {
+      const year = parseInt(dateStr.substring(0, 4));
+      const month = parseInt(dateStr.substring(4, 6)) - 1;
+      const day = parseInt(dateStr.substring(6, 8));
+      return new Date(year, month, day);
+    }
+
+    // Format DateTime (avec heure)
+    if (dateStr.length >= 15) {
+      const year = parseInt(dateStr.substring(0, 4));
+      const month = parseInt(dateStr.substring(4, 6)) - 1;
+      const day = parseInt(dateStr.substring(6, 8));
+      const hour = parseInt(dateStr.substring(9, 11));
+      const minute = parseInt(dateStr.substring(11, 13));
+      const second = parseInt(dateStr.substring(13, 15));
+
+      // Si termine par Z, c'est UTC
+      if (dateStr.endsWith('Z')) {
+        return new Date(Date.UTC(year, month, day, hour, minute, second));
+      }
+
+      return new Date(year, month, day, hour, minute, second);
+    }
+
+    return null;
   }
 
   // Générer des événements de démonstration
@@ -371,18 +436,38 @@ function handleDateClick(date) {
     
     // Définir la date de fin
     calendarState.selectedEndDate = currentDate;
-    
+
     // Mettre à jour le champ checkout du formulaire
     calendarState.formData.checkout = formatDateForInput(currentDate);
     updateFormFields();
+
+    // Auto-scroll vers le formulaire sur mobile après sélection des dates
+    scrollToFormOnMobile();
   }
-  
+
   // Mettre à jour l'affichage du calendrier
   renderCalendar();
-  
+
   // Calculer le prix
   calculatePrice();
 }
+
+  // Fonction pour scroller vers le formulaire sur mobile
+  function scrollToFormOnMobile() {
+    // Vérifier si on est sur mobile/tablette (écran < 1024px)
+    if (window.innerWidth < 1024) {
+      const bookingForm = document.getElementById('booking-form');
+      if (bookingForm) {
+        // Petit délai pour laisser le temps au calendrier de se mettre à jour
+        setTimeout(() => {
+          bookingForm.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }, 300);
+      }
+    }
+  }
 
   // Fonction pour révéler progressivement la section voilier
   function revealSailingSection() {
@@ -828,7 +913,7 @@ function handleDateClick(date) {
             calendarState.formData.woodOption = ''; // Valeur vide explicite
           }
         }
-        
+
         // Recalculer le prix
         calculatePrice();
       }
@@ -845,31 +930,6 @@ function handleDateClick(date) {
         calculatePrice();
       }
       
-      // Gestionnaire pour l'expérience voilier
-      if (target.id === 'sailingExperience') {
-        calendarState.formData.sailingExperience = target.value;
-        
-        const sailingDurationContainer = document.getElementById('sailingDurationContainer');
-        if (sailingDurationContainer) {
-          if (target.value === 'yes') {
-            sailingDurationContainer.classList.remove('hidden');
-          } else {
-            sailingDurationContainer.classList.add('hidden');
-            calendarState.formData.sailingDuration = '';
-            const sailingDurationSelect = document.getElementById('sailingDuration');
-            if (sailingDurationSelect) {
-              sailingDurationSelect.value = '';
-            }
-          }
-        }
-        
-        calculatePrice();
-      }
-      
-      if (target.id === 'sailingDuration') {
-        calendarState.formData.sailingDuration = target.value;
-        calculatePrice();
-      }
     });
     
     // Gestionnaires pour les boutons de navigation du calendrier
@@ -902,6 +962,69 @@ function handleDateClick(date) {
         if (dateAttr) {
           const date = new Date(dateAttr);
           handleDateClick(date);
+        }
+      }
+
+      // Gérer le clic sur les options de sortie en voilier
+      if (target.closest('.sailing-option')) {
+        const sailingButton = target.closest('.sailing-option');
+        const duration = sailingButton.getAttribute('data-sailing-duration');
+
+        // Sauvegarder les valeurs actuelles du formulaire avant re-render
+        const currentFormData = { ...calendarState.formData };
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const adultsInput = document.getElementById('adults');
+        const childrenInput = document.getElementById('children');
+        const messageInput = document.getElementById('message');
+        const woodOptionSelect = document.getElementById('woodOption');
+        const woodQuantityInput = document.getElementById('woodQuantity');
+
+        if (nameInput) currentFormData.name = nameInput.value;
+        if (emailInput) currentFormData.email = emailInput.value;
+        if (phoneInput) currentFormData.phone = phoneInput.value;
+        if (adultsInput) currentFormData.adults = parseInt(adultsInput.value) || 1;
+        if (childrenInput) currentFormData.children = parseInt(childrenInput.value) || 0;
+        if (messageInput) currentFormData.message = messageInput.value;
+        if (woodOptionSelect) currentFormData.woodOption = woodOptionSelect.value;
+        if (woodQuantityInput) currentFormData.woodQuantity = parseInt(woodQuantityInput.value) || 0;
+
+        // Sauvegarder les langues cochées
+        const languageCheckboxes = document.querySelectorAll('input[name="languages"]:checked');
+        if (languageCheckboxes.length > 0) {
+          currentFormData.languages = Array.from(languageCheckboxes).map(cb => cb.value);
+        }
+
+        // Mettre à jour l'état voilier
+        if (duration) {
+          currentFormData.sailingExperience = 'yes';
+          currentFormData.sailingDuration = duration;
+        } else {
+          currentFormData.sailingExperience = 'no';
+          currentFormData.sailingDuration = '';
+        }
+
+        // Appliquer les changements à l'état global
+        calendarState.formData = currentFormData;
+
+        // Re-render le formulaire pour afficher les nouveaux styles
+        renderBookingForm();
+
+        // Recalculer le prix
+        calculatePrice();
+
+        // Auto-scroll vers le résumé du prix après sélection voilier
+        if (window.innerWidth < 1024) {
+          setTimeout(() => {
+            const priceSection = document.getElementById('price-estimation');
+            if (priceSection) {
+              const elementRect = priceSection.getBoundingClientRect();
+              const absoluteElementTop = elementRect.top + window.pageYOffset;
+              const middle = absoluteElementTop - (window.innerHeight / 3);
+              window.scrollTo({ top: middle, behavior: 'smooth' });
+            }
+          }, 300);
         }
       }
     });
@@ -1387,70 +1510,53 @@ calendarHTML += `
         </div>
       </div>
       
-      <!-- Section Expérience Voilier - Style promotionnel (cachée par défaut) -->
-      <div id="sailingExperienceSection" class="hidden mb-6 bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-lg">
+      <!-- Section Expérience Voilier - Style promotionnel (visible si dates sélectionnées ou déjà interagi) -->
+      <div id="sailingExperienceSection" class="${(calendarState.selectedStartDate && calendarState.selectedEndDate) || calendarState.formData.sailingExperience ? '' : 'hidden'} mb-6 -mx-6 md:mx-0 bg-gradient-to-br from-blue-50 to-blue-100 p-4 md:p-6 md:rounded-xl border-y md:border border-blue-200 shadow-lg">
         <div class="flex items-center mb-4">
-          <div class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase mr-3">
-            🎉 Expérience Exclusive
+          <div class="bg-blue-600 text-white px-2 md:px-3 py-1 rounded-full text-xs font-bold uppercase mr-2 md:mr-3">
+            🎉 Exclusif
           </div>
-          <span class="text-blue-800 font-semibold">Nouveau !</span>
+          <span class="text-blue-800 font-semibold text-sm md:text-base">Nouveau !</span>
         </div>
-        
-        <h3 class="text-2xl font-bold text-blue-800 mb-3">
+
+        <h3 class="text-xl md:text-2xl font-bold text-blue-800 mb-3">
           ⛵ Balade en Voilier sur le Lac de l'Eau d'Heure
         </h3>
-        
-        <div class="bg-white p-4 rounded-lg mb-4 shadow-sm">
-          <p class="text-gray-700 mb-3">
+
+        <div class="bg-white p-3 md:p-4 rounded-lg mb-4 shadow-sm">
+          <p class="text-gray-700 mb-3 text-sm md:text-base">
             <strong>Découvrez le plus grand lac de Belgique à bord de mon voilier de 7m10 !</strong><br>
             Naviguons et allons nager dans la plus belle crique du Lac de l'Eau d'Heure.
           </p>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div class="text-center p-3 bg-blue-50 rounded-lg">
-              <div class="text-2xl font-bold text-blue-800">2h</div>
-              <div class="text-blue-600 font-semibold">90€</div>
-              <div class="text-sm text-gray-600">Découverte</div>
-            </div>
-            <div class="text-center p-3 bg-blue-50 rounded-lg border-2 border-blue-400">
-              <div class="text-2xl font-bold text-blue-800">3h</div>
-              <div class="text-blue-600 font-semibold">120€</div>
-              <div class="text-sm text-gray-600">Recommandé ⭐</div>
-            </div>
-            <div class="text-center p-3 bg-blue-50 rounded-lg">
-              <div class="text-2xl font-bold text-blue-800">4h</div>
-              <div class="text-blue-600 font-semibold">140€</div>
-              <div class="text-sm text-gray-600">Exploration</div>
-            </div>
+
+          <p class="text-blue-800 font-semibold mb-3 text-sm md:text-base">Cliquez sur une formule pour la sélectionner :</p>
+
+          <div class="grid grid-cols-3 gap-2 md:gap-3 mb-3">
+            <button type="button" data-sailing-duration="2h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '2h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 hover:bg-blue-100'}">
+              <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '2h' ? 'text-white' : 'text-blue-800'}">2h</div>
+              <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '2h' ? 'text-blue-100' : 'text-blue-600'}">90€</div>
+              <div class="text-xs md:text-sm ${calendarState.formData.sailingDuration === '2h' ? 'text-blue-200' : 'text-gray-600'}">Découverte</div>
+            </button>
+            <button type="button" data-sailing-duration="3h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '3h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 border-2 border-blue-400 hover:bg-blue-100'}">
+              <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '3h' ? 'text-white' : 'text-blue-800'}">3h</div>
+              <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '3h' ? 'text-blue-100' : 'text-blue-600'}">120€</div>
+              <div class="text-xs md:text-sm ${calendarState.formData.sailingDuration === '3h' ? 'text-blue-200' : 'text-gray-600'}">Recommandé ⭐</div>
+            </button>
+            <button type="button" data-sailing-duration="4h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '4h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 hover:bg-blue-100'}">
+              <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '4h' ? 'text-white' : 'text-blue-800'}">4h</div>
+              <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '4h' ? 'text-blue-100' : 'text-blue-600'}">140€</div>
+              <div class="text-xs md:text-sm ${calendarState.formData.sailingDuration === '4h' ? 'text-blue-200' : 'text-gray-600'}">Exploration</div>
+            </button>
           </div>
-        </div>
-        
-        <div class="mb-4">
-          <label for="sailingExperience" class="block text-blue-800 font-semibold mb-2">
-            Souhaitez-vous ajouter cette expérience à votre séjour ?
-          </label>
-          <select 
-            id="sailingExperience" 
-            class="w-full px-4 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-          >
-            <option value="" ${calendarState.formData.sailingExperience === '' ? 'selected' : ''}>Non, merci</option>
-            <option value="yes" ${calendarState.formData.sailingExperience === 'yes' ? 'selected' : ''}>Oui, je suis intéressé(e) !</option>
-          </select>
-        </div>
-        
-        <div id="sailingDurationContainer" class="${calendarState.formData.sailingExperience === 'yes' ? '' : 'hidden'}">
-          <label for="sailingDuration" class="block text-blue-800 font-semibold mb-2">
-            Choisissez la durée de votre balade
-          </label>
-          <select 
-            id="sailingDuration" 
-            class="w-full px-4 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-          >
-            <option value="" ${calendarState.formData.sailingDuration === '' ? 'selected' : ''}>-- Sélectionnez la durée --</option>
-            <option value="2h" ${calendarState.formData.sailingDuration === '2h' ? 'selected' : ''}>2 heures - 90€</option>
-            <option value="3h" ${calendarState.formData.sailingDuration === '3h' ? 'selected' : ''}>3 heures - 120€ (Recommandé)</option>
-            <option value="4h" ${calendarState.formData.sailingDuration === '4h' ? 'selected' : ''}>4 heures - 140€</option>
-          </select>
+
+          <button type="button" data-sailing-duration="" class="sailing-option w-full py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${calendarState.formData.sailingDuration === '' || !calendarState.formData.sailingExperience ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}">
+            Non merci, pas cette fois
+          </button>
+
+          <!-- Message de confirmation de sélection -->
+          <div id="sailingSelectionConfirm" class="${calendarState.formData.sailingDuration ? '' : 'hidden'} mt-3 p-2 bg-green-100 border border-green-300 rounded-lg text-center">
+            <span class="text-green-800 font-medium text-sm">✓ Balade de ${calendarState.formData.sailingDuration || '...'} sélectionnée</span>
+          </div>
         </div>
         
         <div class="mt-4 text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">

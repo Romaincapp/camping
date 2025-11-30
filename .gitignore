@@ -1,6 +1,3 @@
-# Configuration sensible
-config.js
-
 # Environnement local
 .env
 .env.local
