@@ -25,15 +25,24 @@ camping/
 ├── privacy-policy.html     # Politique confidentialité
 ├── main.js                 # Animations GSAP, Swiper, GLightbox
 ├── calendar-vanilla.js     # Calendrier, prix, réservation
+├── config.js               # Clés API (GITIGNORED)
+├── config.example.js       # Template de configuration
 ├── css.css                 # Styles principaux
 ├── CalendarStyles.css      # Styles calendrier
+├── .gitignore              # Fichiers ignorés par git
 ├── CNAME                   # DNS
 ├── images/                 # Assets
 └── docs/                   # Documentation détaillée
-    ├── ARCHITECTURE.md     # Détails fichiers, SEO, animations
-    ├── CALENDAR.md         # Système réservation, prix, API
-    ├── DEPLOYMENT.md       # Déploiement, maintenance, bugs
-    └── ROADMAP.md          # Améliorations futures
+```
+
+## Configuration
+
+Le fichier `config.js` contient les clés API sensibles et est gitignored.
+
+**Pour configurer un nouveau clone :**
+```bash
+cp config.example.js config.js
+# Puis éditer config.js avec vos vraies clés
 ```
 
 ## Tâches courantes

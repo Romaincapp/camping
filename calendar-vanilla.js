@@ -190,11 +190,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const timeMin = firstDay.toISOString();
     const timeMax = lastDay.toISOString();
     
-    // ID de votre calendrier
-    const calendarId = 'romainfrancedumoulin@gmail.com';
-    
-    // Votre clé API
-    const apiKey = 'AIzaSyCECx-Qj4APoyaDXEMKq9y4fVCidvxyOUk';
+    // Configuration depuis config.js (ne pas commiter config.js)
+    const calendarId = CONFIG.googleCalendar.calendarId;
+    const apiKey = CONFIG.googleCalendar.apiKey;
     
     // Construire l'URL de l'API
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;

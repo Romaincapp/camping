@@ -1,0 +1,21 @@
+# Configuration sensible
+config.js
+
+# Environnement local
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dépendances (si vous en ajoutez plus tard)
+node_modules/

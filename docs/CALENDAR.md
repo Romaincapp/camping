@@ -17,8 +17,10 @@ const calendarState = {
 ## API Google Calendar
 
 ```javascript
-const API_KEY = 'AIzaSyDw53DSWL1Bl8vF3CbJnUgPnFY6m_l_bT4'
-const CALENDAR_ID = 'cc45e8e77ac2e7ac5cf1cac59e7b82a76f44919cba92ed2bdb3ea2f9b9398833@group.calendar.google.com'
+// Les clés sont dans config.js (gitignored)
+// Voir config.example.js pour le template
+const calendarId = CONFIG.googleCalendar.calendarId;
+const apiKey = CONFIG.googleCalendar.apiKey;
 ```
 
 **loadGoogleCalendarEvents()** :
