@@ -1535,17 +1535,17 @@ calendarHTML += `
             <button type="button" data-sailing-duration="2h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '2h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 hover:bg-blue-100'}">
               <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '2h' ? 'text-white' : 'text-blue-800'}">2h</div>
               <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '2h' ? 'text-blue-100' : 'text-blue-600'}">90€</div>
-              <div class="text-xs md:text-sm ${calendarState.formData.sailingDuration === '2h' ? 'text-blue-200' : 'text-gray-600'}">Découverte</div>
+              <div class="text-xs ${calendarState.formData.sailingDuration === '2h' ? 'text-blue-200' : 'text-gray-500'}">🌊</div>
             </button>
             <button type="button" data-sailing-duration="3h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '3h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 border-2 border-blue-400 hover:bg-blue-100'}">
               <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '3h' ? 'text-white' : 'text-blue-800'}">3h</div>
               <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '3h' ? 'text-blue-100' : 'text-blue-600'}">120€</div>
-              <div class="text-xs md:text-sm ${calendarState.formData.sailingDuration === '3h' ? 'text-blue-200' : 'text-gray-600'}">Recommandé ⭐</div>
+              <div class="text-xs ${calendarState.formData.sailingDuration === '3h' ? 'text-blue-200' : 'text-gray-500'}">⭐</div>
             </button>
             <button type="button" data-sailing-duration="4h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '4h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 hover:bg-blue-100'}">
               <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '4h' ? 'text-white' : 'text-blue-800'}">4h</div>
               <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '4h' ? 'text-blue-100' : 'text-blue-600'}">140€</div>
-              <div class="text-xs md:text-sm ${calendarState.formData.sailingDuration === '4h' ? 'text-blue-200' : 'text-gray-600'}">Exploration</div>
+              <div class="text-xs ${calendarState.formData.sailingDuration === '4h' ? 'text-blue-200' : 'text-gray-500'}">🏊</div>
             </button>
           </div>
 
