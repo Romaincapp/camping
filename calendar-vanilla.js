@@ -47,9 +47,17 @@ document.addEventListener('DOMContentLoaded', function() {
   ];
   const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
+  // ID du calendrier Google (public)
+  const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
+
+  // Variables pour le fetch des événements
+  let fetchInProgress = false;
+  let eventsLoaded = false;
+  let fetchTimeoutId = null;
+
   // Sélecteurs DOM
   const container = document.getElementById('reservation-container');
-  
+
   // Initialiser l'interface
   initializeCalendarUI();
 
@@ -122,85 +130,107 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Fonction pour récupérer les événements du calendrier
   function fetchEvents() {
+    // Si les événements sont déjà chargés ou un fetch est en cours, ne rien faire
+    if (eventsLoaded || fetchInProgress) {
+      console.log("Événements déjà chargés ou fetch en cours, skip...");
+      renderCalendar();
+      return;
+    }
+
     console.log("Début du chargement des événements...");
+    fetchInProgress = true;
     calendarState.isLoading = true;
     updateLoadingState();
-    
-    // Essayer de récupérer les événements depuis Google Calendar
-    try {
-      fetchGoogleCalendarEvents()
-        .then(events => {
-          calendarState.events = events;
-          calendarState.isLoading = false;
-          updateLoadingState();
-          renderCalendar(); // Mettre à jour le calendrier avec les nouveaux événements
-          console.log("Événements chargés avec succès:", events.length);
-        })
-        .catch(error => {
-          console.error("Erreur lors de la récupération des événements:", error);
-          // Utiliser des événements de démonstration en cas d'erreur
-          calendarState.events = generateDemoEvents();
-          calendarState.isLoading = false;
-          updateLoadingState();
-          renderCalendar();
-        });
-    
-    // Gestionnaire pour la saisie en temps réel (pour détecter quand l'utilisateur commence à taper)
-    document.addEventListener('input', function(event) {
-      const target = event.target;
-      const id = target.id;
 
-      // Gérer les champs de contact en temps réel
-      if (id === 'name' || id === 'email' || id === 'phone') {
-        calendarState.formData[id] = target.value;
-        checkFormProgress();
-      }
-    });
-
-    } catch (error) {
-      console.error("Exception lors de la récupération des événements:", error);
-      // Utiliser des événements de démonstration en cas d'erreur
-      calendarState.events = generateDemoEvents();
-      calendarState.isLoading = false;
-      updateLoadingState();
-      renderCalendar();
+    // Annuler tout timeout précédent
+    if (fetchTimeoutId) {
+      clearTimeout(fetchTimeoutId);
     }
-    
-    // Ajouter un délai maximum pour le chargement
-    setTimeout(() => {
-      if (calendarState.isLoading) {
+
+    // Récupérer les événements depuis Google Calendar
+    fetchGoogleCalendarEvents()
+      .then(events => {
+        // Annuler le timeout si le fetch réussit
+        if (fetchTimeoutId) {
+          clearTimeout(fetchTimeoutId);
+        }
+        calendarState.events = events;
+        calendarState.isLoading = false;
+        eventsLoaded = true;
+        fetchInProgress = false;
+        updateLoadingState();
+        renderCalendar();
+        console.log("Événements chargés avec succès:", events.length);
+      })
+      .catch(error => {
+        console.error("Erreur lors de la récupération des événements:", error);
+        // Utiliser des événements de démonstration en cas d'erreur
+        if (!eventsLoaded) {
+          calendarState.events = generateDemoEvents();
+        }
+        calendarState.isLoading = false;
+        fetchInProgress = false;
+        updateLoadingState();
+        renderCalendar();
+      });
+
+    // Délai maximum de 45 secondes pour le chargement (les proxies peuvent être lents)
+    fetchTimeoutId = setTimeout(() => {
+      if (calendarState.isLoading && !eventsLoaded) {
         console.log("Délai d'attente dépassé, chargement des événements de démo");
         calendarState.events = generateDemoEvents();
         calendarState.isLoading = false;
+        fetchInProgress = false;
         updateLoadingState();
         renderCalendar();
       }
-    }, 5000);
+    }, 45000);
   }
 
-  // ID du calendrier Google (public)
-  const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
+  // Gestionnaire pour la saisie en temps réel
+  document.addEventListener('input', function(event) {
+    const target = event.target;
+    const id = target.id;
+
+    // Gérer les champs de contact en temps réel
+    if (id === 'name' || id === 'email' || id === 'phone') {
+      calendarState.formData[id] = target.value;
+      checkFormProgress();
+    }
+  });
 
   // Fonction pour récupérer les événements depuis le flux iCal public
   async function fetchGoogleCalendarEvents() {
     // URL du flux iCal public Google Calendar
     const icalUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(CALENDAR_ID)}/public/basic.ics`;
 
-    // Utiliser un proxy CORS pour contourner les restrictions du navigateur
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(icalUrl)}`;
+    // Liste de proxies CORS avec fallback
+    const corsProxies = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`,
+      `https://corsproxy.io/?${encodeURIComponent(icalUrl)}`
+    ];
 
     console.log("Récupération des événements du calendrier (iCal)...");
 
-    const response = await fetch(proxyUrl);
-    if (!response.ok) {
-      throw new Error(`Erreur lors de la récupération du calendrier: ${response.status}`);
+    let lastError = null;
+    for (const proxyUrl of corsProxies) {
+      try {
+        console.log(`Essai avec: ${proxyUrl.split('?')[0]}...`);
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          const icalData = await response.text();
+          const events = parseICalEvents(icalData);
+          console.log(`${events.length} événements récupérés`);
+          return events;
+        }
+        lastError = new Error(`HTTP ${response.status}`);
+      } catch (error) {
+        lastError = error;
+        console.warn(`Proxy échoué: ${error.message}`);
+      }
     }
 
-    const icalData = await response.text();
-    const events = parseICalEvents(icalData);
-
-    console.log(`${events.length} événements récupérés`);
-    return events;
+    throw lastError || new Error('Tous les proxies ont échoué');
   }
 
   // Parser les données iCal en objets événements
@@ -220,9 +250,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       if (line === 'BEGIN:VEVENT') {
-        currentEvent = { id: '', title: 'Réservé', start: null, end: null };
+        // Par défaut, un événement est "occupé" (OPAQUE) sauf indication contraire
+        currentEvent = { id: '', title: 'Réservé', start: null, end: null, isBusy: true };
       } else if (line === 'END:VEVENT' && currentEvent) {
-        if (currentEvent.start && currentEvent.end) {
+        // N'ajouter que les événements marqués comme "occupé" (pas TRANSPARENT)
+        if (currentEvent.start && currentEvent.end && currentEvent.isBusy) {
           events.push(currentEvent);
         }
         currentEvent = null;
@@ -235,6 +267,9 @@ document.addEventListener('DOMContentLoaded', function() {
           currentEvent.start = parseICalDate(line);
         } else if (line.startsWith('DTEND')) {
           currentEvent.end = parseICalDate(line);
+        } else if (line.startsWith('TRANSP:')) {
+          // TRANSP:OPAQUE = occupé (busy), TRANSP:TRANSPARENT = disponible (free)
+          currentEvent.isBusy = line.substring(7).trim() !== 'TRANSPARENT';
         }
       }
     }
@@ -942,17 +977,17 @@ function handleDateClick(date) {
         const prevMonth = calendarState.currentDate.getMonth() - 1;
         const prevYear = prevMonth < 0 ? calendarState.currentDate.getFullYear() - 1 : calendarState.currentDate.getFullYear();
         const normalizedPrevMonth = prevMonth < 0 ? 11 : prevMonth;
-        
+
         if (!isPastMonth(prevYear, normalizedPrevMonth)) {
           calendarState.currentDate = new Date(prevYear, normalizedPrevMonth, 1);
-          fetchEvents();
+          renderCalendar();
         }
       }
-      
+
       // Gérer le clic sur le bouton du mois suivant
       if (target.closest('#next-month-btn')) {
         calendarState.currentDate = new Date(calendarState.currentDate.getFullYear(), calendarState.currentDate.getMonth() + 1, 1);
-        fetchEvents();
+        renderCalendar();
       }
       
       // Gérer le clic sur une cellule du calendrier
@@ -1141,11 +1176,34 @@ function handleDateClick(date) {
     });
   }
 
+  // Calculer le nombre de nuitées disponibles dans un mois
+  function getAvailableNights(year, month) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let availableNights = 0;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+
+      // Ne pas compter les jours passés
+      if (date < today) continue;
+
+      // Compter si la date n'est pas réservée (ou est un check-in/check-out)
+      if (!isDateBooked(date) || isCheckInDate(date) || isCheckOutDate(date)) {
+        availableNights++;
+      }
+    }
+
+    return availableNights;
+  }
+
   // Rendre le calendrier
   function renderCalendar() {
     const calendarWrapper = document.getElementById('calendar-wrapper');
     if (!calendarWrapper) return;
-    
+
     const year = calendarState.currentDate.getFullYear();
     const month = calendarState.currentDate.getMonth();
     
@@ -1161,11 +1219,14 @@ function handleDateClick(date) {
     
     // Ajuster pour que la semaine commence le lundi
     firstDay = firstDay === 0 ? 6 : firstDay - 1;
-    
+
+    // Calculer les nuitées disponibles
+    const availableNights = getAvailableNights(year, month);
+
     let calendarHTML = `
     </div>
-      <div class="flex justify-between items-center mb-4">
-        <button 
+      <div class="flex justify-between items-center mb-2">
+        <button
           id="prev-month-btn"
           class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition-colors ${isPrevMonthDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
           ${isPrevMonthDisabled ? 'disabled' : ''}
@@ -1174,10 +1235,15 @@ function handleDateClick(date) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
           </svg>
         </button>
-        <h3 class="text-xl font-bold text-green-800">
-          ${monthNames[month]} ${year}
-        </h3>
-        <button 
+        <div class="text-center">
+          <h3 class="text-xl font-bold text-green-800">
+            ${monthNames[month]} ${year}
+          </h3>
+          <p class="text-sm ${availableNights <= 5 ? 'text-orange-600 font-semibold' : 'text-gray-600'}">
+            ${availableNights === 0 ? 'Complet !' : `Il reste ${availableNights} nuitée${availableNights > 1 ? 's' : ''} disponible${availableNights > 1 ? 's' : ''}`}
+          </p>
+        </div>
+        <button
           id="next-month-btn"
           class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition-colors"
         >
