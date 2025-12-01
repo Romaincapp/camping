@@ -1,29 +1,159 @@
 // calendar-vanilla.js
 
+// ============================================
+// FETCH ANTICIPÉ - Lancé immédiatement au chargement du script
+// ============================================
+const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
+const CACHE_KEY = 'camping_calendar_events';
+
+// Charger depuis le cache (synchrone)
+function loadFromCache() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { events } = JSON.parse(cached);
+      return events.map(e => ({
+        ...e,
+        start: new Date(e.start),
+        end: new Date(e.end)
+      }));
+    }
+  } catch (e) {}
+  return null;
+}
+
+// Sauvegarder dans le cache
+function saveToCache(events) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ events, timestamp: Date.now() }));
+  } catch (e) {}
+}
+
+// Parser les données iCal (version simplifiée pour le fetch anticipé)
+function parseICalEventsEarly(icalData) {
+  const events = [];
+  const lines = icalData.split(/\r?\n/);
+  let currentEvent = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
+      i++;
+      line += lines[i].substring(1);
+    }
+
+    if (line === 'BEGIN:VEVENT') {
+      currentEvent = { id: '', title: 'Réservé', start: null, end: null, isBusy: true };
+    } else if (line === 'END:VEVENT' && currentEvent) {
+      if (currentEvent.start && currentEvent.end && currentEvent.isBusy) {
+        events.push(currentEvent);
+      }
+      currentEvent = null;
+    } else if (currentEvent) {
+      if (line.startsWith('UID:')) currentEvent.id = line.substring(4);
+      else if (line.startsWith('SUMMARY:')) currentEvent.title = line.substring(8) || 'Réservé';
+      else if (line.startsWith('DTSTART')) currentEvent.start = parseICalDateEarly(line);
+      else if (line.startsWith('DTEND')) currentEvent.end = parseICalDateEarly(line);
+      else if (line.startsWith('TRANSP:')) currentEvent.isBusy = line.substring(7).trim() !== 'TRANSPARENT';
+    }
+  }
+  return events;
+}
+
+function parseICalDateEarly(line) {
+  const colonIndex = line.indexOf(':');
+  if (colonIndex === -1) return null;
+  const dateStr = line.substring(colonIndex + 1);
+
+  if (dateStr.length === 8) {
+    return new Date(parseInt(dateStr.substring(0, 4)), parseInt(dateStr.substring(4, 6)) - 1, parseInt(dateStr.substring(6, 8)));
+  }
+  if (dateStr.length >= 15) {
+    const year = parseInt(dateStr.substring(0, 4));
+    const month = parseInt(dateStr.substring(4, 6)) - 1;
+    const day = parseInt(dateStr.substring(6, 8));
+    const hour = parseInt(dateStr.substring(9, 11));
+    const minute = parseInt(dateStr.substring(11, 13));
+    const second = parseInt(dateStr.substring(13, 15));
+    if (dateStr.endsWith('Z')) return new Date(Date.UTC(year, month, day, hour, minute, second));
+    return new Date(year, month, day, hour, minute, second);
+  }
+  return null;
+}
+
+// Lancer le fetch IMMÉDIATEMENT (avant DOMContentLoaded)
+const earlyFetchPromise = (async function() {
+  // 1. Essayer de charger le fichier JSON local (généré par GitHub Actions)
+  try {
+    const response = await fetch('calendar-data.json');
+    if (response.ok) {
+      const data = await response.json();
+      const events = data.events.map(e => ({
+        ...e,
+        start: new Date(e.start),
+        end: new Date(e.end)
+      }));
+      saveToCache(events);
+      console.log(`📅 ${events.length} événements chargés`);
+      return events;
+    }
+  } catch (e) {}
+
+  // 2. Fallback: utiliser le cache localStorage
+  const cached = loadFromCache();
+  if (cached && cached.length > 0) {
+    console.log('📅 Calendrier depuis le cache');
+    return cached;
+  }
+
+  // 3. Dernier recours: proxy CORS (pour dev local)
+  const icalUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(CALENDAR_ID)}/public/basic.ics`;
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(icalUrl)}`
+  ];
+
+  for (const proxyUrl of proxies) {
+    try {
+      const response = await fetch(proxyUrl);
+      if (response.ok) {
+        const icalData = await response.text();
+        const events = parseICalEventsEarly(icalData);
+        saveToCache(events);
+        console.log(`📅 ${events.length} événements via proxy`);
+        return events;
+      }
+    } catch (e) {}
+  }
+
+  return null;
+})();
+
+// ============================================
+// CODE PRINCIPAL - Après DOMContentLoaded
+// ============================================
 document.addEventListener('DOMContentLoaded', function() {
   // État global du calendrier
   const calendarState = {
     currentDate: new Date(),
     selectedStartDate: null,
     selectedEndDate: null,
-    events: [],
+    events: loadFromCache() || [], // Charger immédiatement depuis le cache
     isLoading: true,
     formData: {
       name: '',
       email: '',
       phone: '',
       country: '',
-      languages: [], // Nouvelle propriété pour les langues (tableau)
+      languages: [],
       accommodationType: '',
       adults: 1,
       children: 0,
       message: '',
       checkin: '',
       checkout: '',
-      // Propriétés pour le bois
       woodOption: '',
       woodQuantity: 0,
-      // Nouvelles propriétés pour l'expérience voilier
       sailingExperience: '',
       sailingDuration: ''
     },
@@ -36,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
       discount: 0,
       discountReason: '',
       woodPrice: 0,
-      sailingPrice: 0 // Nouveau prix pour l'expérience voilier
+      sailingPrice: 0
     }
   };
 
@@ -47,13 +177,8 @@ document.addEventListener('DOMContentLoaded', function() {
   ];
   const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-  // ID du calendrier Google (public)
-  const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
-
   // Variables pour le fetch des événements
-  let fetchInProgress = false;
-  let eventsLoaded = false;
-  let fetchTimeoutId = null;
+  let eventsLoaded = calendarState.events.length > 0;
 
   // Sélecteurs DOM
   const container = document.getElementById('reservation-container');
@@ -130,61 +255,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Fonction pour récupérer les événements du calendrier
   function fetchEvents() {
-    // Si les événements sont déjà chargés ou un fetch est en cours, ne rien faire
-    if (eventsLoaded || fetchInProgress) {
-      console.log("Événements déjà chargés ou fetch en cours, skip...");
+    // Si déjà chargé depuis le cache, afficher immédiatement
+    if (calendarState.events.length > 0) {
+      calendarState.isLoading = false;
       renderCalendar();
-      return;
     }
 
-    console.log("Début du chargement des événements...");
-    fetchInProgress = true;
-    calendarState.isLoading = true;
-    updateLoadingState();
-
-    // Annuler tout timeout précédent
-    if (fetchTimeoutId) {
-      clearTimeout(fetchTimeoutId);
-    }
-
-    // Récupérer les événements depuis Google Calendar
-    fetchGoogleCalendarEvents()
-      .then(events => {
-        // Annuler le timeout si le fetch réussit
-        if (fetchTimeoutId) {
-          clearTimeout(fetchTimeoutId);
-        }
+    // Attendre le résultat du fetch anticipé
+    earlyFetchPromise.then(events => {
+      if (events && events.length > 0) {
         calendarState.events = events;
-        calendarState.isLoading = false;
         eventsLoaded = true;
-        fetchInProgress = false;
-        updateLoadingState();
-        renderCalendar();
-        console.log("Événements chargés avec succès:", events.length);
-      })
-      .catch(error => {
-        console.error("Erreur lors de la récupération des événements:", error);
-        // Utiliser des événements de démonstration en cas d'erreur
-        if (!eventsLoaded) {
-          calendarState.events = generateDemoEvents();
-        }
-        calendarState.isLoading = false;
-        fetchInProgress = false;
-        updateLoadingState();
-        renderCalendar();
-      });
-
-    // Délai maximum de 45 secondes pour le chargement (les proxies peuvent être lents)
-    fetchTimeoutId = setTimeout(() => {
-      if (calendarState.isLoading && !eventsLoaded) {
-        console.log("Délai d'attente dépassé, chargement des événements de démo");
-        calendarState.events = generateDemoEvents();
-        calendarState.isLoading = false;
-        fetchInProgress = false;
-        updateLoadingState();
-        renderCalendar();
       }
-    }, 45000);
+      calendarState.isLoading = false;
+      updateLoadingState();
+      renderCalendar();
+    }).catch(error => {
+      console.error("Erreur fetch:", error);
+      if (calendarState.events.length === 0) {
+        calendarState.events = generateDemoEvents();
+      }
+      calendarState.isLoading = false;
+      updateLoadingState();
+      renderCalendar();
+    });
   }
 
   // Gestionnaire pour la saisie en temps réel
@@ -198,124 +292,6 @@ document.addEventListener('DOMContentLoaded', function() {
       checkFormProgress();
     }
   });
-
-  // Fonction pour récupérer les événements depuis le flux iCal public
-  async function fetchGoogleCalendarEvents() {
-    // URL du flux iCal public Google Calendar
-    const icalUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(CALENDAR_ID)}/public/basic.ics`;
-
-    // Liste de proxies CORS avec fallback
-    const corsProxies = [
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`,
-      `https://corsproxy.io/?${encodeURIComponent(icalUrl)}`
-    ];
-
-    console.log("Récupération des événements du calendrier (iCal)...");
-
-    let lastError = null;
-    for (const proxyUrl of corsProxies) {
-      try {
-        console.log(`Essai avec: ${proxyUrl.split('?')[0]}...`);
-        const response = await fetch(proxyUrl);
-        if (response.ok) {
-          const icalData = await response.text();
-          const events = parseICalEvents(icalData);
-          console.log(`${events.length} événements récupérés`);
-          return events;
-        }
-        lastError = new Error(`HTTP ${response.status}`);
-      } catch (error) {
-        lastError = error;
-        console.warn(`Proxy échoué: ${error.message}`);
-      }
-    }
-
-    throw lastError || new Error('Tous les proxies ont échoué');
-  }
-
-  // Parser les données iCal en objets événements
-  function parseICalEvents(icalData) {
-    const events = [];
-    const lines = icalData.split(/\r?\n/);
-
-    let currentEvent = null;
-
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i];
-
-      // Gérer le "line folding" iCal (lignes qui commencent par espace = continuation)
-      while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
-        i++;
-        line += lines[i].substring(1);
-      }
-
-      if (line === 'BEGIN:VEVENT') {
-        // Par défaut, un événement est "occupé" (OPAQUE) sauf indication contraire
-        currentEvent = { id: '', title: 'Réservé', start: null, end: null, isBusy: true };
-      } else if (line === 'END:VEVENT' && currentEvent) {
-        // N'ajouter que les événements marqués comme "occupé" (pas TRANSPARENT)
-        if (currentEvent.start && currentEvent.end && currentEvent.isBusy) {
-          events.push(currentEvent);
-        }
-        currentEvent = null;
-      } else if (currentEvent) {
-        if (line.startsWith('UID:')) {
-          currentEvent.id = line.substring(4);
-        } else if (line.startsWith('SUMMARY:')) {
-          currentEvent.title = line.substring(8) || 'Réservé';
-        } else if (line.startsWith('DTSTART')) {
-          currentEvent.start = parseICalDate(line);
-        } else if (line.startsWith('DTEND')) {
-          currentEvent.end = parseICalDate(line);
-        } else if (line.startsWith('TRANSP:')) {
-          // TRANSP:OPAQUE = occupé (busy), TRANSP:TRANSPARENT = disponible (free)
-          currentEvent.isBusy = line.substring(7).trim() !== 'TRANSPARENT';
-        }
-      }
-    }
-
-    return events;
-  }
-
-  // Parser une date iCal en objet Date JavaScript
-  function parseICalDate(line) {
-    // Formats possibles:
-    // DTSTART:20231215T140000Z (UTC)
-    // DTSTART;VALUE=DATE:20231215 (journée entière)
-    // DTSTART;TZID=Europe/Brussels:20231215T140000 (avec timezone)
-
-    const colonIndex = line.indexOf(':');
-    if (colonIndex === -1) return null;
-
-    const dateStr = line.substring(colonIndex + 1);
-
-    // Événement journée entière (DATE seulement, pas d'heure)
-    if (dateStr.length === 8) {
-      const year = parseInt(dateStr.substring(0, 4));
-      const month = parseInt(dateStr.substring(4, 6)) - 1;
-      const day = parseInt(dateStr.substring(6, 8));
-      return new Date(year, month, day);
-    }
-
-    // Format DateTime (avec heure)
-    if (dateStr.length >= 15) {
-      const year = parseInt(dateStr.substring(0, 4));
-      const month = parseInt(dateStr.substring(4, 6)) - 1;
-      const day = parseInt(dateStr.substring(6, 8));
-      const hour = parseInt(dateStr.substring(9, 11));
-      const minute = parseInt(dateStr.substring(11, 13));
-      const second = parseInt(dateStr.substring(13, 15));
-
-      // Si termine par Z, c'est UTC
-      if (dateStr.endsWith('Z')) {
-        return new Date(Date.UTC(year, month, day, hour, minute, second));
-      }
-
-      return new Date(year, month, day, hour, minute, second);
-    }
-
-    return null;
-  }
 
   // Générer des événements de démonstration
   function generateDemoEvents() {

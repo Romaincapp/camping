@@ -1,0 +1,79 @@
+name: Update Calendar Data
+
+on:
+  schedule:
+    # Toutes les heures
+    - cron: '0 * * * *'
+  workflow_dispatch: # Permet de lancer manuellement depuis GitHub
+
+jobs:
+  update-calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch calendar data
+        run: |
+          curl -s "https://calendar.google.com/calendar/ical/romainfrancedumoulin%40gmail.com/public/basic.ics" -o calendar.ics
+
+      - name: Parse iCal to JSON
+        run: |
+          cat << 'EOF' > parse-ical.js
+          const fs = require('fs');
+          const icalData = fs.readFileSync('calendar.ics', 'utf8');
+          const events = [];
+          const lines = icalData.split(/\r?\n/);
+          let currentEvent = null;
+
+          function parseDate(line) {
+            const colonIndex = line.indexOf(':');
+            if (colonIndex === -1) return null;
+            const dateStr = line.substring(colonIndex + 1);
+            if (dateStr.length === 8) {
+              return `${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`;
+            }
+            if (dateStr.length >= 15) {
+              return `${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}T${dateStr.substring(9,11)}:${dateStr.substring(11,13)}:${dateStr.substring(13,15)}${dateStr.endsWith('Z') ? 'Z' : ''}`;
+            }
+            return null;
+          }
+
+          for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
+              i++;
+              line += lines[i].substring(1);
+            }
+
+            if (line === 'BEGIN:VEVENT') {
+              currentEvent = { id: '', title: 'Réservé', start: null, end: null, isBusy: true };
+            } else if (line === 'END:VEVENT' && currentEvent) {
+              if (currentEvent.start && currentEvent.end && currentEvent.isBusy) {
+                events.push(currentEvent);
+              }
+              currentEvent = null;
+            } else if (currentEvent) {
+              if (line.startsWith('UID:')) currentEvent.id = line.substring(4);
+              else if (line.startsWith('SUMMARY:')) currentEvent.title = line.substring(8) || 'Réservé';
+              else if (line.startsWith('DTSTART')) currentEvent.start = parseDate(line);
+              else if (line.startsWith('DTEND')) currentEvent.end = parseDate(line);
+              else if (line.startsWith('TRANSP:')) currentEvent.isBusy = line.substring(7).trim() !== 'TRANSPARENT';
+            }
+          }
+
+          const output = {
+            updated: new Date().toISOString(),
+            events: events
+          };
+
+          fs.writeFileSync('calendar-data.json', JSON.stringify(output, null, 2));
+          console.log(`✓ ${events.length} événements exportés`);
+          EOF
+          node parse-ical.js
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add calendar-data.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🔄 Update calendar data" && git push)
