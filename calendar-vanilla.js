@@ -84,8 +84,9 @@ function parseICalDateEarly(line) {
 // Lancer le fetch IMMÉDIATEMENT (avant DOMContentLoaded)
 const earlyFetchPromise = (async function() {
   // 1. Essayer de charger le fichier JSON local (généré par GitHub Actions)
+  // Ajouter cache-busting pour toujours avoir la dernière version
   try {
-    const response = await fetch('calendar-data.json');
+    const response = await fetch('calendar-data.json?t=' + Date.now());
     if (response.ok) {
       const data = await response.json();
       const events = data.events.map(e => ({
@@ -99,14 +100,7 @@ const earlyFetchPromise = (async function() {
     }
   } catch (e) {}
 
-  // 2. Fallback: utiliser le cache localStorage
-  const cached = loadFromCache();
-  if (cached && cached.length > 0) {
-    console.log('📅 Calendrier depuis le cache');
-    return cached;
-  }
-
-  // 3. Dernier recours: proxy CORS (pour dev local)
+  // 2. Fallback: proxy CORS (pour dev local ou si JSON manquant)
   const icalUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(CALENDAR_ID)}/public/basic.ics`;
   const proxies = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`,
@@ -126,6 +120,13 @@ const earlyFetchPromise = (async function() {
     } catch (e) {}
   }
 
+  // 3. Dernier recours: cache localStorage (si tout échoue)
+  const cached = loadFromCache();
+  if (cached && cached.length > 0) {
+    console.log('📅 Calendrier depuis le cache (hors-ligne)');
+    return cached;
+  }
+
   return null;
 })();
 
@@ -138,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     currentDate: new Date(),
     selectedStartDate: null,
     selectedEndDate: null,
-    events: loadFromCache() || [], // Charger immédiatement depuis le cache
+    events: [], // Sera rempli par earlyFetchPromise
     isLoading: true,
     formData: {
       name: '',
