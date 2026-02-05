@@ -1,32 +1,32 @@
 {
-  "updated": "2026-02-05T14:23:34.205Z",
+  "updated": "2026-02-05T15:19:40.912Z",
   "events": [
     {
-      "id": "74omadpi6lj3cb9h6dhj6b9kcdhm8b9p6som2b9k6oqm4dhpccsm6d9h6k@google.com",
+      "id": "c8r36chi6pgjib9gckpm8b9k74qjabb16cqj4b9n6hj30phi6ormac1n6s@google.com",
       "title": "Busy",
-      "start": "2026-02-06T13:00:00Z",
-      "end": "2026-02-08T13:00:00Z",
+      "start": "2026-07-25T12:00:00Z",
+      "end": "2026-08-01T12:00:00Z",
       "isBusy": true
     },
     {
-      "id": "6cq38dhmcpj34bb2ckqj6b9k6ti6abb1c5gj4bb1c4r3aoj5c5i38d31c4@google.com",
+      "id": "691QTH9268818B80ST6E8CQ60W@campspace.com",
       "title": "Busy",
-      "start": "2026-07-06T12:00:00Z",
-      "end": "2026-07-11T12:00:00Z",
+      "start": "2026-08-10T12:00:00Z",
+      "end": "2026-08-14T12:00:00Z",
       "isBusy": true
     },
     {
-      "id": "71gmad9nckpm8b9ockp36b9k6kq36b9oc9j6cb9h74q6cdplcdhj6c9g6c@google.com",
+      "id": "6hij8ohjc4rmabb36so36b9k64qj8bb1c5ijcb9n6gpj4oj2chi38ohi74@google.com",
       "title": "Busy",
-      "start": "2026-02-08T13:00:00Z",
-      "end": "2026-02-09T13:00:00Z",
+      "start": "2026-01-03T13:00:00Z",
+      "end": "2026-01-05T13:00:00Z",
       "isBusy": true
     },
     {
-      "id": "55DGBSWPZK950B712DJC86NSN6@campspace.com",
+      "id": "c4s6cd1pclim6b9j6sr38b9k6kpjgbb2c9ij2b9k71ijic9pc9h6acpgc4@google.com",
       "title": "Busy",
-      "start": "2026-04-09T12:00:00Z",
-      "end": "2026-04-10T12:00:00Z",
+      "start": "2025-12-20T13:00:00Z",
+      "end": "2025-12-23T13:00:00Z",
       "isBusy": true
     },
     {
@@ -44,24 +44,52 @@
       "isBusy": true
     },
     {
-      "id": "6ksm4d9p74s34bb270o3ib9k71hmabb1cos68bb364o3apb5cgs3ichm64@google.com",
-      "title": "Busy",
-      "start": "2026-08-24T12:00:00Z",
-      "end": "2026-08-28T12:00:00Z",
-      "isBusy": true
-    },
-    {
-      "id": "69h6aohic4omcbb4chj6cb9k6ks34bb2c4qjib9h6sqm6p1g74r3cchmcg@google.com",
-      "title": "Busy",
-      "start": "2026-02-12T13:00:00Z",
-      "end": "2026-02-15T13:00:00Z",
-      "isBusy": true
-    },
-    {
       "id": "6lh3cpb175i66bb66gs6ab9k6th36b9o6lh3ibb66or6ad9oc4oj0p9i74@google.com",
       "title": "Busy",
       "start": "2026-04-26T12:00:00Z",
       "end": "2026-05-02T12:00:00Z",
+      "isBusy": true
+    },
+    {
+      "id": "2MSNSMP5W59CAS3VHEH6ZQZDMB@campspace.com",
+      "title": "Busy",
+      "start": "2025-12-13T12:00:00Z",
+      "end": "2025-12-14T12:00:00Z",
+      "isBusy": true
+    },
+    {
+      "id": "6cq38dhmcpj34bb2ckqj6b9k6ti6abb1c5gj4bb1c4r3aoj5c5i38d31c4@google.com",
+      "title": "Busy",
+      "start": "2026-07-06T12:00:00Z",
+      "end": "2026-07-11T12:00:00Z",
+      "isBusy": true
+    },
+    {
+      "id": "cor3ccj36gojcbb4c4ojgb9kcpgjab9p65gm2b9g6sp3adj16gsm2cj168@google.com",
+      "title": "Busy",
+      "start": "2026-07-17T18:00:00Z",
+      "end": "2026-07-19T23:00:00Z",
+      "isBusy": true
+    },
+    {
+      "id": "55DGBSWPZK950B712DJC86NSN6@campspace.com",
+      "title": "Busy",
+      "start": "2026-04-09T12:00:00Z",
+      "end": "2026-04-10T12:00:00Z",
+      "isBusy": true
+    },
+    {
+      "id": "57SEJ8EP2Z94H88Z58Z3DDXXB7@campspace.com",
+      "title": "Busy",
+      "start": "2026-06-05T12:00:00Z",
+      "end": "2026-06-07T12:00:00Z",
+      "isBusy": true
+    },
+    {
+      "id": "6lgjacr6c9gjebb1ccsm2b9k65h3gb9oc9hjab9j6co3gdpo64s3gdpl64@google.com",
+      "title": "Busy",
+      "start": "2025-12-23T13:00:00Z",
+      "end": "2026-01-03T13:00:00Z",
       "isBusy": true
     },
     {
@@ -79,27 +107,6 @@
       "isBusy": true
     },
     {
-      "id": "cor3ccj36gojcbb4c4ojgb9kcpgjab9p65gm2b9g6sp3adj16gsm2cj168@google.com",
-      "title": "Busy",
-      "start": "2026-07-17T18:00:00Z",
-      "end": "2026-07-19T23:00:00Z",
-      "isBusy": true
-    },
-    {
-      "id": "2KZG9S790X93MRHMREVJ94HV9P@campspace.com",
-      "title": "Busy",
-      "start": "2026-08-19T12:00:00Z",
-      "end": "2026-08-22T12:00:00Z",
-      "isBusy": true
-    },
-    {
-      "id": "6hij8ohjc4rmabb36so36b9k64qj8bb1c5ijcb9n6gpj4oj2chi38ohi74@google.com",
-      "title": "Busy",
-      "start": "2026-01-03T13:00:00Z",
-      "end": "2026-01-05T13:00:00Z",
-      "isBusy": true
-    },
-    {
       "id": "2RQBP8H9AP9JCVKBPJQFHA9E2Z@campspace.com",
       "title": "Busy",
       "start": "2026-05-09T12:00:00Z",
@@ -107,31 +114,31 @@
       "isBusy": true
     },
     {
-      "id": "70ojgcpm6hh3cb9gc5j3ib9k6gsj0bb2ckp3eb9mckqj8p9m6op66dhi60@google.com",
+      "id": "6ksm4d9p74s34bb270o3ib9k71hmabb1cos68bb364o3apb5cgs3ichm64@google.com",
       "title": "Busy",
-      "start": "2026-06-18T12:00:00Z",
-      "end": "2026-06-21T12:00:00Z",
+      "start": "2026-08-24T12:00:00Z",
+      "end": "2026-08-28T12:00:00Z",
       "isBusy": true
     },
     {
-      "id": "6cp6ccr4c9h3gb9j6dhj2b9k68pj6b9pc9j3cb9i6hgj0p9m6phj2d316g@google.com",
+      "id": "71gmad9nckpm8b9ockp36b9k6kq36b9oc9j6cb9h74q6cdplcdhj6c9g6c@google.com",
       "title": "Busy",
-      "start": "2026-02-15T13:00:00Z",
-      "end": "2026-02-18T13:00:00Z",
+      "start": "2026-02-08T13:00:00Z",
+      "end": "2026-02-09T13:00:00Z",
       "isBusy": true
     },
     {
-      "id": "691QTH9268818B80ST6E8CQ60W@campspace.com",
+      "id": "74omadpi6lj3cb9h6dhj6b9kcdhm8b9p6som2b9k6oqm4dhpccsm6d9h6k@google.com",
       "title": "Busy",
-      "start": "2026-08-10T12:00:00Z",
-      "end": "2026-08-14T12:00:00Z",
+      "start": "2026-02-06T13:00:00Z",
+      "end": "2026-02-08T13:00:00Z",
       "isBusy": true
     },
     {
-      "id": "c8r36chi6pgjib9gckpm8b9k74qjabb16cqj4b9n6hj30phi6ormac1n6s@google.com",
+      "id": "69h6aohic4omcbb4chj6cb9k6ks34bb2c4qjib9h6sqm6p1g74r3cchmcg@google.com",
       "title": "Busy",
-      "start": "2026-07-25T12:00:00Z",
-      "end": "2026-08-01T12:00:00Z",
+      "start": "2026-02-12T13:00:00Z",
+      "end": "2026-02-15T13:00:00Z",
       "isBusy": true
     },
     {
@@ -142,31 +149,24 @@
       "isBusy": true
     },
     {
-      "id": "57SEJ8EP2Z94H88Z58Z3DDXXB7@campspace.com",
+      "id": "2KZG9S790X93MRHMREVJ94HV9P@campspace.com",
       "title": "Busy",
-      "start": "2026-06-05T12:00:00Z",
-      "end": "2026-06-07T12:00:00Z",
+      "start": "2026-08-19T12:00:00Z",
+      "end": "2026-08-22T12:00:00Z",
       "isBusy": true
     },
     {
-      "id": "c4s6cd1pclim6b9j6sr38b9k6kpjgbb2c9ij2b9k71ijic9pc9h6acpgc4@google.com",
+      "id": "6cp6ccr4c9h3gb9j6dhj2b9k68pj6b9pc9j3cb9i6hgj0p9m6phj2d316g@google.com",
       "title": "Busy",
-      "start": "2025-12-20T13:00:00Z",
-      "end": "2025-12-23T13:00:00Z",
+      "start": "2026-02-15T13:00:00Z",
+      "end": "2026-02-18T13:00:00Z",
       "isBusy": true
     },
     {
-      "id": "2MSNSMP5W59CAS3VHEH6ZQZDMB@campspace.com",
+      "id": "70ojgcpm6hh3cb9gc5j3ib9k6gsj0bb2ckp3eb9mckqj8p9m6op66dhi60@google.com",
       "title": "Busy",
-      "start": "2025-12-13T12:00:00Z",
-      "end": "2025-12-14T12:00:00Z",
-      "isBusy": true
-    },
-    {
-      "id": "6lgjacr6c9gjebb1ccsm2b9k65h3gb9oc9hjab9j6co3gdpo64s3gdpl64@google.com",
-      "title": "Busy",
-      "start": "2025-12-23T13:00:00Z",
-      "end": "2026-01-03T13:00:00Z",
+      "start": "2026-06-18T12:00:00Z",
+      "end": "2026-06-21T12:00:00Z",
       "isBusy": true
     }
   ]
