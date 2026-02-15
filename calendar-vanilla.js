@@ -547,8 +547,6 @@ function handleDateClick(date) {
   function updatePriceDisplay() {
     // Mettre à jour les informations de prix dans le DOM
     document.getElementById('numberOfNights').textContent = calendarState.priceInfo.nights;
-    document.getElementById('pricePerAdult').textContent = calendarState.priceInfo.adultPrice;
-    document.getElementById('pricePerChild').textContent = calendarState.priceInfo.childPrice;
     document.getElementById('numberOfAdults').textContent = calendarState.formData.adults;
     document.getElementById('numberOfChildren').textContent = calendarState.formData.children;
     
@@ -606,11 +604,33 @@ function handleDateClick(date) {
     } else {
       // Afficher le prix normal sans barré
       priceElement.innerHTML = `${calendarState.priceInfo.totalPrice} €`;
-      
+
       // Masquer la section de réduction
       const discountElement = document.getElementById('discountInfo');
       if (discountElement) {
         discountElement.classList.add('hidden');
+      }
+    }
+
+    // Afficher le prix par personne par nuit
+    const avgElement = document.getElementById('avgPricePerNight');
+    const avgValueElement = document.getElementById('avgPricePerNightValue');
+    if (avgElement && avgValueElement) {
+      const nights = calendarState.priceInfo.nights;
+      const totalPersons = (parseInt(calendarState.formData.adults) || 0) + (parseInt(calendarState.formData.children) || 0);
+      if (nights > 0 && totalPersons > 0 && calendarState.priceInfo.totalPrice > 0) {
+        const priceWithoutExtras = calendarState.priceInfo.totalPrice - calendarState.priceInfo.woodPrice - calendarState.priceInfo.sailingPrice;
+        const originalWithoutExtras = calendarState.priceInfo.originalTotalPrice - calendarState.priceInfo.woodPrice - calendarState.priceInfo.sailingPrice;
+        const perPersonPerNight = Math.round((priceWithoutExtras / totalPersons / nights) * 100) / 100;
+        const originalPerPersonPerNight = Math.round((originalWithoutExtras / totalPersons / nights) * 100) / 100;
+        if (calendarState.priceInfo.discount > 0 && originalPerPersonPerNight > perPersonPerNight) {
+          avgValueElement.innerHTML = `<span class="line-through text-gray-500">${originalPerPersonPerNight.toFixed(2)} €</span> <span class="text-green-600 font-bold">${perPersonPerNight.toFixed(2)} €</span>`;
+        } else {
+          avgValueElement.textContent = `${perPersonPerNight.toFixed(2)} €`;
+        }
+        avgElement.classList.remove('hidden');
+      } else {
+        avgElement.classList.add('hidden');
       }
     }
   }
@@ -672,171 +692,77 @@ function handleDateClick(date) {
       
       let adultPrice, childPrice, totalPrice;
       let discountReason = '';
-      
-      // --- Vérifier si c'est une réservation de dernière minute (jour même) ---
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const startDateOnly = new Date(start);
-      startDateOnly.setHours(0, 0, 0, 0);
-      const isLastMinute = startDateOnly.getTime() === today.getTime();
-      
+
       // --- Calcul du prix de base (sans aucune réduction) ---
       // Ce prix sera toujours utilisé comme prix barré
       let fullPriceWithoutReduction;
       
       if (isHighSeason) {
-        // Haute saison: 19€ par adulte, 13€ par enfant sans AUCUNE réduction
+        // Haute saison: 24€ premier adulte, 21€ suivants, 15€ par enfant, max 200€/nuit
+        adultPrice = '24€ (1er) / 21€ (suiv.)';
+        childPrice = '15 €';
+        let nightlyBase = (adults > 0 ? 24 + (adults - 1) * 21 : 0) + children * 15;
+        fullPriceWithoutReduction = nightlyBase * nights;
+      } else {
+        // Basse saison: 19€ par adulte, 13€ par enfant, max 200€/nuit
         adultPrice = '19 €';
         childPrice = '13 €';
-        fullPriceWithoutReduction = (adults * 19 + children * 13) * nights;
-      } else {
-        // Basse saison: 19€ pour la première personne, 10€ pour chaque personne supplémentaire
-        adultPrice = '19€ (1er) / 10€ (autres)';
-        childPrice = '10 €';
-        fullPriceWithoutReduction = totalPersons > 0 
-          ? (19 + (totalPersons - 1) * 10) * nights 
-          : 0;
+        let nightlyBase = adults * 19 + children * 13;
+        fullPriceWithoutReduction = nightlyBase * nights;
       }
       
-      // --- Appliquer la promo dernière minute si applicable ---
-      if (isLastMinute) {
-        // Promo dernière minute: 10€ par personne pour la première nuit, tarif normal pour les suivantes
-        let firstNightPrice = totalPersons * 10;
-        let remainingNightsPrice = 0;
-        
-        if (nights > 1) {
-          // Calculer le prix normal pour les nuits restantes
-          if (isHighSeason) {
-            // Haute saison pour les nuits restantes
-            if (totalPersons >= 6 && totalPersons < 10) {
-              // Tarif dégressif pour 6-9 personnes
-              const regularPrice = (adults * 19 + children * 13) * (nights - 1);
-              const discountFactor = 1 - ((totalPersons - 5) * 0.05);
-              remainingNightsPrice = Math.round(regularPrice * discountFactor);
-            } else if (totalPersons >= 10 && totalPersons <= 14) {
-              remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-14 personnes
-            } else if (totalPersons >= 15 && totalPersons <= 19) {
-              remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 15-19 personnes
-            } else if (totalPersons >= 20) {
-              remainingNightsPrice = 200 * (nights - 1); // 200€/nuit pour 20+ personnes
-            } else {
-              remainingNightsPrice = (adults * 19 + children * 13) * (nights - 1);
-            }
-          } else {
-            // Basse saison pour les nuits restantes
-            if (totalPersons >= 6 && totalPersons < 10) {
-              const regularPrice = totalPersons > 0 
-                ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
-                : 0;
-              const discountFactor = 1 - ((totalPersons - 5) * 0.05);
-              remainingNightsPrice = Math.round(regularPrice * discountFactor);
-            } else if (totalPersons >= 10 && totalPersons <= 19) {
-              remainingNightsPrice = 100 * (nights - 1); // 100€/nuit pour 10-19 personnes
-            } else if (totalPersons >= 20) {
-              remainingNightsPrice = 150 * (nights - 1); // 150€/nuit pour 20+ personnes
-            } else {
-              remainingNightsPrice = totalPersons > 0 
-                ? (19 + (totalPersons - 1) * 10) * (nights - 1) 
-                : 0;
-            }
-          }
-          
-          // Appliquer réduction séjour sur les nuits restantes
-          let stayDiscount = 0;
-          if (nights >= 4) {
-            stayDiscount = 0.10; // 10% pour 4 nuits ou plus
-          } else if (nights >= 2) {
-            stayDiscount = 0.05; // 5% pour 2-3 nuits
-          }
-          
-          if (stayDiscount > 0) {
-            remainingNightsPrice = Math.round(remainingNightsPrice * (1 - stayDiscount));
-          }
-        }
-        
-        // Prix total = promo première nuit + prix normal pour les nuits restantes
-        totalPrice = firstNightPrice + remainingNightsPrice;
-        
-        if (nights === 1) {
-          discountReason = 'Promo dernière minute (10€/personne)';
-        } else {
-          discountReason = `Promo dernière minute pour la 1ère nuit (10€/personne) + tarif normal pour les ${nights-1} nuits suivantes`;
-        }
-      } else {
-        // --- Calcul du prix avec les réductions de groupe ---
+      {
+        // --- Calcul du prix par nuit ---
+        let nightlyRaw;
         if (isHighSeason) {
-          // Haute saison
-          if (totalPersons >= 6 && totalPersons < 10) {
-            // Tarif dégressif pour 6-9 personnes
-            const regularPrice = (adults * 19 + children * 13) * nights;
-            const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
-            totalPrice = Math.round(regularPrice * discountFactor);
-            discountReason = 'Tarif groupe appliqué';
-          } else if (totalPersons >= 10 && totalPersons <= 14) {
-            // Prix fixe pour groupes de 10-14 personnes: 100€/nuit max
-            const dailyPrice = 100;
-            totalPrice = dailyPrice * nights;
-            discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
-          } else if (totalPersons >= 15 && totalPersons <= 19) {
-            // Prix fixe pour groupes de 15-19 personnes: 150€/nuit max
-            const dailyPrice = 150;
-            totalPrice = dailyPrice * nights;
-            discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
-          } else if (totalPersons >= 20) {
-            // Prix fixe pour groupes de 20+ personnes: 200€/nuit max
-            const dailyPrice = 200;
-            totalPrice = dailyPrice * nights;
-            discountReason = 'Forfait groupe appliqué (max 200€/nuit)';
-          } else {
-            // Tarif standard pour moins de 6 personnes
-            totalPrice = (adults * 19 + children * 13) * nights;
-          }
+          // Haute saison: 24€ premier adulte, 21€ suivants, 15€/enfant
+          nightlyRaw = (adults > 0 ? 24 + (adults - 1) * 21 : 0) + children * 15;
         } else {
-          // Basse saison
-          if (totalPersons >= 6 && totalPersons < 10) {
-            // Tarif dégressif pour 6-9 personnes
-            const regularPrice = totalPersons > 0 
-              ? (19 + (totalPersons - 1) * 10) * nights 
-              : 0;
-            const discountFactor = 1 - ((totalPersons - 5) * 0.05);  // 5% de réduction par personne au-delà de 5
-            totalPrice = Math.round(regularPrice * discountFactor);
-            discountReason = 'Tarif groupe appliqué';
-          } else if (totalPersons >= 10 && totalPersons <= 19) {
-            // Prix fixe pour groupes de 10-19 personnes: 100€/nuit max
-            const dailyPrice = 100;
-            totalPrice = dailyPrice * nights;
-            discountReason = 'Forfait groupe appliqué (max 100€/nuit)';
-          } else if (totalPersons >= 20) {
-            // Prix fixe pour groupes de 20+ personnes: 150€/nuit max
-            const dailyPrice = 150;
-            totalPrice = dailyPrice * nights;
-            discountReason = 'Forfait groupe appliqué (max 150€/nuit)';
-          } else {
-            // Tarif standard pour moins de 6 personnes
-            totalPrice = totalPersons > 0 
-              ? (19 + (totalPersons - 1) * 10) * nights 
-              : 0;
-          }
+          // Basse saison: 19€/adulte, 13€/enfant
+          nightlyRaw = adults * 19 + children * 13;
         }
-        
-        // Prix intermédiaire après application des tarifs groupe mais avant réduction durée
-        let priceAfterGroupDiscount = totalPrice;
-        
-        // --- Appliquer réduction sur la durée du séjour ---
-        let stayDiscount = 0;
+
+        // Prix de base plafonné à 200€/nuit
+        let baseTotalPrice = Math.min(nightlyRaw, 200) * nights;
+
+        // Calculer le prix avec réduction groupe (à partir de 6 personnes, max 25%)
+        // Réduction sur le prix non-plafonné, puis plafond à 200€/nuit
+        let groupPrice = baseTotalPrice;
+        let groupReason = '';
+        if (totalPersons >= 6) {
+          const discountFactor = Math.max(0.85, 1 - ((totalPersons - 5) * 0.05));
+          let groupNightly = Math.min(Math.round(nightlyRaw * discountFactor), 200);
+          groupPrice = groupNightly * nights;
+          groupReason = 'Tarif groupe appliqué';
+        }
+
+        // Calculer le prix avec réduction séjour uniquement
+        // Réduction sur le prix non-plafonné, puis plafond à 200€/nuit
+        let stayPrice = baseTotalPrice;
+        let stayReason = '';
         if (nights >= 4) {
-          stayDiscount = 0.10; // 10% pour 4 nuits ou plus
-          if (discountReason) discountReason += ' + ';
-          discountReason += 'Réduction 10% pour séjour de 4 nuits ou plus';
+          let stayNightly = Math.min(Math.round(nightlyRaw * 0.90), 200);
+          stayPrice = stayNightly * nights;
+          stayReason = 'Réduction 10% pour séjour de 4 nuits ou plus';
         } else if (nights >= 2) {
-          stayDiscount = 0.05; // 5% pour 2-3 nuits
-          if (discountReason) discountReason += ' + ';
-          discountReason += 'Réduction 5% pour séjour de 2-3 nuits';
+          let stayNightly = Math.min(Math.round(nightlyRaw * 0.95), 200);
+          stayPrice = stayNightly * nights;
+          stayReason = 'Réduction 5% pour séjour de 2-3 nuits';
         }
-        
-        // Appliquer la réduction sur durée du séjour
-        if (stayDiscount > 0) {
-          totalPrice = Math.round(totalPrice * (1 - stayDiscount));
+
+        // Appliquer uniquement la réduction la plus avantageuse (jamais combinées)
+        if (groupPrice <= stayPrice && groupPrice < baseTotalPrice) {
+          totalPrice = groupPrice;
+          discountReason = 'Tarif groupe appliqué';
+        } else if (stayPrice < baseTotalPrice) {
+          totalPrice = stayPrice;
+          discountReason = stayReason;
+        } else {
+          totalPrice = baseTotalPrice;
+          // Le plafond 200€/nuit profite quand même aux groupes de 6+
+          if (totalPersons >= 6) {
+            discountReason = 'Tarif groupe appliqué';
+          }
         }
       }
       
@@ -886,12 +812,23 @@ function handleDateClick(date) {
       // Vérifier si l'élément est un champ de notre formulaire
       if (calendarState.formData.hasOwnProperty(id)) {
         calendarState.formData[id] = target.value;
-        
+
+        // Limiter le total adultes + enfants à 20 personnes
+        if (id === 'adults' || id === 'children') {
+          const adults = parseInt(calendarState.formData.adults) || 0;
+          const children = parseInt(calendarState.formData.children) || 0;
+          if (adults + children > 20) {
+            const max = 20 - (id === 'adults' ? children : adults);
+            target.value = Math.max(id === 'adults' ? 1 : 0, max);
+            calendarState.formData[id] = target.value;
+          }
+        }
+
         // Vérifier le progrès du formulaire pour révéler la section voilier
         if (id === 'name' || id === 'email' || id === 'phone') {
           checkFormProgress();
         }
-        
+
         // Recalculer le prix si nécessaire
         if (id === 'adults' || id === 'children' || id === 'woodQuantity' || id === 'sailingDuration') {
           calculatePrice();
@@ -1489,10 +1426,11 @@ calendarHTML += `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="adults" class="block text-gray-700 font-medium mb-2">Nombre d'adultes *</label>
-            <input 
-              type="number" 
-              id="adults" 
-              min="1" 
+            <input
+              type="number"
+              id="adults"
+              min="1"
+              max="20"
               value="${calendarState.formData.adults}"
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
@@ -1500,10 +1438,11 @@ calendarHTML += `
           </div>
           <div>
             <label for="children" class="block text-gray-700 font-medium mb-2">Nombre d'enfants</label>
-            <input 
-              type="number" 
-              id="children" 
-              min="0" 
+            <input
+              type="number"
+              id="children"
+              min="0"
+              max="20"
               value="${calendarState.formData.children}"
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
@@ -1623,14 +1562,6 @@ calendarHTML += `
             <span id="numberOfNights">${calendarState.priceInfo.nights}</span>
           </div>
           <div class="flex justify-between">
-            <span>Prix par adulte:</span>
-            <span id="pricePerAdult">${calendarState.priceInfo.adultPrice}</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Prix par enfant:</span>
-            <span id="pricePerChild">${calendarState.priceInfo.childPrice}</span>
-          </div>
-          <div class="flex justify-between">
             <span>Nombre d'adultes:</span>
             <span id="numberOfAdults">${calendarState.formData.adults}</span>
           </div>
@@ -1649,10 +1580,14 @@ calendarHTML += `
             <span id="sailingPrice" class="text-blue-600 font-semibold">0 €</span>
           </div>
         </div>
+        <div id="avgPricePerNight" class="hidden flex justify-between text-sm text-green-700 mb-2">
+          <span>Prix par personne / nuit:</span>
+          <span id="avgPricePerNightValue">0 €</span>
+        </div>
         <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
           <span>Total estimé:</span>
           <span id="totalPrice">
-            ${calendarState.priceInfo.discount > 0 
+            ${calendarState.priceInfo.discount > 0
               ? `<span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
                  <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>`
               : `${calendarState.priceInfo.totalPrice} €`}
@@ -1664,8 +1599,9 @@ calendarHTML += `
           ${calendarState.priceInfo.discountReason}
         </div>
         <div class="mt-4 text-xs text-gray-600">
-          <p>Prix haute saison (1er avril - 1er novembre): 19€ par adulte/nuit, 13€ par enfant/nuit</p>
-          <p>Prix basse saison: 19€ pour le premier adulte, 10€ par adulte supplémentaire/nuit</p>
+          <p>Prix haute saison (1er avril - 1er novembre): 24€ (1er adulte), 21€ (suivants), 15€/enfant - max 200€/nuit</p>
+          <p>Prix basse saison: 19€/adulte, 13€/enfant - max 200€/nuit</p>
+          <p>Seule la réduction la plus avantageuse est appliquée (groupe ou long séjour, non cumulables).</p>
           <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
         </div>
       </div>
