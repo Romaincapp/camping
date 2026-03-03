@@ -1006,6 +1006,13 @@ function handleDateClick(date) {
       alert("Veuillez sélectionner au moins une langue parlée.");
       return;
     }
+
+    // Vérifier que le message est rempli
+    if (!calendarState.formData.message || calendarState.formData.message.trim() === '') {
+      alert("Veuillez remplir le champ message.");
+      document.getElementById('message')?.focus();
+      return;
+    }
     
     // Assurer que l'option de bois a une valeur valide
     const woodOptionSelect = document.getElementById('woodOption');
@@ -1483,11 +1490,12 @@ calendarHTML += `
       <div class="mb-6">
         <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
         <div>
-          <label for="message" class="block text-gray-700 font-medium mb-2">Message (questions, requêtes spéciales...)</label>
-          <textarea 
-            id="message" 
+          <label for="message" class="block text-gray-700 font-medium mb-2">Message (questions, requêtes spéciales...) *</label>
+          <textarea
+            id="message"
             rows="4"
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            required
           >${calendarState.formData.message}</textarea>
         </div>
       </div>
