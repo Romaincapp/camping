@@ -1062,7 +1062,7 @@ function handleDateClick(date) {
     })
     .then(response => {
       if (response.ok) {
-        alert("Demande de réservation envoyée avec succès!");
+        alert("Demande de réservation envoyée avec succès !\n\nImportant : Votre réservation ne sera considérée comme finalisée qu'après réception du paiement dans un délai de 3 jours suivant la confirmation de vos dates. Passé ce délai, les dates seront remises à disposition.");
         // Réinitialiser le formulaire
         calendarState.selectedStartDate = null;
         calendarState.selectedEndDate = null;
