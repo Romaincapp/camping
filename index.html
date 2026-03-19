@@ -1,22 +1,39 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <!--Goolde Adsence-->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1285064157217246"
-     crossorigin="anonymous"></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EMBJ7KJYTL"></script>
+    <!-- Google Analytics & AdSense : chargés uniquement après consentement cookies -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-EMBJ7KJYTL');
+      function loadGoogleServices() {
+        if (document.getElementById('ga-script')) return;
+        // Google Analytics
+        var gaScript = document.createElement('script');
+        gaScript.id = 'ga-script';
+        gaScript.async = true;
+        gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-EMBJ7KJYTL';
+        document.head.appendChild(gaScript);
+        gaScript.onload = function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', 'G-EMBJ7KJYTL');
+        };
+        // AdSense
+        var adScript = document.createElement('script');
+        adScript.async = true;
+        adScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1285064157217246';
+        adScript.crossOrigin = 'anonymous';
+        document.head.appendChild(adScript);
+      }
+      // Charger si déjà consenti
+      if (localStorage.getItem('cookieConsent') === 'accepted') {
+        loadGoogleServices();
+      }
     </script>
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camping privatif Olloy-sur-Viroin - privatisé ce camping | Viroinval</title>
+    <title>Terrain privatif Olloy-sur-Viroin - privatisez ce terrain | Viroinval</title>
 
     <!-- Sécurité -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -25,31 +42,31 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://www.google-analytics.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://formspree.io https://calendar.google.com https://www.google-analytics.com https://ipapi.co https://api.allorigins.win https://corsproxy.io https://raw.githubusercontent.com; frame-src https://pagead2.googlesyndication.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google;">
 
     <!-- Balises SEO essentielles -->
-    <meta name="description" content="Profitez d'un séjour nature au Camping du Wignet à Olloy-sur-Viroin. Emplacement unique et privatif, activités de plein air et découverte de la région de Viroinval.">
-    <meta name="keywords" content="camping Viroinval, camping Olloy-sur-Viroin, camping du wignet, location emplacement camping privatif">
+    <meta name="description" content="Profitez d'un séjour nature au Terrain privatif du Wignet à Olloy-sur-Viroin. Emplacement unique et privatif, activités de plein air et découverte de la région de Viroinval.">
+    <meta name="keywords" content="terrain privatif Viroinval, terrain privatif Olloy-sur-Viroin, terrain du wignet, location emplacement privatif nature, camping Viroinval, camping Olloy-sur-Viroin, camping privatif Belgique, stage survie Belgique, bushcraft Ardennes, team building outdoor">
     <link rel="canonical" href="https://www.campingduwignet.com/">
     <meta name="robots" content="index, follow">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.campingduwignet.com/">
-    <meta property="og:title" content="Camping Olloy-sur-Viroin - Location au camping du wignet">
-    <meta property="og:description" content="Profitez d'un séjour nature au Camping du Wignet à Olloy-sur-Viroin.">
+    <meta property="og:title" content="Terrain privatif Olloy-sur-Viroin - Location au terrain du Wignet">
+    <meta property="og:description" content="Profitez d'un séjour nature au Terrain privatif du Wignet à Olloy-sur-Viroin.">
     <meta property="og:image" content="https://www.campingduwignet.com/images/kayak.jpg">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://www.campingduwignet.com/">
-    <meta property="twitter:title" content="Camping Olloy-sur-Viroin - Location au camping du wignet">
-    <meta property="twitter:description" content="Profitez d'un séjour nature au Camping du Wignet à Olloy-sur-Viroin.">
+    <meta property="twitter:title" content="Terrain privatif Olloy-sur-Viroin - Location au terrain du Wignet">
+    <meta property="twitter:description" content="Profitez d'un séjour nature au Terrain privatif du Wignet à Olloy-sur-Viroin.">
     <meta property="twitter:image" content="https://www.campingduwignet.com/images/kayak.jpg">
     
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Campground",
-  "name": "Camping du Wignet",
-  "description": "Profitez d'un séjour nature au Camping du Wignet à Olloy-sur-Viroin, en Ardennes Emplacement unique et privatif, activités de plein air et découverte de la région de Viroinval.",
+  "name": "Terrain privatif du Wignet",
+  "description": "Profitez d'un séjour nature au Terrain privatif du Wignet à Olloy-sur-Viroin, en Ardennes. Emplacement unique et privatif, activités de plein air et découverte de la région de Viroinval.",
   "url": "https://www.campingduwignet.com",
   "logo": "https://www.campingduwignet.com/images/kayak.jpg",
   "address": {
@@ -72,13 +89,13 @@
     "closes": "23:59"
   },
   "amenityFeature": [
-    {"name": "Camping privatif"},
+    {"name": "Terrain privatif"},
     {"name": "Terrain clôturé"},
     {"name": "Sanitaires"},
     {"name": "Eau potable"},
     {"name": "Électricité"},
     {"name": "Douche chaude"},
-    {"name": "Cuisine équipée"},
+    {"name": "Kitchenette"},
     {"name": "Hamac"},
     {"name": "Chaises longues"}
     {"name": "Camp de survie"}
@@ -129,8 +146,8 @@
   <!-- Hero Section -->
   <header class="hero-gradient relative flex items-center justify-center text-white">
     <div class="text-center px-4">
-      <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 floating text-shadow">Camping privatif du Wignet</h1>
-      <p class="text-lg md:text-xl lg:text-2xl mb-8 text-shadow">Privatisez ce camping, pour vous seuls, à l'orée du bois sur les hauteurs d'Olloy</p>
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 floating text-shadow">Terrain privatif du Wignet</h1>
+      <p class="text-lg md:text-xl lg:text-2xl mb-8 text-shadow">Privatisez ce terrain, pour vous seuls, à l'orée du bois sur les hauteurs d'Olloy</p>
       <a href="#reservation" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 inline-block mb-4">
         Réserver maintenant
       </a>
@@ -144,7 +161,7 @@
 
         <!-- Logo 2 - Feu -->
         <div class="hero-logo w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 relative transform hover:scale-110 transition-transform">
-          <img src="images/logofeu.png" alt="Camping" class="w-full h-full object-contain">
+          <img src="images/logofeu.png" alt="Feu de camp" class="w-full h-full object-contain">
         </div>
 
         <!-- Logo 3 - Van -->
@@ -275,7 +292,7 @@
 <!-- Carrousel Section -->
 <section class="py-16 md:py-20 px-4">
   <div class="container mx-auto">
-      <h2 class="text-3xl md:text-4xl font-bold text-center text-green-800 mb-8 md:mb-5">Le camping en images</h2>
+      <h2 class="text-3xl md:text-4xl font-bold text-center text-green-800 mb-8 md:mb-5">Le terrain en images</h2>
       <div class="gallery-container">
           <button class="gallery-nav gallery-prev" aria-label="Précédent">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
@@ -285,17 +302,12 @@
           <div class="horizontal-gallery">
               <div class="gallery-item">
                   <a href="images/kayak.jpg" class="glightbox" data-gallery="gallery1">
-                      <img src="images/kayak.jpg" alt="Activité kayak au camping" loading="lazy" />
-                  </a>
-              </div>
-              <div class="gallery-item">
-                  <a href="images/cuisine en pleine nature.jpeg" class="glightbox" data-gallery="gallery1">
-                      <img src="images/cuisine en pleine nature.jpeg" alt="Cuisine extérieure équipée" loading="lazy" />
+                      <img src="images/kayak.jpg" alt="Activité kayak" loading="lazy" />
                   </a>
               </div>
               <div class="gallery-item">
                   <a href="images/drone.jpg" class="glightbox" data-gallery="gallery1">
-                      <img src="images/drone.jpg" alt="Vue aérienne du camping" loading="lazy" />
+                      <img src="images/drone.jpg" alt="Vue aérienne du terrain" loading="lazy" />
                   </a>
               </div>
               <div class="gallery-item">
@@ -360,7 +372,7 @@
     <div class="container mx-auto">
         <h2 class="text-3xl md:text-4xl font-bold text-center text-green-800 mb-8 md:mb-5">Une expérience unique en pleine nature</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-       <!-- Feature Card 1 - Camping privé : un seul emplacement -->
+       <!-- Feature Card 1 - Terrain privatif : un seul emplacement -->
 <div class="feature-card">
     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -368,7 +380,7 @@
         </svg>
     </div>
     <h3 class="text-xl font-semibold text-center mb-2">Un seul emplacement !</h3>
-    <p class="text-gray-600 text-center">Privatisez pour vous seul, votre couple ou groupe d'amis ce camp privatif de 3200m². Un lieu de paix et de calme qui vous permet de vous ressourcer et d'observer la nature. (musique et fête interdites). Check in 14h / Check out jusqu'à 12h. Tri des déchets obligatoire et facile avec nos équipements. Calme à respecter après 22h, écoutons la nature, pas la musique.</p>
+    <p class="text-gray-600 text-center">Privatisez pour vous seul, votre couple ou groupe d'amis ce terrain privatif de 3200m². Un lieu de paix et de calme qui vous permet de vous ressourcer et d'observer la nature. (musique et fête interdites). Check in 14h / Check out jusqu'à 12h. Tri des déchets obligatoire et facile avec nos équipements. Calme à respecter après 22h, écoutons la nature, pas la musique.</p>
     
     <!-- Note de bas de page ajoutée -->
     <div class="mt-4 pt-3 border-t border-gray-200">
@@ -394,19 +406,19 @@
     </div>
 </div>
 
-<!-- Feature Card 3 - Cuisine équipée -->
+<!-- Feature Card 3 - Kitchenette -->
 <div class="feature-card">
     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 mx-auto">
         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
         </svg>
     </div>
-    <h3 class="text-xl font-semibold text-center mb-2">Cuisine équipée</h3>
+    <h3 class="text-xl font-semibold text-center mb-2">Kitchenette</h3>
     <p class="text-gray-600 text-center">Une cuisine couverte de 12m2 en pleine nature pour plus de conforts : ustensiles de cuisine, cuisson au gaz, frigo, congélateur, percolateur,bouilloire, armoire de rangement, évier, espace pour manger à table à l'abris, tables et chaises disponibles pour les groupes</p>
     
     <!-- Note de bas de page ajoutée -->
     <div class="mt-4 pt-3 border-t border-gray-200">
-        <p class="text-green-600 text-sm font-medium">✓ Cuisine équipée incluse dans votre réservation</p>
+        <p class="text-green-600 text-sm font-medium">✓ Kitchenette incluse dans votre réservation</p>
         <p class="text-red-600 text-sm font-medium">✗ Attention, triez vos déchets ou reprennez-les</p>
     </div>
 </div>
@@ -534,187 +546,6 @@
     </div>
     </section>
 
-<!-- Section Camps de Survie et Aventure -->
-<section class="survival-section py-16 md:py-20 px-4 bg-gradient-to-b from-slate-900 via-slate-800 to-green-900 text-white relative overflow-hidden">
-    <!-- Éléments décoratifs de fond -->
-    <div class="absolute inset-0 pointer-events-none">
-        <!-- Silhouettes d'arbres -->
-        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/30 to-transparent"></div>
-        <!-- Particules flottantes -->
-        <div class="absolute top-20 left-10 w-2 h-2 bg-orange-400 rounded-full opacity-60 animate-pulse"></div>
-        <div class="absolute top-40 right-20 w-1 h-1 bg-yellow-300 rounded-full opacity-80 animate-pulse" style="animation-delay: 1s;"></div>
-        <div class="absolute top-60 left-1/3 w-1.5 h-1.5 bg-orange-300 rounded-full opacity-70 animate-pulse" style="animation-delay: 2s;"></div>
-    </div>
-
-    <div class="container mx-auto relative z-10">
-        <!-- Titre principal avec effet dramatique -->
-        <div class="text-center mb-12">
-            <div class="inline-flex items-center justify-center mb-4">
-                <div class="h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent w-24"></div>
-                <span class="px-4 text-orange-400 font-bold text-sm uppercase tracking-wider">Organisateurs</span>
-                <div class="h-px bg-gradient-to-r from-transparent via-orange-500 to-transparent w-24"></div>
-            </div>
-            
-            <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-orange-600">
-                Camps de Survie & Aventure
-            </h2>
-            <p class="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
-                Privatisez notre site de 3200m² pour organiser vos stages de survie, formations bushcraft et aventures outdoor en toute exclusivité
-            </p>
-        </div>
-
-        <!-- Grille des avantages -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <!-- Avantage 1: Privatisation totale -->
-            <div class="survival-card group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 transform transition-all duration-300 hover:scale-105 hover:border-orange-500/50">
-                <div class="icon-container w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform duration-300">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold text-orange-400 mb-4">Site 100% Privatisé</h3>
-                <p class="text-slate-300 leading-relaxed">
-                    Terrain clôturé de 3200m² exclusivement pour votre groupe. Aucun autre campeur, liberté totale pour vos activités et formations.
-                </p>
-                <div class="mt-4 pt-4 border-t border-slate-600/50">
-                    <span class="text-orange-300 text-sm font-semibold">✓ Jusqu'à 20 participants maximum</span>
-                </div>
-            </div>
-
-            <!-- Avantage 2: Équipements adaptés -->
-            <div class="survival-card group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 transform transition-all duration-300 hover:scale-105 hover:border-orange-500/50">
-                <div class="icon-container w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform duration-300">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold text-green-400 mb-4">Infrastructures Survie</h3>
-                <p class="text-slate-300 leading-relaxed">
-                    Feu de camp autorisé, cuisine équipée, douche chaude, sanitaires, électricité. Le confort minimal nécessaire pour vos stages.
-                </p>
-                <div class="mt-4 pt-4 border-t border-slate-600/50">
-                    <span class="text-green-300 text-sm font-semibold">✓ Espaces feu sécurisés + Équipements de base</span>
-                </div>
-            </div>
-
-            <!-- Avantage 3: Environnement naturel -->
-            <div class="survival-card group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 transform transition-all duration-300 hover:scale-105 hover:border-orange-500/50">
-                <div class="icon-container w-20 h-20 bg-gradient-to-br from-emerald-600 to-green-700 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-6 transition-transform duration-300">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                    </svg>
-                </div>
-                <h3 class="text-2xl font-bold text-emerald-400 mb-4">Nature Authentique</h3>
-                <p class="text-slate-300 leading-relaxed">
-                    À l'orée du bois, étang privé, terrain varié. Environnement parfait pour l'apprentissage des techniques de survie et bushcraft.
-                </p>
-                <div class="mt-4 pt-4 border-t border-slate-600/50">
-                    <span class="text-emerald-300 text-sm font-semibold">✓ Parc National entre Sambre et Meuse</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section activités possibles -->
-        <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 md:p-12 mb-12">
-            <h3 class="text-3xl md:text-4xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
-                Activités et Formations Possibles
-            </h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-4">
-                    <h4 class="text-xl font-semibold text-orange-400 mb-4 flex items-center">
-                        <span class="w-2 h-2 bg-orange-400 rounded-full mr-3"></span>
-                        Techniques de Survie
-                    </h4>
-                    <ul class="space-y-2 text-slate-300">
-                        <li class="activity-item flex items-center"><span class="text-orange-400 mr-2">▸</span> Construction d'abris naturels</li>
-                        <li class="activity-item flex items-center"><span class="text-orange-400 mr-2">▸</span> Techniques de feu primitives</li>
-                        <li class="activity-item flex items-center"><span class="text-orange-400 mr-2">▸</span> Purification de l'eau</li>
-                        <li class="activity-item flex items-center"><span class="text-orange-400 mr-2">▸</span> Orientation et navigation</li>
-                        <li class="activity-item flex items-center"><span class="text-orange-400 mr-2">▸</span> Reconnaissance plantes comestibles</li>
-                    </ul>
-                </div>
-                
-                <div class="space-y-4">
-                    <h4 class="text-xl font-semibold text-green-400 mb-4 flex items-center">
-                        <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-                        Formations Bushcraft
-                    </h4>
-                    <ul class="space-y-2 text-slate-300">
-                        <li class="activity-item flex items-center"><span class="text-green-400 mr-2">▸</span> Taille et utilisation du bois</li>
-                        <li class="activity-item flex items-center"><span class="text-green-400 mr-2">▸</span> Artisanat primitif</li>
-                        <li class="activity-item flex items-center"><span class="text-green-400 mr-2">▸</span> Techniques de pêche traditionnelle</li>
-                        <li class="activity-item flex items-center"><span class="text-green-400 mr-2">▸</span> Stages hivernaux spécialisés</li>
-                        <li class="activity-item flex items-center"><span class="text-green-400 mr-2">▸</span> Team building outdoor</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Avantages spéciaux hiver -->
-        <div class="winter-section bg-gradient-to-r from-blue-900/60 via-slate-800/60 to-blue-900/60 backdrop-blur-sm border border-blue-700/50 rounded-3xl p-8 md:p-12 mb-12">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                    </svg>
-                </div>
-                <h3 class="text-3xl font-bold text-blue-400 mb-4">Spécial Saison Hivernale</h3>
-                <p class="text-slate-300 text-lg max-w-3xl mx-auto">
-                    Profitez de conditions uniques et de tarifs préférentiels pour vos stages d'hiver
-                </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <span class="text-2xl">❄️</span>
-                    </div>
-                    <h4 class="font-semibold text-blue-400 mb-2">Conditions Hivernales</h4>
-                    <p class="text-sm text-slate-300">Expérience authentique de survie par temps froid</p>
-                </div>
-                
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <span class="text-2xl">💰</span>
-                    </div>
-                    <h4 class="font-semibold text-green-400 mb-2">Tarifs Avantageux</h4>
-                    <p class="text-sm text-slate-300">Jusqu'à -40% en basse saison pour les groupes</p>
-                </div>
-                
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <span class="text-2xl">🔥</span>
-                    </div>
-                    <h4 class="font-semibold text-orange-400 mb-2">Confort Minimal</h4>
-                    <p class="text-sm text-slate-300">Cuisine chauffée et douche chaude disponibles</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Call to action -->
-        <div class="text-center">
-            <p class="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
-                Organisateurs de stages, formateurs bushcraft, instructeurs survie : contactez-nous pour organiser votre prochaine formation dans un cadre d'exception.
-            </p>
-            
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a href="#reservation" class="cta-button group relative bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                    <span class="relative z-10">Demander un Devis Groupe</span>
-                    <div class="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </a>
-                
-                <div class="flex items-center text-slate-400">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="text-sm">Réponse sous 24h</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
         
         
 <!-- Section de réservation avec JavaScript Vanilla -->
@@ -806,8 +637,8 @@
             
             <!-- Colonne 1: À propos -->
             <div>
-                <h3 class="text-xl font-semibold mb-4">Camping du Wignet</h3>
-                <p class="mb-4 text-green-100">Votre expérience camping privative au cœur de la nature à Olloy-sur-Viroin, dans le Parc National entre Sambre et Meuse.</p>
+                <h3 class="text-xl font-semibold mb-4">Terrain privatif du Wignet</h3>
+                <p class="mb-4 text-green-100">Votre expérience nature privative au cœur de la nature à Olloy-sur-Viroin, dans le Parc National entre Sambre et Meuse.</p>
                 <div class="flex items-center space-x-2 text-green-100">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -852,14 +683,14 @@
         <div class="mt-12 pt-8 border-t border-green-700">
             <!-- Liens légaux -->
             <div class="flex flex-wrap justify-center mb-6 gap-4 text-sm text-green-100">
-                     <a href="privacy-policy.html" class="hover:text-white transition-colors">Mentions légales</a>
+                    <a href="mentions-legales.html" class="hover:text-white transition-colors">Mentions légales</a>
                     <a href="privacy-policy.html" class="hover:text-white transition-colors">Politique de confidentialité</a>
-                    <a href="privacy-policy.html" class="hover:text-white transition-colors">Conditions d'utilisation</a>
+                    <a href="conditions-utilisation.html" class="hover:text-white transition-colors">Conditions d'utilisation</a>
                     </div>
             
             <!-- Copyright -->
             <div class="text-center text-green-100">
-                <p>&copy; 2025 Camping du Wignet - Olloy-sur-Viroin. Tous droits réservés.</p>
+                <p>&copy; 2025 Terrain privatif du Wignet - Olloy-sur-Viroin. Tous droits réservés.</p>
                 <p class="mt-2">Réalisé avec 🥰 par <welcomeapp class="be"></welcomeapp> 🤩</p>
             </div>
         </div>
@@ -876,5 +707,36 @@
 
 <!-- GLightbox JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/js/glightbox.min.js" integrity="sha384-Lcg6/G/AHqVn603GN2UHyiIV/TPsuh4QkJNKsdCAUmzbItQ9oSceVj00Zf5tM0EG" crossorigin="anonymous"></script>
+
+<!-- Bannière cookies -->
+<div id="cookie-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background-color:#1b4332; color:white; padding:16px 24px; box-shadow:0 -2px 10px rgba(0,0,0,0.3);">
+    <div style="max-width:1200px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+        <p style="margin:0; flex:1; min-width:200px; font-size:14px; line-height:1.5;">
+            Ce site utilise des cookies pour analyser le trafic (Google Analytics) et afficher des publicités (Google AdSense). Vous pouvez accepter ou refuser ces cookies non essentiels.
+            <a href="privacy-policy.html" style="color:#86efac; text-decoration:underline;">En savoir plus</a>
+        </p>
+        <div style="display:flex; gap:8px; flex-shrink:0;">
+            <button onclick="acceptCookies()" style="background-color:#22c55e; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600; font-size:14px;">Accepter</button>
+            <button onclick="refuseCookies()" style="background-color:transparent; color:white; border:1px solid #86efac; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600; font-size:14px;">Refuser</button>
+        </div>
+    </div>
+</div>
+<script>
+    function acceptCookies() {
+        localStorage.setItem('cookieConsent', 'accepted');
+        document.getElementById('cookie-banner').style.display = 'none';
+        if (typeof loadGoogleServices === 'function') loadGoogleServices();
+    }
+    function refuseCookies() {
+        localStorage.setItem('cookieConsent', 'refused');
+        document.getElementById('cookie-banner').style.display = 'none';
+    }
+    (function() {
+        var consent = localStorage.getItem('cookieConsent');
+        if (!consent) {
+            document.getElementById('cookie-banner').style.display = 'block';
+        }
+    })();
+</script>
 </body>
 </html>

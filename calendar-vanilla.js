@@ -156,10 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
       message: '',
       checkin: '',
       checkout: '',
-      woodOption: '',
-      woodQuantity: 0,
-      sailingExperience: '',
-      sailingDuration: ''
     },
     priceInfo: {
       nights: 0,
@@ -168,11 +164,41 @@ document.addEventListener('DOMContentLoaded', function() {
       totalPrice: 0,
       originalTotalPrice: 0,
       discount: 0,
-      discountReason: '',
-      woodPrice: 0,
-      sailingPrice: 0
+      discountReason: ''
     }
   };
+
+  // Suivi des modifications de champs (anti-fraude)
+  const fieldEditTracker = {};
+  const TRACKED_FIELDS = ['name', 'email', 'phone', 'country', 'street', 'postalCode', 'city', 'adults', 'children', 'accommodationType', 'message'];
+
+  document.addEventListener('input', function(e) {
+    const id = e.target.id;
+    if (TRACKED_FIELDS.includes(id)) {
+      if (!fieldEditTracker[id]) fieldEditTracker[id] = { count: 0, values: [] };
+      fieldEditTracker[id].count++;
+      const val = e.target.value;
+      const history = fieldEditTracker[id].values;
+      if (history[history.length - 1] !== val) {
+        history.push(val);
+        if (history.length > 10) history.shift();
+      }
+    }
+  });
+
+  document.addEventListener('change', function(e) {
+    const id = e.target.id;
+    if (TRACKED_FIELDS.includes(id)) {
+      if (!fieldEditTracker[id]) fieldEditTracker[id] = { count: 0, values: [] };
+      fieldEditTracker[id].count++;
+      const val = e.target.value;
+      const history = fieldEditTracker[id].values;
+      if (history[history.length - 1] !== val) {
+        history.push(val);
+        if (history.length > 10) history.shift();
+      }
+    }
+  });
 
   // Constantes
   const monthNames = [
@@ -322,9 +348,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Gérer les champs de contact en temps réel
     if (id === 'name' || id === 'email' || id === 'phone' || id === 'street' || id === 'postalCode' || id === 'city') {
       calendarState.formData[id] = target.value;
-      if (id === 'name' || id === 'email' || id === 'phone') {
-        checkFormProgress();
-      }
     }
   });
 
@@ -515,40 +538,7 @@ function handleDateClick(date) {
     }
   }
 
-  // Fonction pour révéler progressivement la section voilier
-  function revealSailingSection() {
-    const sailingSection = document.getElementById('sailingExperienceSection');
-    if (sailingSection && sailingSection.classList.contains('hidden')) {
-      // Ajouter une animation de révélation
-      sailingSection.classList.remove('hidden');
-      sailingSection.style.opacity = '0';
-      sailingSection.style.transform = 'translateY(20px)';
-      
-      // Animation CSS
-      setTimeout(() => {
-        sailingSection.style.transition = 'all 0.8s ease-out';
-        sailingSection.style.opacity = '1';
-        sailingSection.style.transform = 'translateY(0)';
-        
-        // Ajouter un effet de pulsation sur le badge "Nouveau"
-        const badge = sailingSection.querySelector('.bg-blue-600');
-        if (badge) {
-          badge.style.animation = 'pulse 2s infinite';
-        }
-      }, 100);
-    }
-  }
-
   // Fonction pour vérifier si l'utilisateur a commencé à remplir le formulaire
-  function checkFormProgress() {
-    const { name, email, phone } = calendarState.formData;
-    
-    // Si l'utilisateur a commencé à remplir au moins un champ de contact
-    if (name.length > 2 || email.length > 3 || phone.length > 3) {
-      revealSailingSection();
-    }
-  }
-
   // Fonction pour gérer les changements des checkboxes de langues
   function handleLanguageChange() {
     const checkboxes = document.querySelectorAll('input[name="languages"]:checked');
@@ -583,37 +573,6 @@ function handleDateClick(date) {
     document.getElementById('numberOfNights').textContent = calendarState.priceInfo.nights;
     document.getElementById('numberOfAdults').textContent = calendarState.formData.adults;
     document.getElementById('numberOfChildren').textContent = calendarState.formData.children;
-    
-    // Ajouter l'affichage du prix du bois dans la section d'estimation des frais
-    const woodPriceElement = document.getElementById('woodPrice');
-    const woodQuantityElement = document.getElementById('displayWoodQuantity');
-    const woodTypeElement = document.getElementById('displayWoodType');
-    
-    if (woodPriceElement && woodQuantityElement && woodTypeElement) {
-      if (calendarState.formData.woodOption) {
-        const woodType = calendarState.formData.woodOption === 'brouette' ? 'Brouette(s)' : 'Caisse(s)';
-        woodTypeElement.textContent = woodType;
-        woodQuantityElement.textContent = calendarState.formData.woodQuantity || 0;
-        woodPriceElement.textContent = `${calendarState.priceInfo.woodPrice} €`;
-        document.getElementById('woodPriceSection').classList.remove('hidden');
-      } else {
-        document.getElementById('woodPriceSection').classList.add('hidden');
-      }
-    }
-    
-    // Ajouter l'affichage du prix de l'expérience voilier
-    const sailingPriceElement = document.getElementById('sailingPrice');
-    const sailingDurationElement = document.getElementById('displaySailingDuration');
-    
-    if (sailingPriceElement && sailingDurationElement) {
-      if (calendarState.formData.sailingExperience === 'yes' && calendarState.formData.sailingDuration) {
-        sailingDurationElement.textContent = calendarState.formData.sailingDuration;
-        sailingPriceElement.textContent = `${calendarState.priceInfo.sailingPrice} €`;
-        document.getElementById('sailingPriceSection').classList.remove('hidden');
-      } else {
-        document.getElementById('sailingPriceSection').classList.add('hidden');
-      }
-    }
     
     // Mettre à jour l'affichage du prix total avec ou sans réduction
     const priceElement = document.getElementById('totalPrice');
@@ -653,8 +612,8 @@ function handleDateClick(date) {
       const nights = calendarState.priceInfo.nights;
       const totalPersons = (parseInt(calendarState.formData.adults) || 0) + (parseInt(calendarState.formData.children) || 0);
       if (nights > 0 && totalPersons > 0 && calendarState.priceInfo.totalPrice > 0) {
-        const priceWithoutExtras = calendarState.priceInfo.totalPrice - calendarState.priceInfo.woodPrice - calendarState.priceInfo.sailingPrice;
-        const originalWithoutExtras = calendarState.priceInfo.originalTotalPrice - calendarState.priceInfo.woodPrice - calendarState.priceInfo.sailingPrice;
+        const priceWithoutExtras = calendarState.priceInfo.totalPrice;
+        const originalWithoutExtras = calendarState.priceInfo.originalTotalPrice;
         const perPersonPerNight = Math.round((priceWithoutExtras / totalPersons / nights) * 100) / 100;
         const originalPerPersonPerNight = Math.round((originalWithoutExtras / totalPersons / nights) * 100) / 100;
         if (calendarState.priceInfo.discount > 0 && originalPerPersonPerNight > perPersonPerNight) {
@@ -678,9 +637,7 @@ function handleDateClick(date) {
         totalPrice: 0,
         originalTotalPrice: 0,
         discount: 0,
-        discountReason: '',
-        woodPrice: 0,
-        sailingPrice: 0
+        discountReason: ''
       };
     } else {
       // Calculer le nombre de nuits
@@ -696,33 +653,6 @@ function handleDateClick(date) {
       const adults = parseInt(calendarState.formData.adults) || 0;
       const children = parseInt(calendarState.formData.children) || 0;
       const totalPersons = adults + children;
-      
-      // Calculer le prix du bois
-      let woodPrice = 0;
-      if (calendarState.formData.woodOption && calendarState.formData.woodQuantity > 0) {
-        const woodQuantity = parseInt(calendarState.formData.woodQuantity) || 0;
-        if (calendarState.formData.woodOption === 'brouette') {
-          woodPrice = woodQuantity * 10; // 10€ par brouette
-        } else if (calendarState.formData.woodOption === 'caisse') {
-          woodPrice = woodQuantity * 5;  // 5€ par caisse
-        }
-      }
-      
-      // Calculer le prix de l'expérience voilier
-      let sailingPrice = 0;
-      if (calendarState.formData.sailingExperience === 'yes' && calendarState.formData.sailingDuration) {
-        switch (calendarState.formData.sailingDuration) {
-          case '2h':
-            sailingPrice = 90;
-            break;
-          case '3h':
-            sailingPrice = 120;
-            break;
-          case '4h':
-            sailingPrice = 140;
-            break;
-        }
-      }
       
       let adultPrice, childPrice, totalPrice;
       let discountReason = '';
@@ -800,23 +730,18 @@ function handleDateClick(date) {
         }
       }
       
-      // Ajouter le prix du bois et de l'expérience voilier au prix total
-      totalPrice += woodPrice + sailingPrice;
-      
       // Calculer le discount total
-      const discount = fullPriceWithoutReduction - totalPrice + woodPrice + sailingPrice;
-      
+      const discount = fullPriceWithoutReduction - totalPrice;
+
       // Mettre à jour les informations de prix
       calendarState.priceInfo = {
         nights,
         adultPrice,
         childPrice,
         totalPrice,
-        originalTotalPrice: fullPriceWithoutReduction + woodPrice + sailingPrice,
+        originalTotalPrice: fullPriceWithoutReduction,
         discount,
-        discountReason,
-        woodPrice,
-        sailingPrice
+        discountReason
       };
     }
     
@@ -864,58 +789,10 @@ function handleDateClick(date) {
         }
 
         // Vérifier le progrès du formulaire pour révéler la section voilier
-        if (id === 'name' || id === 'email' || id === 'phone') {
-          checkFormProgress();
-        }
-
         // Recalculer le prix si nécessaire
-        if (id === 'adults' || id === 'children' || id === 'woodQuantity' || id === 'sailingDuration') {
+        if (id === 'adults' || id === 'children') {
           calculatePrice();
         }
-      }
-      
-      if (target.id === 'woodOption') {
-        calendarState.formData.woodOption = target.value;
-        
-        // Afficher/masquer le champ de quantité en fonction de la sélection
-        const woodQuantityContainer = document.getElementById('woodQuantityContainer');
-        if (woodQuantityContainer) {
-          if (target.value) {
-            woodQuantityContainer.classList.remove('hidden');
-            const woodTypeLabel = target.value === 'brouette' ? 'brouettes' : 'caisses';
-            const quantityLabel = woodQuantityContainer.querySelector('label');
-            if (quantityLabel) {
-              quantityLabel.textContent = `Quantité de ${woodTypeLabel}`;
-            }
-            // Définir une valeur par défaut de 1 lorsqu'on sélectionne une option
-            calendarState.formData.woodQuantity = 1;
-            const woodQuantityInput = document.getElementById('woodQuantity');
-            if (woodQuantityInput) {
-              woodQuantityInput.value = 1;
-            }
-          } else {
-            // Si "Non merci" est sélectionné (valeur "")
-            woodQuantityContainer.classList.add('hidden');
-            calendarState.formData.woodQuantity = 0;
-            // S'assurer que le formulaire considère cette valeur comme valide
-            calendarState.formData.woodOption = ''; // Valeur vide explicite
-          }
-        }
-
-        // Recalculer le prix
-        calculatePrice();
-      }
-      
-      if (target.id === 'woodQuantity') {
-        // S'assurer que la valeur n'est jamais négative
-        const value = parseInt(target.value) || 0;
-        if (value < 0) {
-          target.value = 0;
-          calendarState.formData.woodQuantity = 0;
-        } else {
-          calendarState.formData.woodQuantity = value;
-        }
-        calculatePrice();
       }
       
     });
@@ -953,75 +830,8 @@ function handleDateClick(date) {
         }
       }
 
-      // Gérer le clic sur les options de sortie en voilier
-      if (target.closest('.sailing-option')) {
-        const sailingButton = target.closest('.sailing-option');
-        const duration = sailingButton.getAttribute('data-sailing-duration');
-
-        // Sauvegarder les valeurs actuelles du formulaire avant re-render
-        const currentFormData = { ...calendarState.formData };
-        const nameInput = document.getElementById('name');
-        const emailInput = document.getElementById('email');
-        const phoneInput = document.getElementById('phone');
-        const adultsInput = document.getElementById('adults');
-        const childrenInput = document.getElementById('children');
-        const messageInput = document.getElementById('message');
-        const woodOptionSelect = document.getElementById('woodOption');
-        const woodQuantityInput = document.getElementById('woodQuantity');
-
-        if (nameInput) currentFormData.name = nameInput.value;
-        if (emailInput) currentFormData.email = emailInput.value;
-        if (phoneInput) currentFormData.phone = phoneInput.value;
-        if (adultsInput) currentFormData.adults = parseInt(adultsInput.value) || 1;
-        if (childrenInput) currentFormData.children = parseInt(childrenInput.value) || 0;
-        if (messageInput) currentFormData.message = messageInput.value;
-        if (woodOptionSelect) currentFormData.woodOption = woodOptionSelect.value;
-        if (woodQuantityInput) currentFormData.woodQuantity = parseInt(woodQuantityInput.value) || 0;
-
-        // Sauvegarder les langues cochées
-        const languageCheckboxes = document.querySelectorAll('input[name="languages"]:checked');
-        if (languageCheckboxes.length > 0) {
-          currentFormData.languages = Array.from(languageCheckboxes).map(cb => cb.value);
-        }
-
-        // Mettre à jour l'état voilier
-        if (duration) {
-          currentFormData.sailingExperience = 'yes';
-          currentFormData.sailingDuration = duration;
-        } else {
-          currentFormData.sailingExperience = 'no';
-          currentFormData.sailingDuration = '';
-        }
-
-        // Appliquer les changements à l'état global
-        calendarState.formData = currentFormData;
-
-        // Re-render le formulaire pour afficher les nouveaux styles
-        renderBookingForm();
-
-        // Recalculer le prix
-        calculatePrice();
-
-        // Auto-scroll vers le résumé du prix après sélection voilier
-        if (window.innerWidth < 1024) {
-          setTimeout(() => {
-            const priceSection = document.getElementById('price-estimation');
-            if (priceSection) {
-              const elementRect = priceSection.getBoundingClientRect();
-              const absoluteElementTop = elementRect.top + window.pageYOffset;
-              const middle = absoluteElementTop - (window.innerHeight / 3);
-              window.scrollTo({ top: middle, behavior: 'smooth' });
-            }
-          }, 300);
-        }
-      }
     });
 
-    // S'assurer que woodOption a une valeur définie même quand "Non, merci" est sélectionné
-    const woodOptionSelect = document.getElementById('woodOption');
-    if (woodOptionSelect && !calendarState.formData.woodOption) {
-      calendarState.formData.woodOption = '';
-    }
   }
 
   // --- FONCTIONS DE VALIDATION ANTI-FRAUDE ---
@@ -1347,31 +1157,6 @@ function handleDateClick(date) {
       return;
     }
 
-    // Assurer que l'option de bois a une valeur valide
-    const woodOptionSelect = document.getElementById('woodOption');
-    if (woodOptionSelect) {
-      if (!woodOptionSelect.value) {
-        calendarState.formData.woodOption = '';
-        calendarState.formData.woodQuantity = 0;
-      }
-    }
-
-    if (calendarState.formData.woodOption && (!calendarState.formData.woodQuantity || calendarState.formData.woodQuantity <= 0)) {
-      calendarState.formData.woodQuantity = 1;
-      const woodQuantityInput = document.getElementById('woodQuantity');
-      if (woodQuantityInput) {
-        woodQuantityInput.value = 1;
-      }
-    }
-
-    if (!calendarState.formData.woodOption) {
-      calendarState.formData.woodQuantity = 0;
-    }
-
-    if (calendarState.formData.sailingExperience !== 'yes') {
-      calendarState.formData.sailingDuration = '';
-    }
-
     // --- DÉSACTIVER LE BOUTON PENDANT L'ENVOI ---
     const submitBtn = event.target.querySelector('button[type="submit"]');
     if (submitBtn) {
@@ -1397,8 +1182,7 @@ function handleDateClick(date) {
     // --- HASH D'INTÉGRITÉ DES DONNÉES ---
     const integrityPayload = calendarState.formData.checkin + calendarState.formData.checkout +
       calendarState.formData.adults + calendarState.formData.children +
-      calendarState.formData.accommodationType + calendarState.formData.woodOption +
-      calendarState.formData.woodQuantity + calendarState.formData.sailingDuration;
+      calendarState.formData.accommodationType;
     const integrityHash = 'v1-' + Math.abs(simpleHash(integrityPayload));
 
     // Ajouter le résumé du prix + métadonnées anti-fraude + rapport de vérification
@@ -1414,7 +1198,13 @@ function handleDateClick(date) {
       _verificationScore: verification.score,
       _verificationDetails: verification.details,
       _ipInfo: ipGeoData ? `${ipGeoData.country_name || '?'}, ${ipGeoData.city || '?'}, CP: ${ipGeoData.postal || '?'}` : 'Non disponible',
-      _integrity: integrityHash
+      _integrity: integrityHash,
+      _fieldEdits: Object.keys(fieldEditTracker).length > 0
+        ? Object.entries(fieldEditTracker)
+            .filter(([, data]) => data.count > 1)
+            .map(([field, data]) => `${field}: ${data.count}x [${data.values.join(' → ')}]`)
+            .join(' | ') || 'Aucune modification suspecte'
+        : 'Aucune modification'
     };
 
     // Supprimer les champs honeypot du payload
@@ -1462,10 +1252,6 @@ function handleDateClick(date) {
           message: '',
           checkin: '',
           checkout: '',
-          woodOption: '',
-          woodQuantity: 0,
-          sailingExperience: '',
-          sailingDuration: ''
         };
         updateFormFields();
         renderCalendar();
@@ -1889,35 +1675,6 @@ calendarHTML += `
         </div>
       </div>
       
-      <!-- Option Bois de Chauffage -->
-      <div class="mb-6">
-        <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Bois de Chauffage</h3>
-        <div class="mb-4">
-          <label for="woodOption" class="block text-gray-700 font-medium mb-2">Besoin de bois pour le feu ?</label>
-          <select 
-            id="woodOption" 
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          >
-            <option value="" ${calendarState.formData.woodOption === '' ? 'selected' : ''}>Non, merci</option>
-            <option value="brouette" ${calendarState.formData.woodOption === 'brouette' ? 'selected' : ''}>Brouette de bois (10€)</option>
-            <option value="caisse" ${calendarState.formData.woodOption === 'caisse' ? 'selected' : ''}>Caisse de bois (5€)</option>
-          </select>
-        </div>
-        <div id="woodQuantityContainer" class="${calendarState.formData.woodOption ? '' : 'hidden'}">
-          <label for="woodQuantity" class="block text-gray-700 font-medium mb-2">
-            Quantité de ${calendarState.formData.woodOption === 'brouette' ? 'brouettes' : 'caisses'}
-          </label>
-          <input 
-            type="number" 
-            id="woodQuantity" 
-            min="0" 
-            max="10" 
-            value="${calendarState.formData.woodQuantity || 1}"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-      
       <!-- Information supplémentaire -->
       <div class="mb-6">
         <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
@@ -1929,67 +1686,6 @@ calendarHTML += `
             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             required
           >${calendarState.formData.message}</textarea>
-        </div>
-      </div>
-      
-      <!-- Section Expérience Voilier - Style promotionnel (visible si dates sélectionnées ou déjà interagi) -->
-      <div id="sailingExperienceSection" class="${(calendarState.selectedStartDate && calendarState.selectedEndDate) || calendarState.formData.sailingExperience ? '' : 'hidden'} mb-6 -mx-6 md:mx-0 bg-gradient-to-br from-blue-50 to-blue-100 p-4 md:p-6 md:rounded-xl border-y md:border border-blue-200 shadow-lg">
-        <div class="flex items-center mb-4">
-          <div class="bg-blue-600 text-white px-2 md:px-3 py-1 rounded-full text-xs font-bold uppercase mr-2 md:mr-3">
-            🎉 Exclusif
-          </div>
-          <span class="text-blue-800 font-semibold text-sm md:text-base">Nouveau !</span>
-        </div>
-
-        <h3 class="text-xl md:text-2xl font-bold text-blue-800 mb-3">
-          ⛵ Balade en Voilier sur le Lac de l'Eau d'Heure
-        </h3>
-
-        <div class="bg-white p-3 md:p-4 rounded-lg mb-4 shadow-sm">
-          <p class="text-gray-700 mb-3 text-sm md:text-base">
-            <strong>Découvrez le plus grand lac de Belgique à bord de mon voilier de 7m10 !</strong><br>
-            Naviguons et allons nager dans la plus belle crique du Lac de l'Eau d'Heure.
-          </p>
-
-          <p class="text-blue-800 font-semibold mb-3 text-sm md:text-base">Cliquez sur une formule pour la sélectionner :</p>
-
-          <div class="grid grid-cols-3 gap-2 md:gap-3 mb-3">
-            <button type="button" data-sailing-duration="2h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '2h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 hover:bg-blue-100'}">
-              <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '2h' ? 'text-white' : 'text-blue-800'}">2h</div>
-              <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '2h' ? 'text-blue-100' : 'text-blue-600'}">90€</div>
-              <div class="text-xs ${calendarState.formData.sailingDuration === '2h' ? 'text-blue-200' : 'text-gray-500'}">🌊</div>
-            </button>
-            <button type="button" data-sailing-duration="3h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '3h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 border-2 border-blue-400 hover:bg-blue-100'}">
-              <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '3h' ? 'text-white' : 'text-blue-800'}">3h</div>
-              <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '3h' ? 'text-blue-100' : 'text-blue-600'}">120€</div>
-              <div class="text-xs ${calendarState.formData.sailingDuration === '3h' ? 'text-blue-200' : 'text-gray-500'}">⭐</div>
-            </button>
-            <button type="button" data-sailing-duration="4h" class="sailing-option text-center p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 ${calendarState.formData.sailingDuration === '4h' ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : 'bg-blue-50 hover:bg-blue-100'}">
-              <div class="text-xl md:text-2xl font-bold ${calendarState.formData.sailingDuration === '4h' ? 'text-white' : 'text-blue-800'}">4h</div>
-              <div class="font-semibold text-sm md:text-base ${calendarState.formData.sailingDuration === '4h' ? 'text-blue-100' : 'text-blue-600'}">140€</div>
-              <div class="text-xs ${calendarState.formData.sailingDuration === '4h' ? 'text-blue-200' : 'text-gray-500'}">🏊</div>
-            </button>
-          </div>
-
-          <button type="button" data-sailing-duration="" class="sailing-option w-full py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${calendarState.formData.sailingDuration === '' || !calendarState.formData.sailingExperience ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}">
-            Non merci, pas cette fois
-          </button>
-
-          <!-- Message de confirmation de sélection -->
-          <div id="sailingSelectionConfirm" class="${calendarState.formData.sailingDuration ? '' : 'hidden'} mt-3 p-2 bg-green-100 border border-green-300 rounded-lg text-center">
-            <span class="text-green-800 font-medium text-sm">✓ Balade de ${calendarState.formData.sailingDuration || '...'} sélectionnée</span>
-          </div>
-        </div>
-        
-        <div class="mt-4 text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
-          <p class="font-semibold mb-1">ℹ️ Informations importantes :</p>
-          <ul class="list-disc ml-4 space-y-1">
-            <li>Expérience soumise aux conditions météo</li>
-            <li>Maximum 5 adultes</li>
-            <li>Gilets de sauvetage fournis</li>
-            <li>Nous plannifions la sortie par message</li>
-            <li>Réservez maintenant, payez après la sortie</li>
-          </ul>
         </div>
       </div>
       
@@ -2008,16 +1704,6 @@ calendarHTML += `
           <div class="flex justify-between">
             <span>Nombre d'enfants:</span>
             <span id="numberOfChildren">${calendarState.formData.children}</span>
-          </div>
-          <!-- Prix du bois -->
-          <div id="woodPriceSection" class="${calendarState.formData.woodOption ? '' : 'hidden'} flex justify-between">
-            <span><span id="displayWoodQuantity">0</span> <span id="displayWoodType">-</span> de bois:</span>
-            <span id="woodPrice">0 €</span>
-          </div>
-          <!-- Prix de l'expérience voilier -->
-          <div id="sailingPriceSection" class="${calendarState.formData.sailingExperience === 'yes' && calendarState.formData.sailingDuration ? '' : 'hidden'} flex justify-between border-t border-blue-200 pt-2">
-            <span>⛵ Balade voilier (<span id="displaySailingDuration">-</span>):</span>
-            <span id="sailingPrice" class="text-blue-600 font-semibold">0 €</span>
           </div>
         </div>
         <div id="avgPricePerNight" class="hidden flex justify-between text-sm text-green-700 mb-2">
