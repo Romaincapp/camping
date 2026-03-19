@@ -1498,8 +1498,8 @@ function handleDateClick(date) {
       // Ne pas compter les jours passés
       if (date < today) continue;
 
-      // Compter si la date n'est pas réservée (ou est un check-in/check-out)
-      if (!isDateBooked(date) || isCheckInDate(date) || isCheckOutDate(date)) {
+      // Compter si la nuit est libre (personne ne dort sur place)
+      if (!isDateBooked(date)) {
         availableNights++;
       }
     }
