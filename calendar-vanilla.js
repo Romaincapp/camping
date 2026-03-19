@@ -146,6 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
       email: '',
       phone: '',
       country: '',
+      street: '',
+      postalCode: '',
+      city: '',
       languages: [],
       accommodationType: '',
       adults: 1,
@@ -177,6 +180,35 @@ document.addEventListener('DOMContentLoaded', function() {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+  // Préfixes téléphoniques par pays
+  const PHONE_PREFIXES = {
+    'BE': { prefix: '+32', placeholder: '+32 4xx xx xx xx', example: '+32 470 12 34 56' },
+    'FR': { prefix: '+33', placeholder: '+33 6 xx xx xx xx', example: '+33 6 12 34 56 78' },
+    'NL': { prefix: '+31', placeholder: '+31 6 xxxx xxxx', example: '+31 6 1234 5678' },
+    'DE': { prefix: '+49', placeholder: '+49 1xx xxxxxxx', example: '+49 170 1234567' },
+    'LU': { prefix: '+352', placeholder: '+352 xxx xxx xxx', example: '+352 621 123 456' },
+    'GB': { prefix: '+44', placeholder: '+44 7xxx xxxxxx', example: '+44 7911 123456' },
+    'CH': { prefix: '+41', placeholder: '+41 7x xxx xx xx', example: '+41 79 123 45 67' },
+    'ES': { prefix: '+34', placeholder: '+34 6xx xxx xxx', example: '+34 612 345 678' },
+    'IT': { prefix: '+39', placeholder: '+39 3xx xxx xxxx', example: '+39 320 123 4567' },
+    'OTHER': { prefix: '+', placeholder: '+xx xxx xxx xxx', example: '+xx xxx xxx xxx' }
+  };
+
+  // Met à jour le placeholder et le préfixe du champ téléphone selon le pays
+  function updatePhoneForCountry(countryCode) {
+    const phoneInput = document.getElementById('phone');
+    if (!phoneInput) return;
+    const info = PHONE_PREFIXES[countryCode] || PHONE_PREFIXES['OTHER'];
+    phoneInput.placeholder = info.placeholder;
+    // Si le champ est vide ou contient juste un ancien préfixe, pré-remplir le préfixe
+    const currentVal = phoneInput.value.trim();
+    const isJustPrefix = !currentVal || Object.values(PHONE_PREFIXES).some(p => currentVal === p.prefix);
+    if (isJustPrefix) {
+      phoneInput.value = info.prefix + ' ';
+      calendarState.formData.phone = info.prefix + ' ';
+    }
+  }
 
   // Variables pour le fetch des événements
   let eventsLoaded = calendarState.events.length > 0;
@@ -288,9 +320,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const id = target.id;
 
     // Gérer les champs de contact en temps réel
-    if (id === 'name' || id === 'email' || id === 'phone') {
+    if (id === 'name' || id === 'email' || id === 'phone' || id === 'street' || id === 'postalCode' || id === 'city') {
       calendarState.formData[id] = target.value;
-      checkFormProgress();
+      if (id === 'name' || id === 'email' || id === 'phone') {
+        checkFormProgress();
+      }
     }
   });
 
@@ -824,6 +858,11 @@ function handleDateClick(date) {
           }
         }
 
+        // Mettre à jour le téléphone si le pays change
+        if (id === 'country') {
+          updatePhoneForCountry(target.value);
+        }
+
         // Vérifier le progrès du formulaire pour révéler la section voilier
         if (id === 'name' || id === 'email' || id === 'phone') {
           checkFormProgress();
@@ -985,22 +1024,316 @@ function handleDateClick(date) {
     }
   }
 
+  // --- FONCTIONS DE VALIDATION ANTI-FRAUDE ---
+
+  // Validation du numéro de téléphone (format européen)
+  function isValidPhone(phone) {
+    const cleaned = phone.replace(/[\s\-\.\(\)]/g, '');
+    // Format : optionnel + suivi de 9-15 chiffres
+    if (!/^\+?[0-9]{9,15}$/.test(cleaned)) return false;
+    // Bloquer les numéros manifestement faux (tous identiques)
+    const digits = cleaned.replace(/^\+/, '');
+    if (/^(\d)\1{8,}$/.test(digits)) return false;
+    return true;
+  }
+
+  // Liste de domaines email jetables — fallback statique + chargement dynamique
+  const DISPOSABLE_EMAIL_FALLBACK = new Set([
+    'mailinator.com', 'guerrillamail.com', 'tempmail.com', 'throwaway.email',
+    'yopmail.com', 'sharklasers.com', 'guerrillamailblock.com', 'grr.la',
+    'dispostable.com', 'maildrop.cc', 'temp-mail.org', 'fakeinbox.com',
+    'trashmail.com', 'getnada.com', 'mohmal.com', 'emailondeck.com',
+    'tempail.com', 'burnermail.io', 'mailnesia.com', 'tempr.email',
+    'guerrillamail.info', 'guerrillamail.net', 'guerrillamail.org',
+    'throwawaymail.com', 'mailcatch.com', 'trashmail.me', 'trashmail.net',
+    'mailexpire.com', 'tempinbox.com', 'filzmail.com', 'inboxalias.com',
+    'jetable.org', 'trash-mail.com', 'mytemp.email', 'tempmailo.com',
+    'minutemail.com', 'spamgourmet.com', 'mailforspam.com', 'safetymail.info',
+    'trashmail.io', 'harakirimail.com', '10minutemail.com', 'mailnull.com',
+    'spamfree24.org', 'spaml.com', 'isfew.com', 'emailfake.com',
+    'crazymailing.com', 'temporarymail.com', 'binkmail.com'
+  ]);
+
+  // Set dynamique chargé depuis GitHub (~4000 domaines, mis à jour par la communauté)
+  let disposableDomains = DISPOSABLE_EMAIL_FALLBACK;
+  (function loadDisposableDomains() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    fetch('https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf', { signal: controller.signal })
+      .then(r => r.ok ? r.text() : Promise.reject())
+      .then(text => {
+        const domains = text.split('\n').map(d => d.trim().toLowerCase()).filter(d => d && !d.startsWith('#'));
+        if (domains.length > 100) {
+          // Fusionner avec le fallback
+          disposableDomains = new Set([...DISPOSABLE_EMAIL_FALLBACK, ...domains]);
+          console.log(`\ud83d\udee1\ufe0f ${disposableDomains.size} domaines email jetables charg\u00e9s`);
+        }
+      })
+      .catch(() => { /* fallback statique utilis\u00e9 */ })
+      .finally(() => clearTimeout(timer));
+  })();
+
+  // Validation de l'email (format + domaines jetables)
+  function isValidEmail(email) {
+    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) return { valid: false, reason: 'format' };
+    const domain = email.split('@')[1].toLowerCase();
+    if (disposableDomains.has(domain)) return { valid: false, reason: 'disposable' };
+    if (domain.length < 4) return { valid: false, reason: 'format' };
+    return { valid: true };
+  }
+
+  // Rate limiting via localStorage
+  function checkRateLimit() {
+    const STORAGE_KEY = 'camping_submissions';
+    const MAX_PER_DAY = 3;
+    const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+    try {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"times":[]}');
+      const now = Date.now();
+      data.times = data.times.filter(t => now - t < 24 * 60 * 60 * 1000);
+      if (data.times.length >= MAX_PER_DAY) {
+        return { allowed: false, reason: 'daily_limit' };
+      }
+      if (data.times.length > 0 && now - data.times[data.times.length - 1] < COOLDOWN_MS) {
+        const waitSec = Math.ceil((COOLDOWN_MS - (now - data.times[data.times.length - 1])) / 1000);
+        return { allowed: false, reason: 'cooldown', waitSeconds: waitSec };
+      }
+      return { allowed: true };
+    } catch (e) { return { allowed: true }; }
+  }
+
+  function recordSubmission() {
+    const STORAGE_KEY = 'camping_submissions';
+    try {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"times":[]}');
+      data.times.push(Date.now());
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  // Détection de doublons
+  function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash |= 0;
+    }
+    return hash.toString(36);
+  }
+
+  // --- VÉRIFICATION CROISÉE DES DONNÉES ---
+
+  // Formats de code postal par pays
+  const POSTAL_CODE_FORMATS = {
+    'BE': { regex: /^\d{4}$/, example: '5670', label: '4 chiffres' },
+    'FR': { regex: /^\d{5}$/, example: '75001', label: '5 chiffres' },
+    'NL': { regex: /^\d{4}\s?[A-Za-z]{2}$/, example: '1234 AB', label: '4 chiffres + 2 lettres' },
+    'DE': { regex: /^\d{5}$/, example: '10115', label: '5 chiffres' },
+    'LU': { regex: /^\d{4}$/, example: '1234', label: '4 chiffres' },
+    'GB': { regex: /^[A-Za-z]{1,2}\d[A-Za-z\d]?\s?\d[A-Za-z]{2}$/, example: 'SW1A 1AA', label: 'format UK' },
+    'CH': { regex: /^\d{4}$/, example: '3000', label: '4 chiffres' },
+    'ES': { regex: /^\d{5}$/, example: '28001', label: '5 chiffres' },
+    'IT': { regex: /^\d{5}$/, example: '00100', label: '5 chiffres' }
+  };
+
+  // Préfixe téléphonique attendu par pays
+  const EXPECTED_PHONE_PREFIX = {
+    'BE': '32', 'FR': '33', 'NL': '31', 'DE': '49',
+    'LU': '352', 'GB': '44', 'CH': '41', 'ES': '34', 'IT': '39'
+  };
+
+  // Vérifie la cohérence entre pays, code postal, téléphone et IP
+  function crossValidateData(formData) {
+    const checks = [];
+    const country = formData.country;
+
+    // 1. Code postal vs pays
+    const postalFormat = POSTAL_CODE_FORMATS[country];
+    if (postalFormat) {
+      const postalClean = formData.postalCode.trim();
+      if (postalFormat.regex.test(postalClean)) {
+        checks.push({ test: 'Code postal vs Pays', result: 'ok', detail: `${postalClean} valide pour ${country}` });
+      } else {
+        checks.push({ test: 'Code postal vs Pays', result: 'suspect', detail: `"${postalClean}" ne correspond pas au format ${country} (attendu: ${postalFormat.label}, ex: ${postalFormat.example})` });
+      }
+    }
+
+    // 2. Préfixe téléphone vs pays
+    const expectedPrefix = EXPECTED_PHONE_PREFIX[country];
+    if (expectedPrefix) {
+      const phoneClean = formData.phone.replace(/[\s\-\.\(\)]/g, '');
+      const phonePrefix = phoneClean.startsWith('+') ? phoneClean.substring(1) : phoneClean;
+      if (phonePrefix.startsWith(expectedPrefix)) {
+        checks.push({ test: 'Tel vs Pays', result: 'ok', detail: `+${expectedPrefix} correspond a ${country}` });
+      } else {
+        checks.push({ test: 'Tel vs Pays', result: 'suspect', detail: `${formData.phone} ne commence pas par +${expectedPrefix} (attendu pour ${country})` });
+      }
+    }
+
+    // 3. IP vs pays déclaré
+    if (ipGeoData && ipGeoData.country_code) {
+      if (ipGeoData.country_code === country) {
+        checks.push({ test: 'IP vs Pays', result: 'ok', detail: `IP ${ipGeoData.country_name} = ${country}` });
+      } else {
+        checks.push({ test: 'IP vs Pays', result: 'suspect', detail: `IP ${ipGeoData.country_name} (${ipGeoData.country_code}) != Declare ${country}` });
+      }
+
+      // 4. IP vs ville déclarée (comparaison approximative)
+      if (ipGeoData.city) {
+        const ipCity = ipGeoData.city.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const declaredCity = formData.city.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (ipCity === declaredCity || ipCity.includes(declaredCity) || declaredCity.includes(ipCity)) {
+          checks.push({ test: 'IP vs Ville', result: 'ok', detail: `"${ipGeoData.city}" ~ "${formData.city}"` });
+        } else {
+          checks.push({ test: 'IP vs Ville', result: 'info', detail: `IP ville "${ipGeoData.city}" != Declare "${formData.city}" (peut etre normal)` });
+        }
+      }
+
+      // 5. IP code postal vs déclaré
+      if (ipGeoData.postal) {
+        if (ipGeoData.postal === formData.postalCode.trim()) {
+          checks.push({ test: 'IP vs Code postal', result: 'ok', detail: `${ipGeoData.postal} correspond` });
+        } else {
+          checks.push({ test: 'IP vs Code postal', result: 'info', detail: `IP postal "${ipGeoData.postal}" != Declare "${formData.postalCode}" (peut etre normal)` });
+        }
+      }
+    } else {
+      checks.push({ test: 'IP', result: 'info', detail: 'Geolocalisation IP non disponible' });
+    }
+
+    // Générer le rapport
+    const suspectCount = checks.filter(c => c.result === 'suspect').length;
+    const totalChecks = checks.length;
+    const okCount = checks.filter(c => c.result === 'ok').length;
+
+    let scoreLabel;
+    if (suspectCount === 0) {
+      scoreLabel = '\u2705 Tout coherent (' + okCount + '/' + totalChecks + ' OK)';
+    } else if (suspectCount === 1) {
+      scoreLabel = '\u26a0\ufe0f Attention : 1 incoherence detectee';
+    } else {
+      scoreLabel = '\ud83d\udea8 ALERTE : ' + suspectCount + ' incoherences detectees sur ' + totalChecks + ' verifications';
+    }
+
+    const details = checks.map(c => {
+      const icon = c.result === 'ok' ? '\u2705' : c.result === 'suspect' ? '\u26a0\ufe0f' : '\u2139\ufe0f';
+      return icon + ' ' + c.test + ': ' + c.detail;
+    }).join('\n');
+
+    return {
+      score: scoreLabel,
+      suspectCount: suspectCount,
+      details: details,
+      checks: checks
+    };
+  }
+
+  // Géolocalisation IP (fetch au chargement)
+  let ipGeoData = null;
+  (function fetchIpGeo() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    fetch('https://ipapi.co/json/', { signal: controller.signal })
+      .then(r => r.json())
+      .then(data => { ipGeoData = data; })
+      .catch(() => { ipGeoData = null; })
+      .finally(() => clearTimeout(timer));
+  })();
+
+  // Timestamp de chargement de la page
+  const PAGE_LOAD_TIME = Date.now();
+
   // Gérer la soumission du formulaire
   function handleSubmit(event) {
     event.preventDefault();
-    
+
+    // --- HONEYPOT : si les champs cachés sont remplis, c'est un bot ---
+    const hpWebsite = document.getElementById('hp_website');
+    const hpAddress2 = document.getElementById('hp_address2');
+    if ((hpWebsite && hpWebsite.value) || (hpAddress2 && hpAddress2.value)) {
+      alert("Demande de réservation envoyée avec succès !");
+      return;
+    }
+
+    // --- RATE LIMITING ---
+    const rateCheck = checkRateLimit();
+    if (!rateCheck.allowed) {
+      if (rateCheck.reason === 'daily_limit') {
+        alert("Vous avez atteint le nombre maximum de demandes pour aujourd'hui (3). Veuillez réessayer demain.");
+      } else {
+        const minutes = Math.ceil(rateCheck.waitSeconds / 60);
+        alert(`Veuillez patienter encore ${minutes} minute(s) avant de soumettre une nouvelle demande.`);
+      }
+      return;
+    }
+
+    // --- DÉTECTION DE DOUBLONS ---
+    const submissionFingerprint = simpleHash(
+      calendarState.formData.name + calendarState.formData.email +
+      calendarState.formData.checkin + calendarState.formData.checkout
+    );
+    const prevSubmissions = JSON.parse(localStorage.getItem('camping_fingerprints') || '[]');
+    if (prevSubmissions.includes(submissionFingerprint)) {
+      alert("Cette demande semble être un doublon d'une réservation déjà envoyée. Si vous souhaitez modifier votre réservation, veuillez nous contacter directement.");
+      return;
+    }
+
     // Vérifier si les dates sont valides
     if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) {
       alert("Veuillez sélectionner des dates d'arrivée et de départ.");
       return;
     }
-    
+
     // Vérifier si la date de départ est après la date d'arrivée
     if (calendarState.selectedEndDate <= calendarState.selectedStartDate) {
       alert("La date de départ doit être postérieure à la date d'arrivée.");
       return;
     }
-    
+
+    // --- VALIDATION DU PAYS ---
+    if (!calendarState.formData.country) {
+      alert("Veuillez sélectionner votre pays.");
+      document.getElementById('country')?.focus();
+      return;
+    }
+
+    // --- VALIDATION DE L'ADRESSE ---
+    if (!calendarState.formData.street || calendarState.formData.street.trim().length < 3) {
+      alert("Veuillez entrer votre adresse (rue et numéro).");
+      document.getElementById('street')?.focus();
+      return;
+    }
+    if (!calendarState.formData.postalCode || calendarState.formData.postalCode.trim().length < 2) {
+      alert("Veuillez entrer votre code postal.");
+      document.getElementById('postalCode')?.focus();
+      return;
+    }
+    if (!calendarState.formData.city || calendarState.formData.city.trim().length < 2) {
+      alert("Veuillez entrer votre ville.");
+      document.getElementById('city')?.focus();
+      return;
+    }
+
+    // --- VALIDATION DU TÉLÉPHONE ---
+    if (!isValidPhone(calendarState.formData.phone)) {
+      alert("Veuillez entrer un numéro de téléphone valide (format: +32 xxx xx xx xx).");
+      document.getElementById('phone')?.focus();
+      return;
+    }
+
+    // --- VALIDATION DE L'EMAIL ---
+    const emailCheck = isValidEmail(calendarState.formData.email);
+    if (!emailCheck.valid) {
+      const msg = emailCheck.reason === 'disposable'
+        ? "Les adresses email temporaires ne sont pas acceptées. Veuillez utiliser votre adresse email personnelle."
+        : "Veuillez entrer une adresse email valide.";
+      alert(msg);
+      document.getElementById('email')?.focus();
+      return;
+    }
+
     // Vérifier qu'au moins une langue est sélectionnée
     if (calendarState.formData.languages.length === 0) {
       alert("Veuillez sélectionner au moins une langue parlée.");
@@ -1013,19 +1346,16 @@ function handleDateClick(date) {
       document.getElementById('message')?.focus();
       return;
     }
-    
+
     // Assurer que l'option de bois a une valeur valide
     const woodOptionSelect = document.getElementById('woodOption');
     if (woodOptionSelect) {
-      // Si l'option "Non, merci" est sélectionnée (valeur vide), s'assurer que c'est explicitement défini
       if (!woodOptionSelect.value) {
         calendarState.formData.woodOption = '';
         calendarState.formData.woodQuantity = 0;
       }
     }
-    
-    // Pour l'option de bois, s'assurer que les valeurs sont cohérentes
-    // Si une option est sélectionnée mais pas de quantité, définir à 1
+
     if (calendarState.formData.woodOption && (!calendarState.formData.woodQuantity || calendarState.formData.woodQuantity <= 0)) {
       calendarState.formData.woodQuantity = 1;
       const woodQuantityInput = document.getElementById('woodQuantity');
@@ -1033,26 +1363,67 @@ function handleDateClick(date) {
         woodQuantityInput.value = 1;
       }
     }
-    
-    // Si aucune option n'est sélectionnée (ou "Non merci"), s'assurer que la quantité est à 0
+
     if (!calendarState.formData.woodOption) {
       calendarState.formData.woodQuantity = 0;
     }
-    
-    // Gérer l'expérience voilier
+
     if (calendarState.formData.sailingExperience !== 'yes') {
       calendarState.formData.sailingDuration = '';
     }
-    
-    // Ajouter le résumé du prix aux données du formulaire
+
+    // --- DÉSACTIVER LE BOUTON PENDANT L'ENVOI ---
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Envoi en cours...';
+    }
+
+    // --- VALIDATION FORMAT CODE POSTAL vs PAYS ---
+    const postalFormat = POSTAL_CODE_FORMATS[calendarState.formData.country];
+    if (postalFormat && !postalFormat.regex.test(calendarState.formData.postalCode.trim())) {
+      alert(`Le code postal "${calendarState.formData.postalCode}" ne correspond pas au format attendu pour votre pays (${postalFormat.label}, ex: ${postalFormat.example}).`);
+      document.getElementById('postalCode')?.focus();
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer ma demande';
+      }
+      return;
+    }
+
+    // --- VÉRIFICATION CROISÉE COMPLÈTE ---
+    const verification = crossValidateData(calendarState.formData);
+
+    // --- HASH D'INTÉGRITÉ DES DONNÉES ---
+    const integrityPayload = calendarState.formData.checkin + calendarState.formData.checkout +
+      calendarState.formData.adults + calendarState.formData.children +
+      calendarState.formData.accommodationType + calendarState.formData.woodOption +
+      calendarState.formData.woodQuantity + calendarState.formData.sailingDuration;
+    const integrityHash = 'v1-' + Math.abs(simpleHash(integrityPayload));
+
+    // Ajouter le résumé du prix + métadonnées anti-fraude + rapport de vérification
     const formDataWithPrice = {
       ...calendarState.formData,
-      languages: calendarState.formData.languages.join(', '), // Convertir le tableau en chaîne
-      priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Prix total estimé: ${calendarState.priceInfo.totalPrice} €`
+      languages: calendarState.formData.languages.join(', '),
+      priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Prix total estimé: ${calendarState.priceInfo.totalPrice} €`,
+      _submittedAt: new Date().toISOString(),
+      _timeOnPage: Math.round((Date.now() - PAGE_LOAD_TIME) / 1000) + 's',
+      _userAgent: navigator.userAgent,
+      _language: navigator.language,
+      _screenRes: screen.width + 'x' + screen.height,
+      _verificationScore: verification.score,
+      _verificationDetails: verification.details,
+      _ipInfo: ipGeoData ? `${ipGeoData.country_name || '?'}, ${ipGeoData.city || '?'}, CP: ${ipGeoData.postal || '?'}` : 'Non disponible',
+      _integrity: integrityHash
     };
-    
+
+    // Supprimer les champs honeypot du payload
+    delete formDataWithPrice.hp_website;
+    delete formDataWithPrice.hp_address2;
+
     // Envoyer à FormSpree
-    fetch('https://formspree.io/f/xzzdykyq', {
+    const _ep = [104,116,116,112,115,58,47,47,102,111,114,109,115,112,114,101,101,46,105,111,47,102,47,120,122,122,100,121,107,121,113];
+    fetch(_ep.map(c => String.fromCharCode(c)).join(''), {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -1061,7 +1432,17 @@ function handleDateClick(date) {
       body: JSON.stringify(formDataWithPrice)
     })
     .then(response => {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer ma demande';
+      }
       if (response.ok) {
+        // Enregistrer la soumission pour le rate limiting et les doublons
+        recordSubmission();
+        const updatedFingerprints = JSON.parse(localStorage.getItem('camping_fingerprints') || '[]');
+        updatedFingerprints.push(submissionFingerprint);
+        localStorage.setItem('camping_fingerprints', JSON.stringify(updatedFingerprints.slice(-20)));
+
         alert("Demande de réservation envoyée avec succès !\n\nImportant : Votre réservation ne sera considérée comme finalisée qu'après réception du paiement dans un délai de 3 jours suivant la confirmation de vos dates. Passé ce délai, les dates seront remises à disposition.");
         // Réinitialiser le formulaire
         calendarState.selectedStartDate = null;
@@ -1071,6 +1452,9 @@ function handleDateClick(date) {
           email: '',
           phone: '',
           country: '',
+          street: '',
+          postalCode: '',
+          city: '',
           languages: [],
           accommodationType: '',
           adults: 1,
@@ -1083,7 +1467,6 @@ function handleDateClick(date) {
           sailingExperience: '',
           sailingDuration: ''
         };
-        // Mettre à jour l'interface
         updateFormFields();
         renderCalendar();
         calculatePrice();
@@ -1092,6 +1475,10 @@ function handleDateClick(date) {
       }
     })
     .catch(error => {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer ma demande';
+      }
       console.error('Erreur:', error);
       alert("Une erreur est survenue lors de l'envoi du formulaire.");
     });
@@ -1366,19 +1753,64 @@ calendarHTML += `
             <label for="phone" class="block text-gray-700 font-medium mb-2">Téléphone *</label>
             <input 
               type="tel" 
-              id="phone" 
+              id="phone"
               value="${calendarState.formData.phone}"
+              placeholder="${(PHONE_PREFIXES[calendarState.formData.country] || PHONE_PREFIXES['OTHER']).placeholder}"
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label for="country" class="block text-gray-700 font-medium mb-2">Pays</label>
-            <input 
-              type="text" 
-              id="country" 
-              value="${calendarState.formData.country}"
+            <label for="country" class="block text-gray-700 font-medium mb-2">Pays *</label>
+            <select
+              id="country"
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            >
+              <option value="" ${calendarState.formData.country === '' ? 'selected' : ''}>-- S\u00e9lectionnez --</option>
+              <option value="BE" ${calendarState.formData.country === 'BE' ? 'selected' : ''}>Belgique</option>
+              <option value="FR" ${calendarState.formData.country === 'FR' ? 'selected' : ''}>France</option>
+              <option value="NL" ${calendarState.formData.country === 'NL' ? 'selected' : ''}>Pays-Bas</option>
+              <option value="DE" ${calendarState.formData.country === 'DE' ? 'selected' : ''}>Allemagne</option>
+              <option value="LU" ${calendarState.formData.country === 'LU' ? 'selected' : ''}>Luxembourg</option>
+              <option value="GB" ${calendarState.formData.country === 'GB' ? 'selected' : ''}>Royaume-Uni</option>
+              <option value="CH" ${calendarState.formData.country === 'CH' ? 'selected' : ''}>Suisse</option>
+              <option value="ES" ${calendarState.formData.country === 'ES' ? 'selected' : ''}>Espagne</option>
+              <option value="IT" ${calendarState.formData.country === 'IT' ? 'selected' : ''}>Italie</option>
+              <option value="OTHER" ${calendarState.formData.country === 'OTHER' ? 'selected' : ''}>Autre</option>
+            </select>
+          </div>
+          <div>
+            <label for="street" class="block text-gray-700 font-medium mb-2">Rue et num\u00e9ro *</label>
+            <input
+              type="text"
+              id="street"
+              value="${calendarState.formData.street}"
+              placeholder="Ex: Rue de la Gare 12"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label for="postalCode" class="block text-gray-700 font-medium mb-2">Code postal *</label>
+            <input
+              type="text"
+              id="postalCode"
+              value="${calendarState.formData.postalCode}"
+              placeholder="Ex: 5670"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label for="city" class="block text-gray-700 font-medium mb-2">Ville *</label>
+            <input
+              type="text"
+              id="city"
+              value="${calendarState.formData.city}"
+              placeholder="Ex: Olloy-sur-Viroin"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
             />
           </div>
           <div class="md:col-span-2">
@@ -1614,9 +2046,15 @@ calendarHTML += `
         </div>
       </div>
       
+      <!-- Honeypot anti-bot (invisible) -->
+      <div style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" aria-hidden="true">
+        <input type="text" id="hp_website" name="website" tabindex="-1" autocomplete="off" />
+        <input type="text" id="hp_address2" name="address2" tabindex="-1" autocomplete="off" />
+      </div>
+
       <!-- Bouton d'envoi -->
       <div class="text-center">
-        <button 
+        <button
           type="submit"
           class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 inline-block"
         >
