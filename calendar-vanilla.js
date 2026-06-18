@@ -155,6 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
       children: 0,
       variablePerDay: false,
       nightlyOccupancy: [], // [{ adults, children }] une entrée par nuit (mode avancé)
+      firewoodBrouette: 0, // nombre de brouettes de bois (supplément)
+      firewoodCaisse: 0, // nombre de caisses de bois (supplément)
       message: '',
       checkin: '',
       checkout: '',
@@ -167,7 +169,10 @@ document.addEventListener('DOMContentLoaded', function() {
       originalTotalPrice: 0,
       discount: 0,
       discountReason: '',
-      personNights: 0
+      personNights: 0,
+      extras: 0,
+      grandTotal: 0,
+      originalGrandTotal: 0
     }
   };
 
@@ -209,6 +214,9 @@ document.addEventListener('DOMContentLoaded', function() {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+  // Prix des suppléments bois de chauffage (en €). Modifiables ici.
+  const WOOD_PRICES = { brouette: 10, caisse: 5 };
 
   // Préfixes téléphoniques par pays
   const PHONE_PREFIXES = {
@@ -607,15 +615,42 @@ function handleDateClick(date) {
       }
     }
     
-    // Mettre à jour l'affichage du prix total avec ou sans réduction
+    // Ligne(s) supplément bois de chauffage
+    const firewoodLine = document.getElementById('firewoodLine');
+    if (firewoodLine) {
+      const brouettes = parseInt(calendarState.formData.firewoodBrouette) || 0;
+      const caisses = parseInt(calendarState.formData.firewoodCaisse) || 0;
+      const lines = [];
+      if (brouettes > 0) {
+        lines.push(`<div class="flex justify-between text-sm">
+          <span>Bois — brouette (${brouettes} × ${WOOD_PRICES.brouette} €):</span>
+          <span>${brouettes * WOOD_PRICES.brouette} €</span>
+        </div>`);
+      }
+      if (caisses > 0) {
+        lines.push(`<div class="flex justify-between text-sm">
+          <span>Bois — caisse (${caisses} × ${WOOD_PRICES.caisse} €):</span>
+          <span>${caisses * WOOD_PRICES.caisse} €</span>
+        </div>`);
+      }
+      if (lines.length > 0) {
+        firewoodLine.innerHTML = lines.join('');
+        firewoodLine.classList.remove('hidden');
+      } else {
+        firewoodLine.innerHTML = '';
+        firewoodLine.classList.add('hidden');
+      }
+    }
+
+    // Mettre à jour l'affichage du prix total (hébergement + extras) avec ou sans réduction
     const priceElement = document.getElementById('totalPrice');
     if (calendarState.priceInfo.discount > 0) {
-      // Afficher le prix original barré et le nouveau prix
+      // Afficher le prix original barré et le nouveau prix (extras inclus)
       priceElement.innerHTML = `
-        <span class="line-through text-gray-500">${calendarState.priceInfo.originalTotalPrice} €</span>
-        <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.totalPrice} €</span>
+        <span class="line-through text-gray-500">${calendarState.priceInfo.originalGrandTotal} €</span>
+        <span class="text-green-600 font-bold ml-2">${calendarState.priceInfo.grandTotal} €</span>
       `;
-      
+
       // Afficher la raison de la réduction
       const discountElement = document.getElementById('discountInfo');
       if (discountElement) {
@@ -628,8 +663,8 @@ function handleDateClick(date) {
         discountElement.classList.remove('hidden');
       }
     } else {
-      // Afficher le prix normal sans barré
-      priceElement.innerHTML = `${calendarState.priceInfo.totalPrice} €`;
+      // Afficher le prix normal sans barré (extras inclus)
+      priceElement.innerHTML = `${calendarState.priceInfo.grandTotal} €`;
 
       // Masquer la section de réduction
       const discountElement = document.getElementById('discountInfo');
@@ -833,7 +868,15 @@ function handleDateClick(date) {
         personNights
       };
     }
-    
+
+    // --- Supplément bois de chauffage (extra, non soumis aux réductions) ---
+    const brouettes = parseInt(calendarState.formData.firewoodBrouette) || 0;
+    const caisses = parseInt(calendarState.formData.firewoodCaisse) || 0;
+    const extras = brouettes * WOOD_PRICES.brouette + caisses * WOOD_PRICES.caisse;
+    calendarState.priceInfo.extras = extras;
+    calendarState.priceInfo.grandTotal = calendarState.priceInfo.totalPrice + extras;
+    calendarState.priceInfo.originalGrandTotal = calendarState.priceInfo.originalTotalPrice + extras;
+
     // Mettre à jour l'affichage des prix
     updatePriceDisplay();
   }
@@ -904,14 +947,22 @@ function handleDateClick(date) {
           }
         }
 
+        // Bois de chauffage : borner la quantité entre 0 et 50
+        if (id === 'firewoodBrouette' || id === 'firewoodCaisse') {
+          let qty = parseInt(target.value) || 0;
+          if (qty < 0) qty = 0;
+          if (qty > 50) qty = 50;
+          target.value = qty;
+          calendarState.formData[id] = qty;
+        }
+
         // Mettre à jour le téléphone si le pays change
         if (id === 'country') {
           updatePhoneForCountry(target.value);
         }
 
-        // Vérifier le progrès du formulaire pour révéler la section voilier
         // Recalculer le prix si nécessaire
-        if (id === 'adults' || id === 'children') {
+        if (id === 'adults' || id === 'children' || id === 'firewoodBrouette' || id === 'firewoodCaisse') {
           calculatePrice();
         }
       }
@@ -1319,12 +1370,24 @@ function handleDateClick(date) {
       occupancyDetail = `${calendarState.formData.adults} adulte(s), ${calendarState.formData.children} enfant(s)`;
     }
 
+    // Détail du supplément bois (texte lisible pour l'email)
+    const brouettes = parseInt(calendarState.formData.firewoodBrouette) || 0;
+    const caisses = parseInt(calendarState.formData.firewoodCaisse) || 0;
+    let firewoodDetail = 'Aucun';
+    if (brouettes > 0 || caisses > 0) {
+      const parts = [];
+      if (brouettes > 0) parts.push(`${brouettes} brouette(s) (${brouettes * WOOD_PRICES.brouette} €)`);
+      if (caisses > 0) parts.push(`${caisses} caisse(s) (${caisses * WOOD_PRICES.caisse} €)`);
+      firewoodDetail = `${parts.join(' + ')} = ${calendarState.priceInfo.extras} €`;
+    }
+
     // Ajouter le résumé du prix + métadonnées anti-fraude + rapport de vérification
     const formDataWithPrice = {
       ...calendarState.formData,
       languages: calendarState.formData.languages.join(', '),
       occupancyDetail,
-      priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Prix total estimé: ${calendarState.priceInfo.totalPrice} €`,
+      firewoodDetail,
+      priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Hébergement: ${calendarState.priceInfo.totalPrice} €, Bois: ${calendarState.priceInfo.extras} €, Total estimé: ${calendarState.priceInfo.grandTotal} €`,
       _submittedAt: new Date().toISOString(),
       _timeOnPage: Math.round((Date.now() - PAGE_LOAD_TIME) / 1000) + 's',
       _userAgent: navigator.userAgent,
@@ -1387,6 +1450,8 @@ function handleDateClick(date) {
           children: 0,
           variablePerDay: false,
           nightlyOccupancy: [],
+          firewoodBrouette: 0,
+          firewoodCaisse: 0,
           message: '',
           checkin: '',
           checkout: '',
@@ -1872,8 +1937,38 @@ calendarHTML += `
           <p class="text-xs text-gray-500 mt-1 ml-6">Activez cette option si le nombre d'adultes ou d'enfants change d'une nuit à l'autre. Le prix sera recalculé nuit par nuit.</p>
         </div>
         <div id="nightlyOccupancyContainer" class="mt-4 ${calendarState.formData.variablePerDay ? '' : 'hidden'}"></div>
+
+        <!-- Supplément bois de chauffage -->
+        <div class="mt-4">
+          <label class="block text-gray-700 font-medium mb-2">Bois de chauffage <span class="text-sm text-gray-500">(optionnel, pour votre feu de camp)</span></label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="firewoodBrouette" class="block text-sm text-gray-600 mb-1">🛒 Brouette de bois (${WOOD_PRICES.brouette} €)</label>
+              <input
+                type="number"
+                id="firewoodBrouette"
+                min="0"
+                max="50"
+                value="${calendarState.formData.firewoodBrouette}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label for="firewoodCaisse" class="block text-sm text-gray-600 mb-1">📦 Caisse de bois (${WOOD_PRICES.caisse} €)</label>
+              <input
+                type="number"
+                id="firewoodCaisse"
+                min="0"
+                max="50"
+                value="${calendarState.formData.firewoodCaisse}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Indiquez les quantités souhaitées. Le montant s'ajoute au total du séjour.</p>
+        </div>
       </div>
-      
+
       <!-- Information supplémentaire -->
       <div class="mb-6">
         <h3 class="text-xl font-semibold text-green-800 mb-4 pb-2 border-b border-gray-200">Information supplémentaire</h3>
@@ -1911,6 +2006,7 @@ calendarHTML += `
           <span>Prix par personne / nuit:</span>
           <span id="avgPricePerNightValue">0 €</span>
         </div>
+        <div id="firewoodLine" class="${((parseInt(calendarState.formData.firewoodBrouette) || 0) + (parseInt(calendarState.formData.firewoodCaisse) || 0)) > 0 ? '' : 'hidden'} space-y-1 mb-2"></div>
         <div class="border-t border-green-200 pt-2 flex justify-between font-bold">
           <span>Total estimé:</span>
           <span id="totalPrice">
@@ -1929,6 +2025,7 @@ calendarHTML += `
           <p>Prix haute saison (1er avril - 1er novembre): 24€ (1er adulte), 21€ (suivants), 15€/enfant - max 200€/nuit</p>
           <p>Prix basse saison: 19€/adulte, 13€/enfant - max 200€/nuit</p>
           <p>Seule la réduction la plus avantageuse est appliquée (groupe ou long séjour, non cumulables).</p>
+          <p>Bois de chauffage (optionnel, hors réductions): brouette ${WOOD_PRICES.brouette} €, caisse ${WOOD_PRICES.caisse} €.</p>
           <p>Cette estimation est fournie à titre indicatif. Le montant final sera confirmé lors de la validation de votre réservation.</p>
         </div>
       </div>
