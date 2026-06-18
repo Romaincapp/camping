@@ -153,6 +153,8 @@ document.addEventListener('DOMContentLoaded', function() {
       accommodationType: '',
       adults: 1,
       children: 0,
+      variablePerDay: false,
+      nightlyOccupancy: [], // [{ adults, children }] une entrée par nuit (mode avancé)
       message: '',
       checkin: '',
       checkout: '',
@@ -164,7 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
       totalPrice: 0,
       originalTotalPrice: 0,
       discount: 0,
-      discountReason: ''
+      discountReason: '',
+      personNights: 0
     }
   };
 
@@ -304,7 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialiser le chargement du calendrier
     renderCalendar();
     renderBookingForm();
-    
+    renderNightlyOccupancy();
+
     // Récupérer les événements
     fetchEvents();
 
@@ -517,6 +521,9 @@ function handleDateClick(date) {
   // Mettre à jour l'affichage du calendrier
   renderCalendar();
 
+  // Mettre à jour les champs d'occupation par nuit (mode avancé)
+  renderNightlyOccupancy();
+
   // Calculer le prix
   calculatePrice();
 }
@@ -570,9 +577,35 @@ function handleDateClick(date) {
 
   function updatePriceDisplay() {
     // Mettre à jour les informations de prix dans le DOM
-    document.getElementById('numberOfNights').textContent = calendarState.priceInfo.nights;
-    document.getElementById('numberOfAdults').textContent = calendarState.formData.adults;
-    document.getElementById('numberOfChildren').textContent = calendarState.formData.children;
+    const nightsEl = document.getElementById('numberOfNights');
+    if (nightsEl) nightsEl.textContent = calendarState.priceInfo.nights;
+
+    // Récapitulatif de l'occupation (simple ou détaillé par nuit)
+    const occupancySummary = document.getElementById('occupancySummary');
+    if (occupancySummary) {
+      if (calendarState.formData.variablePerDay && getNightsCount() > 0) {
+        const occupancy = getOccupancyPerNight();
+        const dates = getNightDates();
+        occupancySummary.innerHTML = dates.map((d, i) => {
+          const o = occupancy[i] || { adults: 0, children: 0 };
+          const childTxt = o.children > 0 ? ` / ${o.children} enf.` : '';
+          return `<div class="flex justify-between text-sm">
+            <span class="text-gray-600">${formatNightLabel(d)}</span>
+            <span>${o.adults} ad.${childTxt}</span>
+          </div>`;
+        }).join('');
+      } else {
+        occupancySummary.innerHTML = `
+          <div class="flex justify-between">
+            <span>Nombre d'adultes:</span>
+            <span>${calendarState.formData.adults}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Nombre d'enfants:</span>
+            <span>${calendarState.formData.children}</span>
+          </div>`;
+      }
+    }
     
     // Mettre à jour l'affichage du prix total avec ou sans réduction
     const priceElement = document.getElementById('totalPrice');
@@ -610,12 +643,13 @@ function handleDateClick(date) {
     const avgValueElement = document.getElementById('avgPricePerNightValue');
     if (avgElement && avgValueElement) {
       const nights = calendarState.priceInfo.nights;
-      const totalPersons = (parseInt(calendarState.formData.adults) || 0) + (parseInt(calendarState.formData.children) || 0);
-      if (nights > 0 && totalPersons > 0 && calendarState.priceInfo.totalPrice > 0) {
+      // Nombre de "personnes-nuits" (somme des personnes sur toutes les nuits)
+      const personNights = calendarState.priceInfo.personNights || 0;
+      if (nights > 0 && personNights > 0 && calendarState.priceInfo.totalPrice > 0) {
         const priceWithoutExtras = calendarState.priceInfo.totalPrice;
         const originalWithoutExtras = calendarState.priceInfo.originalTotalPrice;
-        const perPersonPerNight = Math.round((priceWithoutExtras / totalPersons / nights) * 100) / 100;
-        const originalPerPersonPerNight = Math.round((originalWithoutExtras / totalPersons / nights) * 100) / 100;
+        const perPersonPerNight = Math.round((priceWithoutExtras / personNights) * 100) / 100;
+        const originalPerPersonPerNight = Math.round((originalWithoutExtras / personNights) * 100) / 100;
         if (calendarState.priceInfo.discount > 0 && originalPerPersonPerNight > perPersonPerNight) {
           avgValueElement.innerHTML = `<span class="line-through text-gray-500">${originalPerPersonPerNight.toFixed(2)} €</span> <span class="text-green-600 font-bold">${perPersonPerNight.toFixed(2)} €</span>`;
         } else {
@@ -628,6 +662,73 @@ function handleDateClick(date) {
     }
   }
 
+  // Nombre de nuits entre les dates sélectionnées
+  function getNightsCount() {
+    if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) return 0;
+    const start = new Date(calendarState.selectedStartDate);
+    const end = new Date(calendarState.selectedEndDate);
+    const diffTime = Math.abs(end - start);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  // Liste des dates (une par nuit : la date où l'on dort sur place)
+  function getNightDates() {
+    const nights = getNightsCount();
+    const dates = [];
+    if (nights <= 0) return dates;
+    const start = new Date(calendarState.selectedStartDate);
+    for (let i = 0; i < nights; i++) {
+      dates.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+    }
+    return dates;
+  }
+
+  // Libellé court d'une nuit, ex : "Lun 12 août"
+  function formatNightLabel(date) {
+    const dayName = weekDays[(date.getDay() + 6) % 7];
+    return `${dayName} ${date.getDate()} ${monthNames[date.getMonth()].toLowerCase()}`;
+  }
+
+  // Synchronise le tableau d'occupation par nuit avec le nombre de nuits sélectionné
+  function syncNightlyOccupancy() {
+    const nights = getNightsCount();
+    const arr = calendarState.formData.nightlyOccupancy;
+    const baseAdults = parseInt(calendarState.formData.adults) || 1;
+    const baseChildren = parseInt(calendarState.formData.children) || 0;
+    for (let i = 0; i < nights; i++) {
+      if (!arr[i]) arr[i] = { adults: baseAdults, children: baseChildren };
+    }
+    arr.length = nights; // tronquer si le séjour a été raccourci
+  }
+
+  // Retourne l'occupation pour chaque nuit (selon le mode simple ou avancé)
+  function getOccupancyPerNight() {
+    const nights = getNightsCount();
+    const result = [];
+    if (calendarState.formData.variablePerDay && calendarState.formData.nightlyOccupancy.length) {
+      syncNightlyOccupancy();
+      for (let i = 0; i < nights; i++) {
+        const o = calendarState.formData.nightlyOccupancy[i] || {};
+        result.push({ adults: parseInt(o.adults) || 0, children: parseInt(o.children) || 0 });
+      }
+    } else {
+      const a = parseInt(calendarState.formData.adults) || 0;
+      const c = parseInt(calendarState.formData.children) || 0;
+      for (let i = 0; i < nights; i++) result.push({ adults: a, children: c });
+    }
+    return result;
+  }
+
+  // Prix brut (non plafonné) d'une nuit pour une occupation donnée
+  function nightlyRawPrice(adults, children, isHighSeason) {
+    if (isHighSeason) {
+      // Haute saison : 24€ premier adulte, 21€ suivants, 15€/enfant
+      return (adults > 0 ? 24 + (adults - 1) * 21 : 0) + children * 15;
+    }
+    // Basse saison : 19€/adulte, 13€/enfant
+    return adults * 19 + children * 13;
+  }
+
   function calculatePrice() {
     if (!calendarState.selectedStartDate || !calendarState.selectedEndDate) {
       calendarState.priceInfo = {
@@ -637,99 +738,86 @@ function handleDateClick(date) {
         totalPrice: 0,
         originalTotalPrice: 0,
         discount: 0,
-        discountReason: ''
+        discountReason: '',
+        personNights: 0
       };
     } else {
       // Calculer le nombre de nuits
       const start = new Date(calendarState.selectedStartDate);
-      const end = new Date(calendarState.selectedEndDate);
-      const diffTime = Math.abs(end - start);
-      const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      // Déterminer si c'est la haute saison
+      const nights = getNightsCount();
+
+      // Déterminer si c'est la haute saison (selon la date d'arrivée)
       const isHighSeason = start.getMonth() >= 3 && start.getMonth() <= 10;
-      
-      // Nombre total de personnes
-      const adults = parseInt(calendarState.formData.adults) || 0;
-      const children = parseInt(calendarState.formData.children) || 0;
-      const totalPersons = adults + children;
-      
-      let adultPrice, childPrice, totalPrice;
+
+      // Occupation par nuit (identique chaque nuit en mode simple, variable en mode avancé)
+      const occupancy = getOccupancyPerNight();
+
+      // Libellés tarifaires affichés
+      const adultPrice = isHighSeason ? '24€ (1er) / 21€ (suiv.)' : '19 €';
+      const childPrice = isHighSeason ? '15 €' : '13 €';
+
       let discountReason = '';
 
-      // --- Calcul du prix de base (sans aucune réduction) ---
-      // Ce prix sera toujours utilisé comme prix barré
-      let fullPriceWithoutReduction;
-      
-      if (isHighSeason) {
-        // Haute saison: 24€ premier adulte, 21€ suivants, 15€ par enfant, max 200€/nuit
-        adultPrice = '24€ (1er) / 21€ (suiv.)';
-        childPrice = '15 €';
-        let nightlyBase = (adults > 0 ? 24 + (adults - 1) * 21 : 0) + children * 15;
-        fullPriceWithoutReduction = nightlyBase * nights;
-      } else {
-        // Basse saison: 19€ par adulte, 13€ par enfant, max 200€/nuit
-        adultPrice = '19 €';
-        childPrice = '13 €';
-        let nightlyBase = adults * 19 + children * 13;
-        fullPriceWithoutReduction = nightlyBase * nights;
+      // --- Réduction séjour : dépend de la durée totale du séjour ---
+      let stayFactor = 1;
+      let stayReason = '';
+      if (nights >= 4) {
+        stayFactor = 0.90;
+        stayReason = 'Réduction 10% pour séjour de 4 nuits ou plus';
+      } else if (nights >= 2) {
+        stayFactor = 0.95;
+        stayReason = 'Réduction 5% pour séjour de 2-3 nuits';
       }
-      
-      {
-        // --- Calcul du prix par nuit ---
-        let nightlyRaw;
-        if (isHighSeason) {
-          // Haute saison: 24€ premier adulte, 21€ suivants, 15€/enfant
-          nightlyRaw = (adults > 0 ? 24 + (adults - 1) * 21 : 0) + children * 15;
-        } else {
-          // Basse saison: 19€/adulte, 13€/enfant
-          nightlyRaw = adults * 19 + children * 13;
-        }
 
-        // Prix de base plafonné à 200€/nuit
-        let baseTotalPrice = Math.min(nightlyRaw, 200) * nights;
+      // --- Calcul nuit par nuit ---
+      let fullPriceWithoutReduction = 0; // prix non plafonné, sans réduction (prix barré)
+      let baseTotalPrice = 0;            // prix plafonné à 200€/nuit, sans réduction
+      let groupTotalPrice = 0;           // avec réduction groupe (par nuit, dès 6 pers.)
+      let stayTotalPrice = 0;            // avec réduction séjour
+      let anyGroupNight = false;
+      let personNights = 0;
 
-        // Calculer le prix avec réduction groupe (à partir de 6 personnes, max 25%)
-        // Réduction sur le prix non-plafonné, puis plafond à 200€/nuit
-        let groupPrice = baseTotalPrice;
-        let groupReason = '';
+      occupancy.forEach(({ adults, children }) => {
+        const totalPersons = adults + children;
+        personNights += totalPersons;
+
+        const nightlyRaw = nightlyRawPrice(adults, children, isHighSeason);
+        fullPriceWithoutReduction += nightlyRaw;
+
+        const baseNightly = Math.min(nightlyRaw, 200);
+        baseTotalPrice += baseNightly;
+
+        // Réduction groupe : appliquée à la nuit si au moins 6 personnes cette nuit-là
         if (totalPersons >= 6) {
-          const discountFactor = Math.max(0.85, 1 - ((totalPersons - 5) * 0.05));
-          let groupNightly = Math.min(Math.round(nightlyRaw * discountFactor), 200);
-          groupPrice = groupNightly * nights;
-          groupReason = 'Tarif groupe appliqué';
-        }
-
-        // Calculer le prix avec réduction séjour uniquement
-        // Réduction sur le prix non-plafonné, puis plafond à 200€/nuit
-        let stayPrice = baseTotalPrice;
-        let stayReason = '';
-        if (nights >= 4) {
-          let stayNightly = Math.min(Math.round(nightlyRaw * 0.90), 200);
-          stayPrice = stayNightly * nights;
-          stayReason = 'Réduction 10% pour séjour de 4 nuits ou plus';
-        } else if (nights >= 2) {
-          let stayNightly = Math.min(Math.round(nightlyRaw * 0.95), 200);
-          stayPrice = stayNightly * nights;
-          stayReason = 'Réduction 5% pour séjour de 2-3 nuits';
-        }
-
-        // Appliquer uniquement la réduction la plus avantageuse (jamais combinées)
-        if (groupPrice <= stayPrice && groupPrice < baseTotalPrice) {
-          totalPrice = groupPrice;
-          discountReason = 'Tarif groupe appliqué';
-        } else if (stayPrice < baseTotalPrice) {
-          totalPrice = stayPrice;
-          discountReason = stayReason;
+          anyGroupNight = true;
+          const groupFactor = Math.max(0.85, 1 - ((totalPersons - 5) * 0.05));
+          groupTotalPrice += Math.min(Math.round(nightlyRaw * groupFactor), 200);
         } else {
-          totalPrice = baseTotalPrice;
-          // Le plafond 200€/nuit profite quand même aux groupes de 6+
-          if (totalPersons >= 6) {
-            discountReason = 'Tarif groupe appliqué';
-          }
+          groupTotalPrice += baseNightly;
+        }
+
+        // Réduction séjour : même facteur pour toutes les nuits
+        stayTotalPrice += stayFactor < 1
+          ? Math.min(Math.round(nightlyRaw * stayFactor), 200)
+          : baseNightly;
+      });
+
+      // Appliquer uniquement la réduction la plus avantageuse (jamais combinées)
+      let totalPrice;
+      if (groupTotalPrice <= stayTotalPrice && groupTotalPrice < baseTotalPrice) {
+        totalPrice = groupTotalPrice;
+        discountReason = 'Tarif groupe appliqué';
+      } else if (stayTotalPrice < baseTotalPrice) {
+        totalPrice = stayTotalPrice;
+        discountReason = stayReason;
+      } else {
+        totalPrice = baseTotalPrice;
+        // Le plafond 200€/nuit profite quand même aux groupes de 6+
+        if (anyGroupNight) {
+          discountReason = 'Tarif groupe appliqué';
         }
       }
-      
+
       // Calculer le discount total
       const discount = fullPriceWithoutReduction - totalPrice;
 
@@ -741,7 +829,8 @@ function handleDateClick(date) {
         totalPrice,
         originalTotalPrice: fullPriceWithoutReduction,
         discount,
-        discountReason
+        discountReason,
+        personNights
       };
     }
     
@@ -767,7 +856,39 @@ function handleDateClick(date) {
         handleLanguageChange();
         return;
       }
-      
+
+      // Gérer la case "nombre différent par jour" (option avancée)
+      if (id === 'variablePerDay') {
+        calendarState.formData.variablePerDay = target.checked;
+        if (target.checked) syncNightlyOccupancy();
+        renderNightlyOccupancy();
+        calculatePrice();
+        return;
+      }
+
+      // Gérer les champs d'occupation par nuit (mode avancé)
+      if (target.classList && target.classList.contains('nightly-input')) {
+        const idx = parseInt(target.dataset.nightIndex);
+        const field = target.dataset.nightField;
+        syncNightlyOccupancy();
+        const occ = calendarState.formData.nightlyOccupancy[idx];
+        if (occ) {
+          let val = parseInt(target.value) || 0;
+          if (field === 'adults' && val < 1) val = 1;
+          if (field === 'children' && val < 0) val = 0;
+          occ[field] = val;
+          // Limiter le total à 20 personnes pour cette nuit
+          if (occ.adults + occ.children > 20) {
+            const other = field === 'adults' ? occ.children : occ.adults;
+            val = Math.max(field === 'adults' ? 1 : 0, 20 - other);
+            occ[field] = val;
+          }
+          target.value = occ[field];
+          calculatePrice();
+        }
+        return;
+      }
+
       // Vérifier si l'élément est un champ de notre formulaire
       if (calendarState.formData.hasOwnProperty(id)) {
         calendarState.formData[id] = target.value;
@@ -1185,10 +1306,24 @@ function handleDateClick(date) {
       calendarState.formData.accommodationType;
     const integrityHash = 'v1-' + Math.abs(simpleHash(integrityPayload));
 
+    // Détail de l'occupation (texte lisible pour l'email de demande)
+    let occupancyDetail;
+    if (calendarState.formData.variablePerDay && getNightsCount() > 0) {
+      const dates = getNightDates();
+      const occupancy = getOccupancyPerNight();
+      occupancyDetail = dates.map((d, i) => {
+        const o = occupancy[i] || { adults: 0, children: 0 };
+        return `${formatNightLabel(d)}: ${o.adults} adulte(s), ${o.children} enfant(s)`;
+      }).join(' | ');
+    } else {
+      occupancyDetail = `${calendarState.formData.adults} adulte(s), ${calendarState.formData.children} enfant(s)`;
+    }
+
     // Ajouter le résumé du prix + métadonnées anti-fraude + rapport de vérification
     const formDataWithPrice = {
       ...calendarState.formData,
       languages: calendarState.formData.languages.join(', '),
+      occupancyDetail,
       priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Prix total estimé: ${calendarState.priceInfo.totalPrice} €`,
       _submittedAt: new Date().toISOString(),
       _timeOnPage: Math.round((Date.now() - PAGE_LOAD_TIME) / 1000) + 's',
@@ -1207,9 +1342,10 @@ function handleDateClick(date) {
         : 'Aucune modification'
     };
 
-    // Supprimer les champs honeypot du payload
+    // Supprimer les champs honeypot et techniques du payload
     delete formDataWithPrice.hp_website;
     delete formDataWithPrice.hp_address2;
+    delete formDataWithPrice.nightlyOccupancy; // remplacé par occupancyDetail (lisible)
 
     // Envoyer à FormSpree
     const _ep = [104,116,116,112,115,58,47,47,102,111,114,109,115,112,114,101,101,46,105,111,47,102,47,120,122,122,100,121,107,121,113];
@@ -1249,10 +1385,15 @@ function handleDateClick(date) {
           accommodationType: '',
           adults: 1,
           children: 0,
+          variablePerDay: false,
+          nightlyOccupancy: [],
           message: '',
           checkin: '',
           checkout: '',
         };
+        // Re-rendre le formulaire pour réinitialiser l'option avancée et les champs
+        renderBookingForm();
+        renderNightlyOccupancy();
         updateFormFields();
         renderCalendar();
         calculatePrice();
@@ -1471,6 +1612,54 @@ calendarHTML += `
     calendarWrapper.innerHTML = calendarHTML;
   }
 
+  // Affiche les champs d'occupation par nuit (mode avancé)
+  function renderNightlyOccupancy() {
+    const container = document.getElementById('nightlyOccupancyContainer');
+    if (!container) return;
+
+    const simple = document.getElementById('simpleOccupancy');
+    const variable = calendarState.formData.variablePerDay;
+
+    // Basculer l'affichage entre mode simple et mode par nuit
+    if (simple) simple.classList.toggle('hidden', variable);
+    container.classList.toggle('hidden', !variable);
+
+    if (!variable) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const nights = getNightsCount();
+    if (nights <= 0) {
+      container.innerHTML = `<p class="text-sm text-gray-500 italic">Sélectionnez d'abord vos dates d'arrivée et de départ dans le calendrier pour détailler chaque nuit.</p>`;
+      return;
+    }
+
+    syncNightlyOccupancy();
+    const dates = getNightDates();
+
+    let html = `<p class="text-sm text-gray-600 mb-3 font-medium">Indiquez le nombre de personnes pour chaque nuit :</p><div class="space-y-2">`;
+    dates.forEach((d, i) => {
+      const occ = calendarState.formData.nightlyOccupancy[i] || { adults: 1, children: 0 };
+      html += `
+        <div class="flex items-center gap-3 flex-wrap p-2 border border-gray-200 rounded-md bg-gray-50">
+          <span class="text-sm font-medium text-gray-700 flex-1 min-w-[110px]">${formatNightLabel(d)}</span>
+          <label class="text-sm text-gray-600 flex items-center gap-1">Adultes
+            <input type="number" min="1" max="20" value="${occ.adults}"
+              data-night-index="${i}" data-night-field="adults"
+              class="nightly-input w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
+          </label>
+          <label class="text-sm text-gray-600 flex items-center gap-1">Enfants
+            <input type="number" min="0" max="20" value="${occ.children}"
+              data-night-index="${i}" data-night-field="children"
+              class="nightly-input w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
+          </label>
+        </div>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+  }
+
   function renderBookingForm() {
     const bookingForm = document.getElementById('booking-form');
     if (!bookingForm) return;
@@ -1648,7 +1837,7 @@ calendarHTML += `
             <option value="Tente de toit" ${calendarState.formData.accommodationType === 'Tente de toit' ? 'selected' : ''}>Tente de toit</option>
           </select>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="simpleOccupancy" class="grid grid-cols-1 md:grid-cols-2 gap-4 ${calendarState.formData.variablePerDay ? 'hidden' : ''}">
           <div>
             <label for="adults" class="block text-gray-700 font-medium mb-2">Nombre d'adultes *</label>
             <input
@@ -1673,6 +1862,16 @@ calendarHTML += `
             />
           </div>
         </div>
+
+        <!-- Option avancée : nombre de personnes différent selon les jours -->
+        <div class="mt-3">
+          <label class="flex items-center space-x-2 cursor-pointer select-none">
+            <input type="checkbox" id="variablePerDay" class="text-green-600 focus:ring-green-500" ${calendarState.formData.variablePerDay ? 'checked' : ''}>
+            <span class="text-sm text-gray-700 font-medium">Nombre de personnes différent selon les jours</span>
+          </label>
+          <p class="text-xs text-gray-500 mt-1 ml-6">Activez cette option si le nombre d'adultes ou d'enfants change d'une nuit à l'autre. Le prix sera recalculé nuit par nuit.</p>
+        </div>
+        <div id="nightlyOccupancyContainer" class="mt-4 ${calendarState.formData.variablePerDay ? '' : 'hidden'}"></div>
       </div>
       
       <!-- Information supplémentaire -->
@@ -1697,13 +1896,15 @@ calendarHTML += `
             <span>Nombre de nuits:</span>
             <span id="numberOfNights">${calendarState.priceInfo.nights}</span>
           </div>
-          <div class="flex justify-between">
-            <span>Nombre d'adultes:</span>
-            <span id="numberOfAdults">${calendarState.formData.adults}</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Nombre d'enfants:</span>
-            <span id="numberOfChildren">${calendarState.formData.children}</span>
+          <div id="occupancySummary" class="space-y-1">
+            <div class="flex justify-between">
+              <span>Nombre d'adultes:</span>
+              <span>${calendarState.formData.adults}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Nombre d'enfants:</span>
+              <span>${calendarState.formData.children}</span>
+            </div>
           </div>
         </div>
         <div id="avgPricePerNight" class="hidden flex justify-between text-sm text-green-700 mb-2">
