@@ -440,20 +440,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Vérifier si une plage de dates est valide (pas de conflits)
   function checkDateRangeConflicts(startDate, endDate) {
-    let currentDate = new Date(startDate);
-    currentDate.setDate(currentDate.getDate() + 1); // Commencer au jour après start
-    
-    const endTime = endDate.getTime();
-    
+    // Le séjour occupe une nuit par date, de la date d'arrivée (incluse)
+    // jusqu'à la veille du départ. La date de départ elle-même n'est pas
+    // occupée (on part le matin), donc on ne la contrôle pas.
+    // Une nuit est en conflit dès qu'elle est déjà réservée : pas d'exemption
+    // check-in/check-out ici, sinon une réservation d'une seule nuit au milieu
+    // de la plage (à la fois check-in et check-out) passerait inaperçue.
+    let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const endTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+
     while (currentDate.getTime() < endTime) {
-      // On autorise les check-in et check-out dans la plage, mais pas les jours complètement réservés
-      if (isDateBooked(currentDate) && !isCheckInDate(currentDate) && !isCheckOutDate(currentDate)) {
-        return true; // Conflit trouvé
+      if (isDateBooked(currentDate)) {
+        return true; // Conflit trouvé : une nuit du séjour est déjà réservée
       }
-      
+
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    
+
     return false; // Pas de conflit
   }
 
@@ -477,7 +480,13 @@ function handleDateClick(date) {
   
   // Mode Airbnb : Première sélection = début, deuxième = fin
   if (!calendarState.selectedStartDate || (calendarState.selectedStartDate && calendarState.selectedEndDate)) {
-    // Premier clic ou réinitialisation après une plage complète
+    // Premier clic ou réinitialisation après une plage complète.
+    // Une date d'arrivée doit correspondre à une nuit libre. Les dates de
+    // check-out ont une nuit libre (autorisées), mais les dates de check-in
+    // sont occupées la nuit même : on ne peut pas y démarrer un séjour.
+    if (isDateBooked(currentDate)) {
+      return;
+    }
     calendarState.selectedStartDate = currentDate;
     calendarState.selectedEndDate = null;
     
@@ -489,7 +498,12 @@ function handleDateClick(date) {
     // Deuxième clic pour date de fin
     if (currentDate <= calendarState.selectedStartDate) {
       // Si la date cliquée est avant ou égale à la date de début,
-      // on considère que l'utilisateur veut changer sa date de début
+      // on considère que l'utilisateur veut changer sa date de début.
+      // Comme pour la première sélection, une nuit occupée (date de check-in)
+      // ne peut pas servir de date d'arrivée.
+      if (isDateBooked(date)) {
+        return;
+      }
       calendarState.selectedStartDate = currentDate;
       
       // Mettre à jour uniquement le champ checkin
