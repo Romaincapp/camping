@@ -1381,6 +1381,31 @@ function handleDateClick(date) {
       firewoodDetail = `${parts.join(' + ')} = ${calendarState.priceInfo.extras} €`;
     }
 
+    // Lien "Ajouter à Google Agenda" (pour l'email gestionnaire uniquement)
+    // Événement : arrivée à 14h le jour du check-in, fin à 14h le jour du check-out
+    let googleCalendarLink = '';
+    if (calendarState.formData.checkin && calendarState.formData.checkout) {
+      const gcDate = (d) => d.replace(/-/g, '') + 'T140000'; // YYYYMMDDT140000 (heure locale)
+      const eventTitle = `Réservation Camping - ${calendarState.formData.name || 'Client'}`;
+      const eventDetails =
+        `Client : ${calendarState.formData.name || '-'}\n` +
+        `Email : ${calendarState.formData.email || '-'}\n` +
+        `Téléphone : ${calendarState.formData.phone || '-'}\n` +
+        `Hébergement : ${calendarState.formData.accommodationType || '-'}\n` +
+        `Occupation : ${occupancyDetail}\n` +
+        `Bois : ${firewoodDetail}\n` +
+        `Total estimé : ${calendarState.priceInfo.grandTotal} €`;
+      const gcParams = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: eventTitle,
+        dates: `${gcDate(calendarState.formData.checkin)}/${gcDate(calendarState.formData.checkout)}`,
+        ctz: 'Europe/Brussels',
+        details: eventDetails,
+        location: 'Camping du Wignet, Olloy-sur-Viroin'
+      });
+      googleCalendarLink = 'https://calendar.google.com/calendar/render?' + gcParams.toString();
+    }
+
     // Ajouter le résumé du prix + métadonnées anti-fraude + rapport de vérification
     const formDataWithPrice = {
       ...calendarState.formData,
@@ -1388,6 +1413,7 @@ function handleDateClick(date) {
       occupancyDetail,
       firewoodDetail,
       priceSummary: `Nombre de nuits: ${calendarState.priceInfo.nights}, Hébergement: ${calendarState.priceInfo.totalPrice} €, Bois: ${calendarState.priceInfo.extras} €, Total estimé: ${calendarState.priceInfo.grandTotal} €`,
+      '📅 Ajouter à Google Agenda': googleCalendarLink,
       _submittedAt: new Date().toISOString(),
       _timeOnPage: Math.round((Date.now() - PAGE_LOAD_TIME) / 1000) + 's',
       _userAgent: navigator.userAgent,
