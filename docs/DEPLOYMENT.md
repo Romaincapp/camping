@@ -44,6 +44,18 @@ python -m http.server 8000
 - Optimiser taille
 - Envisager WebP
 
+**Avis Campspace :**
+- Mettre à jour la note et le nombre d'avis dans `index.html` et `camping/index.html` (JSON-LD + blocs mobile et desktop)
+- Lancer `node tests/check-reviews.js` avant de pousser
+
+## Tests
+
+| Test | Commande | Vérifie |
+|------|----------|---------|
+| Avis | `node tests/check-reviews.js` | JSON-LD valide ; note et nombre d'avis identiques dans le JSON-LD, le bloc mobile, le bloc desktop et la copie `camping/index.html` |
+
+Les tests tournent automatiquement sur GitHub (onglet **Actions**, workflow « Tests ») à chaque push et pull request. Une croix rouge = ne pas fusionner, corriger d'abord.
+
 ## Bugs connus
 
 1. **Calendar API timeout** - Parfois >5s, fallback affiché

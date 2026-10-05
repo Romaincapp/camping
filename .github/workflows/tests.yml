@@ -1,0 +1,21 @@
+name: Tests
+
+on:
+  push:
+    paths:
+      - '**.html'
+      - 'tests/**'
+      - '.github/workflows/tests.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Vérifier la note et le nombre d'avis
+        run: node tests/check-reviews.js

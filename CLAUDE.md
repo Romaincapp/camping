@@ -27,6 +27,8 @@ camping/
 ├── calendar-vanilla.js     # Calendrier (iCal), prix, réservation
 ├── css.css                 # Styles principaux
 ├── CalendarStyles.css      # Styles calendrier
+├── tests/check-reviews.js  # Test : cohérence note / nombre d'avis
+├── .github/workflows/      # tests.yml (tests auto) + update-calendar.yml
 ├── .gitignore              # Fichiers ignorés par git
 ├── CNAME                   # DNS
 ├── images/                 # Assets
@@ -54,6 +56,13 @@ const PRICES = {
 }
 ```
 
+**Mettre à jour la note et le nombre d'avis (Campspace) :** `index.html` + copie `camping/index.html`, 3 endroits par fichier à changer ensemble :
+1. JSON-LD (~ligne 112) : `"ratingValue": "4.92"` et `"reviewCount": "102"`
+2. Bloc avis mobile (~ligne 206 / 228) : `4.92` et `102 avis vérifiés`
+3. Bloc avis desktop (~ligne 279 / 283) : `4.92` et `102 avis vérifiés`
+
+Puis **obligatoirement** lancer le test : `node tests/check-reviews.js` (doit afficher ✓).
+
 **Ajouter image galerie :** `index.html` section `.gallery-swiper`
 ```html
 <div class="swiper-slide">
@@ -71,6 +80,13 @@ const PRICES = {
 
 ## Tests avant déploiement
 
+**Tests automatiques** (à lancer après chaque modification, aussi exécutés par GitHub Actions via `.github/workflows/tests.yml` à chaque push et pull request) :
+```bash
+node tests/check-reviews.js   # note/avis identiques partout + JSON-LD valide
+```
+Ne pas fusionner dans `main` si un test échoue. Toute nouvelle modification « à plusieurs endroits » doit venir avec un test dans `tests/` et une ligne ici.
+
+**Vérifications manuelles :**
 - [ ] Calendrier s'affiche et dates réservées marquées
 - [ ] Sélection dates + calcul prix OK
 - [ ] Formulaire validation OK
