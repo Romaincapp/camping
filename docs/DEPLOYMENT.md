@@ -50,9 +50,11 @@ python -m http.server 8000
 
 ## Tests
 
-| Test | Commande | Vérifie |
-|------|----------|---------|
-| Avis | `node tests/check-reviews.js` | JSON-LD valide ; note et nombre d'avis identiques dans le JSON-LD, le bloc mobile, le bloc desktop et la copie `camping/index.html` |
+```bash
+node tests/run-all.js
+```
+
+Détail de chaque test, problèmes connus et ajout d'un test : voir [TESTS.md](TESTS.md).
 
 Les tests tournent automatiquement sur GitHub (onglet **Actions**, workflow « Tests ») à chaque push et pull request. Une croix rouge = ne pas fusionner, corriger d'abord.
 

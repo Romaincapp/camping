@@ -4,18 +4,48 @@ on:
   push:
     paths:
       - '**.html'
+      - '**.js'
+      - '**.css'
+      - 'calendar-data.json'
+      - 'images/**'
       - 'tests/**'
       - '.github/workflows/tests.yml'
   pull_request:
   workflow_dispatch:
 
 jobs:
-  check-reviews:
+  static:
+    name: Tests statiques (liens, HTML, prix, avis, CSP, scripts)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Vérifier la note et le nombre d'avis
-        run: node tests/check-reviews.js
+      - name: Lancer les tests statiques
+        run: node tests/run-all.js --static
+
+  browser:
+    name: Test navigateur (pages, calendrier, prix, mobile)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installer Playwright + Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Lancer le test navigateur
+        env:
+          REQUIRE_BROWSER: '1'
+          SCREENSHOTS: screenshots
+        run: node tests/smoke-browser.js
+      - name: Garder les captures d'écran
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-ecran
+          path: screenshots/
+          retention-days: 7

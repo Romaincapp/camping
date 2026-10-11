@@ -16,3 +16,6 @@ npm-debug.log*
 
 # Dépendances (si vous en ajoutez plus tard)
 node_modules/
+
+# Captures des tests navigateur
+screenshots/
