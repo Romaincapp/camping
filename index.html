@@ -37,7 +37,18 @@
 
     <!-- Sécurité -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <!-- Anti-clickjacking : GitHub Pages ne permet pas l'en-tête X-Frame-Options
+         (sans effet en <meta>), on refuse donc l'affichage dans une iframe d'un autre site. -->
+    <script>
+        (function () {
+            if (window.top === window.self) return;
+            try {
+                if (window.top.location.origin === window.location.origin) return; // même site : autorisé
+            } catch (e) { /* autre site : accès refusé */ }
+            document.documentElement.style.display = 'none';
+            try { window.top.location = window.location.href; } catch (e) { /* iframe sandbox : page masquée */ }
+        })();
+    </script>
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://www.google-analytics.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://formspree.io https://calendar.google.com https://www.google-analytics.com https://ipapi.co https://api.allorigins.win https://corsproxy.io https://raw.githubusercontent.com; frame-src https://pagead2.googlesyndication.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google;">
 

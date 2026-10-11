@@ -24,7 +24,7 @@ Résultat : `✓` = OK, `✗` = erreur (le test échoue), `⚠` = problème conn
 | `check-reviews.js` | Note et nombre d'avis identiques dans le JSON-LD, les blocs mobile et desktop, et la copie `camping/index.html` | Avis mis à jour à un seul endroit |
 | `check-csp.js` | La Content-Security-Policy autorise chaque CDN et chaque domaine appelé par les scripts | Nouveau CDN ou nouvelle API ajouté sans mettre à jour la CSP → bloqué en silence par le navigateur |
 | `check-scripts.js` | Pas d'erreur de syntaxe dans `main.js`, `calendar-vanilla.js` et les `<script>` inline ; `calendar-data.json` valide (dates, ids uniques, mis à jour récemment) | Faute de frappe dans le JS, workflow calendrier en panne |
-| `smoke-browser.js` | Dans Chromium : chaque page sans erreur JS, en desktop et mobile ; pas de défilement horizontal à 375 px ; le calendrier s'affiche ; sélectionner 2 nuits affiche « 2 » nuits et un prix > 0 € | Bug JS, calendrier cassé, mise en page mobile trop large |
+| `smoke-browser.js` | Dans Chromium : chaque page sans erreur JS, en desktop et mobile ; pas de défilement horizontal à 375 px ; le calendrier s'affiche ; sélectionner 2 nuits affiche « 2 » nuits et un prix > 0 € ; un autre site ne peut pas afficher la page dans une iframe | Bug JS, calendrier cassé, mise en page mobile trop large, script anti-iframe retiré |
 
 Le test navigateur bloque Google Analytics / AdSense / Formspree (rien n'est envoyé).
 Si les CDN (Tailwind, cdnjs) sont injoignables — cas des sessions Claude Code dans le cloud —
@@ -35,9 +35,11 @@ Installer Playwright en local (une fois) : `npm i -g playwright && npx playwrigh
 
 ## Problèmes connus (avertissements ⚠)
 
+Aucun pour l'instant. Pour en signaler un sans bloquer la CI : `report.warn(...)` dans un test `check-*`,
+ou une entrée dans `KNOWN_ISSUES` de `smoke-browser.js`, avec une ligne ici :
+
 | Avertissement | Décision à prendre |
 |---------------|--------------------|
-| `<meta http-equiv="X-Frame-Options">` dans `index.html` : sans effet (en-tête HTTP uniquement) et erreur console | La supprimer, ou passer par un hébergeur qui permet les en-têtes HTTP (Cloudflare, Netlify) |
 
 Une fois tranché, retirer l'avertissement correspondant (`report.warn` dans `check-prices.js`, `KNOWN_ISSUES` dans `smoke-browser.js`).
 
