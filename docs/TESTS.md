@@ -37,8 +37,6 @@ Installer Playwright en local (une fois) : `npm i -g playwright && npx playwrigh
 
 | Avertissement | Décision à prendre |
 |---------------|--------------------|
-| Haute saison calculée jusqu'à **fin novembre** (`getMonth() <= 10`) alors que la page annonce « 1er avril - **1er novembre** » | Soit mettre `<= 9` dans `calendar-vanilla.js` (novembre en basse saison), soit corriger le texte en « 1er avril - 30 novembre » (page + texte d'aide) |
-| La CSP (`font-src 'self' https://fonts.gstatic.com`) bloque une police intégrée `data:` chargée par le CSS de Swiper (icônes des flèches) : erreur console sur le site en ligne | Ajouter `data:` à `font-src` dans la CSP de `index.html` (risque faible) |
 | `<meta http-equiv="X-Frame-Options">` dans `index.html` : sans effet (en-tête HTTP uniquement) et erreur console | La supprimer, ou passer par un hébergeur qui permet les en-têtes HTTP (Cloudflare, Netlify) |
 
 Une fois tranché, retirer l'avertissement correspondant (`report.warn` dans `check-prices.js`, `KNOWN_ISSUES` dans `smoke-browser.js`).

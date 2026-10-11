@@ -99,8 +99,7 @@ async function launch() {
     const CDN_SYMPTOMS = /gsap|ScrollTrigger|Swiper|GLightbox|tailwind|net::ERR|Failed to load resource/i;
     // Problèmes connus qui demandent une décision du propriétaire : avertissement, pas d'échec.
     const KNOWN_ISSUES = [
-        [/X-Frame-Options may only be set via an HTTP header/, 'balise <meta http-equiv="X-Frame-Options"> sans effet (GitHub Pages ne permet pas cet en-tête)'],
-        [/Refused to load the font 'data:.*font-src/s, 'police intégrée (data:) d\'une librairie CDN bloquée par la CSP font-src (icônes Swiper) — ajouter data: à font-src pour la corriger']
+        [/X-Frame-Options may only be set via an HTTP header/, 'balise <meta http-equiv="X-Frame-Options"> sans effet (GitHub Pages ne permet pas cet en-tête)']
     ];
     let ignored = 0;
     const warned = new Set();

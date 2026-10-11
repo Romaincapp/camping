@@ -105,9 +105,8 @@ if (!season || !period) {
     const [jsFirst, jsLast] = [num(season[1]), num(season[2])];
     if (jsFirst !== firstMonth) report.fail('calendar-vanilla.js', `haute saison commence en ${MONTHS[jsFirst]} dans le calcul, ${period[1]} sur la page`);
     if (jsLast !== lastMonth) {
-        // À trancher par le propriétaire : on prévient sans bloquer.
-        report.warn('calendar-vanilla.js', `haute saison calculée jusqu'à fin ${MONTHS[jsLast]}, page « jusqu'au 1er ${period[2]} » `
-            + `(arrivée en ${MONTHS[jsLast]} facturée haute saison). Aligner le texte ou getMonth() <= ${lastMonth}.`);
+        report.fail('calendar-vanilla.js', `haute saison calculée jusqu'à fin ${MONTHS[jsLast]}, page « jusqu'au 1er ${period[2]} » `
+            + `(dès le 1er ${period[2]} : basse saison). Attendu : getMonth() <= ${lastMonth}.`);
     }
 }
 
