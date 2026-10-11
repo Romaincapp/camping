@@ -3,7 +3,8 @@
 // - chaque page se charge sans erreur JavaScript venant de nos fichiers,
 // - le calendrier s'affiche avec des jours et des dates réservées,
 // - sélectionner 2 nuits affiche « 2 » nuits et un prix > 0 €,
-// - pas de défilement horizontal en largeur mobile (375 px).
+// - pas de défilement horizontal en largeur mobile (375 px),
+// - un autre site ne peut pas afficher index.html dans une iframe (anti-clickjacking).
 // Les requêtes Analytics / AdSense sont bloquées. Si un CDN est injoignable
 // (réseau restreint), les erreurs qui en découlent sont signalées mais ignorées.
 //
@@ -98,10 +99,7 @@ async function launch() {
     // Erreurs dues à un CDN injoignable (ex. "gsap is not defined") : non bloquantes dans ce cas.
     const CDN_SYMPTOMS = /gsap|ScrollTrigger|Swiper|GLightbox|tailwind|net::ERR|Failed to load resource/i;
     // Problèmes connus qui demandent une décision du propriétaire : avertissement, pas d'échec.
-    const KNOWN_ISSUES = [
-        [/X-Frame-Options may only be set via an HTTP header/, 'balise <meta http-equiv="X-Frame-Options"> sans effet (GitHub Pages ne permet pas cet en-tête)'],
-        [/Refused to load the font 'data:.*font-src/s, 'police intégrée (data:) d\'une librairie CDN bloquée par la CSP font-src (icônes Swiper) — ajouter data: à font-src pour la corriger']
-    ];
+    const KNOWN_ISSUES = [];
     let ignored = 0;
     const warned = new Set();
     function reportErrors(where, errors) {
@@ -164,6 +162,27 @@ async function launch() {
     }
     reportErrors('index.html (calendrier)', errors);
     await context.close();
+
+    // 3. Anti-clickjacking : un autre site ne doit pas pouvoir afficher index.html dans une iframe.
+    const evil = http.createServer((req, res) => {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`<iframe src="${base}index.html" width="800" height="600"></iframe>`);
+    });
+    await new Promise(resolve => evil.listen(0, '127.0.0.1', resolve));
+    {
+        const context = await browser.newContext();
+        const page = await context.newPage();
+        await page.route(/^https:/, route => route.abort());
+        // "localhost" ≠ "127.0.0.1" : origine différente du site testé.
+        await page.goto(`http://localhost:${evil.address().port}/`, { waitUntil: 'load' }).catch(() => {});
+        await page.waitForTimeout(1000);
+        const framed = page.frames().find(f => f !== page.mainFrame() && f.url().startsWith(base));
+        const shown = framed && await framed.evaluate(() => getComputedStyle(document.documentElement).display !== 'none').catch(() => false);
+        if (shown) report.fail('index.html', 'la page s\'affiche dans l\'iframe d\'un autre site (protection anti-clickjacking absente)');
+        else console.log(`  anti-iframe : ${page.url().startsWith(base) ? 'le site sort de l\'iframe' : 'page masquée dans l\'iframe'}`);
+        await context.close();
+    }
+    evil.close();
 
     await browser.close();
     server.close();

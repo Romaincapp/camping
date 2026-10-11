@@ -782,7 +782,7 @@ function handleDateClick(date) {
       const nights = getNightsCount();
 
       // Déterminer si c'est la haute saison (selon la date d'arrivée)
-      const isHighSeason = start.getMonth() >= 3 && start.getMonth() <= 10;
+      const isHighSeason = start.getMonth() >= 3 && start.getMonth() <= 9; // avril → octobre (dès le 1er novembre : basse saison)
 
       // Occupation par nuit (identique chaque nuit en mode simple, variable en mode avancé)
       const occupancy = getOccupancyPerNight();
