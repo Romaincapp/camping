@@ -27,7 +27,8 @@ camping/
 ├── calendar-vanilla.js     # Calendrier (iCal), prix, réservation
 ├── css.css                 # Styles principaux
 ├── CalendarStyles.css      # Styles calendrier
-├── tests/check-reviews.js  # Test : cohérence note / nombre d'avis
+├── tests/                  # Tests auto (voir docs/TESTS.md), lancer : node tests/run-all.js
+├── .claude/skills/         # verifier-site : procédure de test à suivre après chaque modif
 ├── .github/workflows/      # tests.yml (tests auto) + update-calendar.yml
 ├── .gitignore              # Fichiers ignorés par git
 ├── CNAME                   # DNS
@@ -48,13 +49,10 @@ const CALENDAR_ID = 'votre-email@gmail.com';
 
 ## Tâches courantes
 
-**Modifier les prix :** `calendar-vanilla.js` ~ligne 50
-```javascript
-const PRICES = {
-    highSeason: { adult: 19, child: 13 },
-    lowSeason: { firstAdult: 19, additional: 10 }
-}
-```
+**Modifier les prix :** 3 endroits à changer ensemble, puis `node tests/check-prices.js` :
+1. `index.html` : grille « Tarifs 2026 » (Haute saison / Basse saison)
+2. `calendar-vanilla.js` : fonction `nightlyRawPrice()` (calcul réel) + `Math.min(..., 200)` (plafond)
+3. `calendar-vanilla.js` : texte d'aide « Prix haute saison (...) / Prix basse saison » sous le formulaire
 
 **Mettre à jour la note et le nombre d'avis (Campspace) :** `index.html` + copie `camping/index.html`, 3 endroits par fichier à changer ensemble :
 1. JSON-LD (~ligne 112) : `"ratingValue": "4.92"` et `"reviewCount": "102"`
@@ -80,18 +78,29 @@ Puis **obligatoirement** lancer le test : `node tests/check-reviews.js` (doit af
 
 ## Tests avant déploiement
 
-**Tests automatiques** (à lancer après chaque modification, aussi exécutés par GitHub Actions via `.github/workflows/tests.yml` à chaque push et pull request) :
+**Après chaque modification, suivre le skill `verifier-site`** (`.claude/skills/verifier-site/SKILL.md`) et lancer :
 ```bash
-node tests/check-reviews.js   # note/avis identiques partout + JSON-LD valide
+node tests/run-all.js            # tous les tests (~10 s)
+node tests/run-all.js --static   # rapide, sans navigateur (~1 s)
 ```
-Ne pas fusionner dans `main` si un test échoue. Toute nouvelle modification « à plusieurs endroits » doit venir avec un test dans `tests/` et une ligne ici.
 
-**Vérifications manuelles :**
-- [ ] Calendrier s'affiche et dates réservées marquées
-- [ ] Sélection dates + calcul prix OK
-- [ ] Formulaire validation OK
-- [ ] Responsive mobile/tablette/desktop
-- [ ] Pas d'erreurs console
+| Test | Vérifie |
+|------|---------|
+| `check-links.js` | fichiers référencés existants, ancres `#id`, pas d'id dupliqué |
+| `check-html.js` | balises de base, SEO, JSON-LD, `alt`, SRI des CDN, balises équilibrées |
+| `check-prices.js` | prix identiques : grille de la page / texte d'aide / calcul JS |
+| `check-reviews.js` | note/avis identiques partout + JSON-LD valide |
+| `check-csp.js` | la CSP autorise tous les CDN et domaines appelés en JS |
+| `check-scripts.js` | syntaxe JS + `calendar-data.json` valide et à jour |
+| `smoke-browser.js` | Chromium : pages sans erreur JS, mobile sans débordement, calendrier + prix 2 nuits |
+
+Aussi exécutés par GitHub Actions (`.github/workflows/tests.yml`) à chaque push et pull request.
+`✗` = ne pas fusionner dans `main`. `⚠` = problème connu à trancher, listé dans `docs/TESTS.md`.
+Toute nouvelle information « à plusieurs endroits » doit venir avec un test dans `tests/` et une ligne ici.
+
+**Vérifications manuelles restantes :**
+- [ ] Envoi réel du formulaire (Formspree)
+- [ ] Rendu visuel tablette
 
 ## Déploiement
 
