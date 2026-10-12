@@ -55,4 +55,4 @@ Quand une information apparaît à plusieurs endroits, ou qu'un bug a été corr
 
 - [ ] `node tests/run-all.js` → `✓ N/N tests OK`
 - [ ] Après le push : le workflow « Tests » de GitHub Actions est vert (statique + navigateur).
-- [ ] Le dossier `camping/` est une ancienne copie : seul `camping/index.html` est encore tenu à jour pour les avis.
+- [ ] `camping/index.html` n'est qu'une redirection de l'ancienne adresse `/camping/` vers l'accueil : ne pas y recopier de contenu.

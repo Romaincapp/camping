@@ -54,7 +54,7 @@ const CALENDAR_ID = 'votre-email@gmail.com';
 2. `calendar-vanilla.js` : fonction `nightlyRawPrice()` (calcul réel) + `Math.min(..., 200)` (plafond)
 3. `calendar-vanilla.js` : texte d'aide « Prix haute saison (...) / Prix basse saison » sous le formulaire
 
-**Mettre à jour la note et le nombre d'avis (Campspace) :** `index.html` + copie `camping/index.html`, 3 endroits par fichier à changer ensemble :
+**Mettre à jour la note et le nombre d'avis (Campspace) :** `index.html`, 3 endroits à changer ensemble :
 1. JSON-LD (~ligne 112) : `"ratingValue": "4.92"` et `"reviewCount": "102"`
 2. Bloc avis mobile (~ligne 206 / 228) : `4.92` et `102 avis vérifiés`
 3. Bloc avis desktop (~ligne 279 / 283) : `4.92` et `102 avis vérifiés`

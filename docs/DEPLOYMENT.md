@@ -45,7 +45,7 @@ python -m http.server 8000
 - Envisager WebP
 
 **Avis Campspace :**
-- Mettre à jour la note et le nombre d'avis dans `index.html` et `camping/index.html` (JSON-LD + blocs mobile et desktop)
+- Mettre à jour la note et le nombre d'avis dans `index.html` (JSON-LD + blocs mobile et desktop)
 - Lancer `node tests/check-reviews.js` avant de pousser
 
 ## Tests

@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const FILES = ['index.html', 'camping/index.html'];
+const FILES = ['index.html'];
 const EXPECTED_BLOCKS = 2; // mobile + desktop
 
 let errors = 0;
