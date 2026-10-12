@@ -4,7 +4,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 
-// Pages publiées à la racine du site (le dossier camping/ est une ancienne copie).
+// Pages publiées à la racine du site (camping/index.html n'est qu'une redirection vers l'accueil).
 const PAGES = fs.readdirSync(ROOT).filter(f => f.endsWith('.html')).sort();
 
 function read(file) {
