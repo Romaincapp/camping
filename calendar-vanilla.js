@@ -101,18 +101,25 @@ async function fetchFromCalendarApi() {
     timeMax: timeMax.toISOString(),
     singleEvents: 'true',
     maxResults: '2500',
-    fields: 'items(id,start,end,transparency)'
+    fields: 'nextPageToken,items(id,start,end,transparency)'
   });
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const response = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?${params}`,
-      { signal: controller.signal }
-    );
-    if (!response.ok) return null;
-    const data = await response.json();
-    return (data.items || [])
+    // L'API peut répondre en plusieurs pages (nextPageToken)
+    const items = [];
+    for (let page = 0; page < 10; page++) {
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?${params}`,
+        { signal: controller.signal }
+      );
+      if (!response.ok) return null;
+      const data = await response.json();
+      items.push(...(data.items || []));
+      if (!data.nextPageToken) break;
+      params.set('pageToken', data.nextPageToken);
+    }
+    return items
       .filter(e => e.start && e.end && e.transparency !== 'transparent')
       .map(e => ({
         id: e.id,
