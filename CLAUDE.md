@@ -94,7 +94,7 @@ node tests/run-all.js --static   # rapide, sans navigateur (~1 s)
 | `check-reviews.js` | note/avis identiques partout + JSON-LD valide |
 | `check-csp.js` | la CSP autorise tous les CDN et domaines appelés en JS |
 | `check-scripts.js` | syntaxe JS + `calendar-data.json` valide et à jour |
-| `smoke-browser.js` | Chromium : pages sans erreur JS, mobile sans débordement, calendrier + prix 2 nuits, anti-iframe |
+| `smoke-browser.js` | Chromium : pages sans erreur JS, mobile sans débordement, calendrier lu via l’API (simulée) + prix 2 nuits, anti-iframe |
 
 Aussi exécutés par GitHub Actions (`.github/workflows/tests.yml`) à chaque push et pull request.
 `✗` = ne pas fusionner dans `main`. `⚠` = problème connu à trancher, listé dans `docs/TESTS.md`.

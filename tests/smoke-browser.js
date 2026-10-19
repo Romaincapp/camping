@@ -55,6 +55,13 @@ function startServer() {
 
 const BLOCKED = /googletagmanager|google-analytics|googlesyndication|adtrafficquality|doubleclick|ipapi\.co|formspree/;
 
+const CALENDAR_API = /^https:\/\/www\.googleapis\.com\/calendar\//;
+function calendarApiBody() {
+    const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'calendar-data.json'), 'utf8'));
+    const when = v => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? { date: v } : { dateTime: v });
+    return JSON.stringify({ items: data.events.map(e => ({ id: e.id, start: when(e.start), end: when(e.end) })) });
+}
+
 async function launch() {
     const options = { headless: true };
     const preinstalled = '/opt/pw-browsers/chromium';
@@ -78,9 +85,14 @@ async function launch() {
         const page = await context.newPage();
         const errors = [];
         // Réponse vide plutôt qu'un blocage, pour ne pas générer d'erreurs console artificielles.
-        await page.route('**/*', route => (BLOCKED.test(route.request().url())
-            ? route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
-            : route.continue()));
+        await page.route('**/*', route => {
+            const url = route.request().url();
+            if (BLOCKED.test(url)) return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+            // La clé API est restreinte à campingduwignet.com : depuis 127.0.0.1 Google répond 403.
+            // On simule donc l'API Google Calendar à partir de calendar-data.json.
+            if (CALENDAR_API.test(url)) return route.fulfill({ status: 200, contentType: 'application/json', body: calendarApiBody() });
+            return route.continue();
+        });
         page.on('requestfailed', req => {
             const url = req.url();
             if (url.startsWith(base)) errors.push(`ressource locale en échec : ${url.slice(base.length)}`);
@@ -90,10 +102,11 @@ async function launch() {
             if (resp.url().startsWith(base) && resp.status() >= 400) errors.push(`HTTP ${resp.status()} : ${resp.url().slice(base.length)}`);
         });
         page.on('pageerror', err => errors.push(`erreur JS : ${err.message}`));
-        page.on('console', msg => { if (msg.type() === 'error') errors.push(`console.error : ${msg.text()}`); });
+        const logs = [];
+        page.on('console', msg => { logs.push(msg.text()); if (msg.type() === 'error') errors.push(`console.error : ${msg.text()}`); });
         await page.goto(base + file, { waitUntil: 'load' });
         await page.waitForTimeout(500);
-        return { page, context, errors };
+        return { page, context, errors, logs };
     }
 
     // Erreurs dues à un CDN injoignable (ex. "gsap is not defined") : non bloquantes dans ce cas.
@@ -124,9 +137,10 @@ async function launch() {
     }
 
     // 2. Calendrier + calcul du prix
-    const { page, context, errors } = await openPage('index.html', { width: 1366, height: 900 });
+    const { page, context, errors, logs } = await openPage('index.html', { width: 1366, height: 900 });
     try {
         await page.waitForSelector('.calendar-day', { timeout: 10000 });
+        if (!logs.some(l => l.includes('(en direct)'))) report.fail('calendrier', "réservations non lues via l'API Google Calendar (simulée) — voir fetchFromCalendarApi()");
         const booked = await page.evaluate(() => fetch('calendar-data.json').then(r => r.json()).then(d => d.events.length));
         if (!booked) report.fail('calendrier', 'calendar-data.json ne contient aucune réservation');
 
