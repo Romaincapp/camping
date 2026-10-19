@@ -4,6 +4,12 @@
 // FETCH ANTICIPÉ - Lancé immédiatement au chargement du script
 // ============================================
 const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
+// Clé API Google (API "Google Calendar API"), visible dans la page : c'est normal pour
+// un site statique, à condition qu'elle soit restreinte dans Google Cloud Console :
+//    → Référents HTTP : campingduwignet.com/* et www.campingduwignet.com/*
+//    → Restriction d'API : "Google Calendar API" uniquement
+// Vide = pas de lecture en direct, le site utilise calendar-data.json (mis à jour chaque heure).
+const API_KEY = '';
 const CACHE_KEY = 'camping_calendar_events';
 
 // Charger depuis le cache (synchrone)
@@ -81,9 +87,60 @@ function parseICalDateEarly(line) {
   return null;
 }
 
+// Lecture en direct via l'API Google Calendar v3 : un événement ajouté dans l'agenda
+// apparaît immédiatement. Seuls id et dates sont demandés (paramètre fields) :
+// les titres (noms des clients) ne sont jamais envoyés aux visiteurs.
+async function fetchFromCalendarApi() {
+  const timeMin = new Date();
+  timeMin.setMonth(timeMin.getMonth() - 1);
+  const timeMax = new Date();
+  timeMax.setMonth(timeMax.getMonth() + 14);
+  const params = new URLSearchParams({
+    key: API_KEY,
+    timeMin: timeMin.toISOString(),
+    timeMax: timeMax.toISOString(),
+    singleEvents: 'true',
+    maxResults: '2500',
+    fields: 'items(id,start,end,transparency)'
+  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?${params}`,
+      { signal: controller.signal }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    return (data.items || [])
+      .filter(e => e.start && e.end && e.transparency !== 'transparent')
+      .map(e => ({
+        id: e.id,
+        title: 'Réservé',
+        start: new Date(e.start.dateTime || e.start.date),
+        end: new Date(e.end.dateTime || e.end.date),
+        isBusy: true
+      }));
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 // Lancer le fetch IMMÉDIATEMENT (avant DOMContentLoaded)
 const earlyFetchPromise = (async function() {
-  // 1. Essayer de charger le fichier JSON local (généré par GitHub Actions)
+  // 1. API Google Calendar en direct (si une clé est configurée)
+  if (API_KEY) {
+    try {
+      const events = await fetchFromCalendarApi();
+      if (events) {
+        saveToCache(events);
+        console.log(`📅 ${events.length} événements chargés (en direct)`);
+        return events;
+      }
+    } catch (e) {}
+  }
+
+  // 2. Fichier JSON local (généré chaque heure par GitHub Actions)
   // Ajouter cache-busting pour toujours avoir la dernière version
   try {
     const response = await fetch('calendar-data.json?t=' + Date.now());
@@ -100,7 +157,7 @@ const earlyFetchPromise = (async function() {
     }
   } catch (e) {}
 
-  // 2. Fallback: proxy CORS (pour dev local ou si JSON manquant)
+  // 3. Fallback: proxy CORS (pour dev local ou si JSON manquant)
   const icalUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(CALENDAR_ID)}/public/basic.ics`;
   const proxies = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`,
@@ -120,7 +177,7 @@ const earlyFetchPromise = (async function() {
     } catch (e) {}
   }
 
-  // 3. Dernier recours: cache localStorage (si tout échoue)
+  // 4. Dernier recours: cache localStorage (si tout échoue)
   const cached = loadFromCache();
   if (cached && cached.length > 0) {
     console.log('📅 Calendrier depuis le cache (hors-ligne)');

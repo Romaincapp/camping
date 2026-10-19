@@ -4,8 +4,7 @@ on:
   schedule:
     # Toutes les heures
     - cron: '0 * * * *'
-  workflow_dispatch: # Lancement manuel depuis GitHub, ou par le script Google Apps Script
-                     # à chaque modification de l'agenda (voir docs/CALENDAR.md)
+  workflow_dispatch: # Permet de lancer manuellement depuis GitHub
 
 # Une seule mise à jour à la fois (plusieurs modifs rapprochées de l'agenda)
 concurrency:

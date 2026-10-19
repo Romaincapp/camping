@@ -35,35 +35,31 @@ const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(icalUrl)}`;
 - Timeout 5 secondes
 - Fallback données démo si erreur
 
-## Mise à jour du site (calendar-data.json)
+## Lecture des réservations
 
-Le site ne lit pas Google Agenda directement : il charge `calendar-data.json`, généré par
-`.github/workflows/update-calendar.yml` à partir du flux iCal public.
+`calendar-vanilla.js` essaie dans l'ordre :
 
-- **Toutes les heures** (cron), en filet de sécurité.
-- **Instantané (~1-2 min)** : le script Google Apps Script `docs/apps-script-calendrier.gs`
-  lance le workflow à chaque modification de l'agenda.
-- **Confidentialité** : les titres des événements (noms des clients) ne sont jamais publiés,
-  chaque réservation devient « Réservé ». `node tests/check-scripts.js` échoue sinon.
-  Dans Google Agenda, partager l'agenda en « Voir uniquement les infos de disponibilité »
-  pour que le flux iCal public ne montre pas non plus les noms.
+1. **API Google Calendar v3 en direct** (`API_KEY` en haut du fichier) : un événement
+   ajouté dans l'agenda apparaît immédiatement sur le site. Seuls id et dates sont demandés
+   (`fields=items(id,start,end,transparency)`), les titres ne sont jamais envoyés.
+2. **`calendar-data.json`**, régénéré chaque heure par `.github/workflows/update-calendar.yml`
+   depuis le flux iCal public (titres remplacés par « Réservé » : `node tests/check-scripts.js`
+   échoue sinon).
+3. Flux iCal via proxy CORS (dev local), puis cache `localStorage`.
 
-### Mise à jour instantanée : installation (une fois)
+**Confidentialité :** partager l'agenda en « Voir uniquement les infos de disponibilité
+(masquer les détails) » pour que ni l'API ni le flux iCal public n'exposent les noms des clients.
 
-1. **Jeton GitHub** : github.com > Settings > Developer settings > Fine-grained tokens > Generate.
-   Repository access : uniquement `romaincapp/camping`. Permissions : **Actions : Read and write**
-   (rien d'autre). Choisir une expiration longue et noter la date de renouvellement.
-2. **Projet Apps Script** : https://script.google.com > Nouveau projet, nom « Calendrier site ».
-   Remplacer le contenu par celui de `docs/apps-script-calendrier.gs`.
-3. **Jeton dans le projet** : Paramètres du projet (roue dentée) > Propriétés du script >
-   ajouter `GITHUB_TOKEN` = le jeton de l'étape 1.
-4. **Déclencheur** : dans l'éditeur, choisir la fonction `installer` > Exécuter, puis accepter
-   les autorisations (agenda + requêtes externes).
-5. **Test** : ajouter un événement dans l'agenda, puis vérifier sur GitHub > Actions qu'un
-   « Update Calendar Data » démarre, et le site 1 à 2 minutes après.
+### Clé API
 
-En cas d'erreur : script.google.com > Exécutions (journal de `onCalendarChange`).
-Jeton expiré → en recréer un et remplacer la propriété `GITHUB_TOKEN`.
+La clé est visible dans la page (site statique, comme Esenca Sport). GitHub la signale
+dans « Secret scanning » : fermer l'alerte en « Won't fix » **après** avoir vérifié la
+restriction. Dans Google Cloud Console > APIs & Services > Identifiants :
+
+- Restriction d'application : **Référents HTTP** → `campingduwignet.com/*`, `www.campingduwignet.com/*`
+- Restriction d'API : **Google Calendar API** uniquement
+
+Sans clé (`API_KEY = ''`) ou si l'API échoue, le site retombe sur `calendar-data.json`.
 
 ## Règles métier
 

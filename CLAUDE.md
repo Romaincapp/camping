@@ -14,7 +14,7 @@ Site de réservation pour camping privatif à Olloy-sur-Viroin (Ardennes belges)
 ```
 HTML5 + CSS3 + Tailwind (CDN) + JavaScript Vanilla
 CDN: GSAP 3.12, Swiper 8.4.5, GLightbox 3.2.0
-Services: Google Calendar (iCal public), Analytics GA4, AdSense
+Services: Google Calendar (API v3 + iCal public), Analytics GA4, AdSense
 ```
 
 ## Structure
@@ -38,7 +38,7 @@ camping/
 
 ## Calendrier
 
-Le calendrier utilise le **flux iCal public** de Google Calendar (pas d'API key nécessaire).
+Le calendrier lit Google Calendar via l'**API Calendar v3** (clé restreinte au domaine) et, en secours, le **flux iCal public**.
 
 **Prérequis :** Le calendrier Google doit être public (Paramètres > Rendre accessible au public)
 
@@ -47,7 +47,7 @@ Le calendrier utilise le **flux iCal public** de Google Calendar (pas d'API key 
 const CALENDAR_ID = 'votre-email@gmail.com';
 ```
 
-**Mise à jour :** `update-calendar.yml` régénère `calendar-data.json` chaque heure et à chaque modification de l'agenda (script Apps Script `docs/apps-script-calendrier.gs`). Les titres (noms des clients) sont remplacés par « Réservé » : le fichier est public.
+**Lecture :** en direct via l'API Google Calendar (`API_KEY` restreinte au domaine, en haut de `calendar-vanilla.js`), sinon `calendar-data.json` régénéré chaque heure par `update-calendar.yml`. Les titres (noms des clients) ne sont jamais publiés : « Réservé » partout. Détails : `docs/CALENDAR.md`.
 
 ## Tâches courantes
 
