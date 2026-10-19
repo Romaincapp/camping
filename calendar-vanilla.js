@@ -9,7 +9,7 @@ const CALENDAR_ID = 'romainfrancedumoulin@gmail.com';
 //    → Référents HTTP : campingduwignet.com/* et www.campingduwignet.com/*
 //    → Restriction d'API : "Google Calendar API" uniquement
 // Vide = pas de lecture en direct, le site utilise calendar-data.json (mis à jour chaque heure).
-const API_KEY = '';
+const API_KEY = 'AIzaSyCECx-Qj4APoyaDXEMKq9y4fVCidvxyOUk';
 const CACHE_KEY = 'camping_calendar_events';
 
 // Charger depuis le cache (synchrone)
