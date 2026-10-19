@@ -87,6 +87,13 @@ function parseICalDateEarly(line) {
   return null;
 }
 
+// "2027-05-06" (événement « journée entière ») = minuit heure locale, pas minuit UTC,
+// sinon le jour d'arrivée/départ glisse d'un jour selon le fuseau du visiteur
+function parseEventDate(value) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(value);
+}
+
 // Lecture en direct via l'API Google Calendar v3 : un événement ajouté dans l'agenda
 // apparaît immédiatement. Seuls id et dates sont demandés (paramètre fields) :
 // les titres (noms des clients) ne sont jamais envoyés aux visiteurs.
@@ -124,8 +131,8 @@ async function fetchFromCalendarApi() {
       .map(e => ({
         id: e.id,
         title: 'Réservé',
-        start: new Date(e.start.dateTime || e.start.date),
-        end: new Date(e.end.dateTime || e.end.date),
+        start: parseEventDate(e.start.dateTime || e.start.date),
+        end: parseEventDate(e.end.dateTime || e.end.date),
         isBusy: true
       }));
   } finally {
@@ -155,8 +162,8 @@ const earlyFetchPromise = (async function() {
       const data = await response.json();
       const events = data.events.map(e => ({
         ...e,
-        start: new Date(e.start),
-        end: new Date(e.end)
+        start: parseEventDate(e.start),
+        end: parseEventDate(e.end)
       }));
       saveToCache(events);
       console.log(`📅 ${events.length} événements chargés`);
