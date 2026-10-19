@@ -53,6 +53,7 @@ if (data) {
             if (!e.id) report.fail(where, 'id manquant');
             else if (ids.has(e.id)) report.fail(where, `id dupliqué : ${e.id}`);
             ids.add(e.id);
+            if (e.title !== 'Réservé') report.fail(where, `titre « ${e.title} » publié : calendar-data.json est public, update-calendar.yml doit mettre « Réservé »`);
         });
     }
     const ageDays = (Date.now() - Date.parse(data.updated)) / 86400000;

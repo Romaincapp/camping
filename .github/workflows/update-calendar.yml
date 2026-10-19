@@ -4,7 +4,13 @@ on:
   schedule:
     # Toutes les heures
     - cron: '0 * * * *'
-  workflow_dispatch: # Permet de lancer manuellement depuis GitHub
+  workflow_dispatch: # Lancement manuel depuis GitHub, ou par le script Google Apps Script
+                     # à chaque modification de l'agenda (voir docs/CALENDAR.md)
+
+# Une seule mise à jour à la fois (plusieurs modifs rapprochées de l'agenda)
+concurrency:
+  group: update-calendar
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -51,15 +57,17 @@ jobs:
             }
 
             if (line === 'BEGIN:VEVENT') {
+              // Le titre n'est jamais repris de l'agenda : calendar-data.json est public
+              // et les événements portent le nom des clients
               currentEvent = { id: '', title: 'Réservé', start: null, end: null, isBusy: true };
             } else if (line === 'END:VEVENT' && currentEvent) {
               if (currentEvent.start && currentEvent.end && currentEvent.isBusy) {
+                if (!currentEvent.id) currentEvent.id = `${currentEvent.start}_${currentEvent.end}`;
                 events.push(currentEvent);
               }
               currentEvent = null;
             } else if (currentEvent) {
               if (line.startsWith('UID:')) currentEvent.id = line.substring(4);
-              else if (line.startsWith('SUMMARY:')) currentEvent.title = line.substring(8) || 'Réservé';
               else if (line.startsWith('DTSTART')) currentEvent.start = parseDate(line);
               else if (line.startsWith('DTEND')) currentEvent.end = parseDate(line);
               else if (line.startsWith('TRANSP:')) currentEvent.isBusy = line.substring(7).trim() !== 'TRANSPARENT';

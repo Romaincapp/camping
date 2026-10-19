@@ -47,6 +47,8 @@ Le calendrier utilise le **flux iCal public** de Google Calendar (pas d'API key 
 const CALENDAR_ID = 'votre-email@gmail.com';
 ```
 
+**Mise à jour :** `update-calendar.yml` régénère `calendar-data.json` chaque heure et à chaque modification de l'agenda (script Apps Script `docs/apps-script-calendrier.gs`). Les titres (noms des clients) sont remplacés par « Réservé » : le fichier est public.
+
 ## Tâches courantes
 
 **Modifier les prix :** 3 endroits à changer ensemble, puis `node tests/check-prices.js` :
