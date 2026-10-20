@@ -13,7 +13,7 @@ Site de réservation pour camping privatif à Olloy-sur-Viroin (Ardennes belges)
 
 ```
 HTML5 + CSS3 + Tailwind (CDN) + JavaScript Vanilla
-CDN: GSAP 3.12, Swiper 8.4.5, GLightbox 3.2.0
+CDN: GSAP 3.12, GLightbox 3.2.0
 Services: Google Calendar (API v3 + iCal public), Analytics GA4, AdSense
 ```
 
@@ -23,7 +23,7 @@ Services: Google Calendar (API v3 + iCal public), Analytics GA4, AdSense
 camping/
 ├── index.html              # Page principale
 ├── privacy-policy.html     # Politique confidentialité
-├── main.js                 # Animations GSAP, Swiper, GLightbox
+├── main.js                 # Animations GSAP, galerie photos, GLightbox
 ├── calendar-vanilla.js     # Calendrier (iCal), prix, réservation
 ├── css.css                 # Styles principaux
 ├── CalendarStyles.css      # Styles calendrier
@@ -63,12 +63,16 @@ const CALENDAR_ID = 'votre-email@gmail.com';
 
 Puis **obligatoirement** lancer le test : `node tests/check-reviews.js` (doit afficher ✓).
 
-**Ajouter image galerie :** `index.html` section `.gallery-swiper`
+**Ajouter image galerie :** `index.html` section `.horizontal-gallery` (points et compteur générés par `initGallery()` dans `main.js`).
+Deux versions : `images/NOM.jpg` (≤ 1600 px, plein écran GLightbox) et `images/m/NOM.jpg` (≤ 1000 px, téléphones ; nom sans espace). Le chiffre avant `w` = largeur réelle du fichier.
 ```html
-<div class="swiper-slide">
-    <img src="images/NOM.jpg" alt="Description" class="gallery-item" loading="lazy">
+<div class="gallery-item">
+    <a href="images/NOM.jpg" class="glightbox" data-gallery="gallery1">
+        <img src="images/NOM.jpg" srcset="images/m/NOM.jpg 1000w, images/NOM.jpg 1600w" sizes="(max-width: 768px) 80vw, 900px" alt="Description" loading="lazy" />
+    </a>
 </div>
 ```
+Les logos du hero s'affichent en 96 px max : fichiers PNG de 288 px suffisent (pas d'export 1500 px).
 
 **Changer couleurs :** `css.css` début
 ```css
@@ -88,13 +92,13 @@ node tests/run-all.js --static   # rapide, sans navigateur (~1 s)
 
 | Test | Vérifie |
 |------|---------|
-| `check-links.js` | fichiers référencés existants, ancres `#id`, pas d'id dupliqué |
+| `check-links.js` | fichiers référencés existants (y compris chaque fichier d’un `srcset`), ancres `#id`, pas d'id dupliqué |
 | `check-html.js` | balises de base, SEO, JSON-LD, `alt`, SRI des CDN, balises équilibrées |
 | `check-prices.js` | prix identiques : grille de la page / texte d'aide / calcul JS |
 | `check-reviews.js` | note/avis identiques partout + JSON-LD valide |
 | `check-csp.js` | la CSP autorise tous les CDN et domaines appelés en JS |
 | `check-scripts.js` | syntaxe JS + `calendar-data.json` valide et à jour |
-| `smoke-browser.js` | Chromium : pages sans erreur JS, mobile sans débordement, calendrier lu via l’API (simulée) + prix 2 nuits, anti-iframe |
+| `smoke-browser.js` | Chromium : pages sans erreur JS, mobile sans débordement, carrousel mobile (photo < écran, aimantation, points), calendrier lu via l’API (simulée) + prix 2 nuits, anti-iframe |
 
 Aussi exécutés par GitHub Actions (`.github/workflows/tests.yml`) à chaque push et pull request.
 `✗` = ne pas fusionner dans `main`. `⚠` = problème connu à trancher, listé dans `docs/TESTS.md`.

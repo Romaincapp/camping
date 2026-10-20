@@ -33,7 +33,7 @@ python -m http.server 8000
 
 **Bibliothèques CDN :**
 - GSAP 3.12
-- Swiper 8.4.5 (v11 disponible)
+- (Swiper retiré : la galerie utilise le défilement natif)
 - GLightbox 3.2.0
 
 **Google Calendar API :**
