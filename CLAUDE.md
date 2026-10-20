@@ -63,14 +63,16 @@ const CALENDAR_ID = 'votre-email@gmail.com';
 
 Puis **obligatoirement** lancer le test : `node tests/check-reviews.js` (doit afficher ✓).
 
-**Ajouter image galerie :** `index.html` section `.horizontal-gallery` (points et compteur générés par `initGallery()` dans `main.js`)
+**Ajouter image galerie :** `index.html` section `.horizontal-gallery` (points et compteur générés par `initGallery()` dans `main.js`).
+Deux versions : `images/NOM.jpg` (≤ 1600 px, plein écran GLightbox) et `images/m/NOM.jpg` (≤ 1000 px, téléphones ; nom sans espace). Le chiffre avant `w` = largeur réelle du fichier.
 ```html
 <div class="gallery-item">
     <a href="images/NOM.jpg" class="glightbox" data-gallery="gallery1">
-        <img src="images/NOM.jpg" alt="Description" loading="lazy" />
+        <img src="images/NOM.jpg" srcset="images/m/NOM.jpg 1000w, images/NOM.jpg 1600w" sizes="(max-width: 768px) 80vw, 900px" alt="Description" loading="lazy" />
     </a>
 </div>
 ```
+Les logos du hero s'affichent en 96 px max : fichiers PNG de 288 px suffisent (pas d'export 1500 px).
 
 **Changer couleurs :** `css.css` début
 ```css
@@ -90,7 +92,7 @@ node tests/run-all.js --static   # rapide, sans navigateur (~1 s)
 
 | Test | Vérifie |
 |------|---------|
-| `check-links.js` | fichiers référencés existants, ancres `#id`, pas d'id dupliqué |
+| `check-links.js` | fichiers référencés existants (y compris chaque fichier d’un `srcset`), ancres `#id`, pas d'id dupliqué |
 | `check-html.js` | balises de base, SEO, JSON-LD, `alt`, SRI des CDN, balises équilibrées |
 | `check-prices.js` | prix identiques : grille de la page / texte d'aide / calcul JS |
 | `check-reviews.js` | note/avis identiques partout + JSON-LD valide |

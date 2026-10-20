@@ -19,9 +19,16 @@ for (const page of PAGES) {
         ids.add(m[1]);
     }
 
-    for (const m of html.matchAll(/\s(?:src|href|srcset|poster)="([^"]*)"/g)) {
-        const url = m[1].trim();
-        const where = `${page}:${lineOf(html, m.index)}`;
+    const refs = [];
+    for (const m of html.matchAll(/\s(src|href|srcset|poster)="([^"]*)"/g)) {
+        // srcset : "a.jpg 900w, b.jpg 1600w" → chaque fichier séparément
+        const urls = m[1] === 'srcset' ? m[2].split(',').map(c => c.trim().split(/\s+/)[0]) : [m[2]];
+        for (const url of urls) refs.push({ url, index: m.index });
+    }
+
+    for (const ref of refs) {
+        const url = ref.url.trim();
+        const where = `${page}:${lineOf(html, ref.index)}`;
         if (!url) { report.fail(where, 'attribut src/href vide'); continue; }
         if (/^(https?:|mailto:|tel:|data:|javascript:|\/\/)/i.test(url)) continue;
 

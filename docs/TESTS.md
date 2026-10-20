@@ -18,7 +18,7 @@ Résultat : `✓` = OK, `✗` = erreur (le test échoue), `⚠` = problème conn
 
 | Test | Vérifie | Quand il casse typiquement |
 |------|---------|----------------------------|
-| `check-links.js` | Chaque image / CSS / JS / page référencé existe ; chaque ancre `#id` a son `id` ; pas d'`id` dupliqué | Image renommée ou supprimée, faute dans un nom de fichier |
+| `check-links.js` | Chaque image / CSS / JS / page référencé existe (y compris chaque fichier d'un `srcset`, ex. versions mobiles `images/m/`) ; chaque ancre `#id` a son `id` ; pas d'`id` dupliqué | Image renommée ou supprimée, faute dans un nom de fichier |
 | `check-html.js` | Doctype, `lang="fr"`, charset, viewport, `<title>`, meta description ; JSON-LD valide ; `alt` sur les images ; CDN avec `integrity` et version figée ; balises `div`/`section`/`body`… équilibrées | Copier-coller d'un bloc HTML incomplet, oubli d'un `</div>` |
 | `check-prices.js` | Tarifs identiques entre la grille « Tarifs » de `index.html`, le texte d'aide du formulaire et le calcul `nightlyRawPrice()` de `calendar-vanilla.js` ; plafond 200 €/nuit ; réductions 5 % / 10 % ; période haute saison | Prix changé à un seul endroit |
 | `check-reviews.js` | Note et nombre d'avis identiques dans le JSON-LD et les blocs mobile et desktop | Avis mis à jour à un seul endroit |
