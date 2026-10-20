@@ -140,105 +140,73 @@ function addDiscountStyles() {
   document.head.appendChild(style);
 }
 
-// Nouvelle fonction pour initialiser la galerie horizontale
-function initHorizontalGallery() {
+// Galerie horizontale : défilement natif avec aimantation (scroll-snap),
+// flèches sur ordinateur, points + compteur pour savoir où on en est.
+function initGallery() {
   const gallery = document.querySelector('.horizontal-gallery');
-  const scrollThumb = document.querySelector('.scroll-thumb');
-  
-  if (!gallery || !scrollThumb) return;
-  
-  function updateScrollThumb() {
-    const scrollPercentage = gallery.scrollLeft / (gallery.scrollWidth - gallery.clientWidth);
-    const maxTranslate = 100 - (scrollThumb.clientWidth / scrollThumb.parentElement.clientWidth * 100);
-    const translateValue = scrollPercentage * maxTranslate;
-    const boundedTranslate = Math.max(0, Math.min(translateValue, maxTranslate));
-    scrollThumb.style.transform = `translateX(${boundedTranslate}%)`;
-  }
-  
-  gallery.addEventListener('scroll', updateScrollThumb);
-  updateScrollThumb();
-  
-  setTimeout(() => {
-    const firstItem = gallery.querySelector('.gallery-item');
-    if (firstItem) {
-      const itemWidth = firstItem.offsetWidth;
-      const containerWidth = gallery.offsetWidth;
-      const scrollPosition = (itemWidth - containerWidth) / 2;
-      gallery.scrollLeft = scrollPosition > 0 ? scrollPosition : 0;
-    }
-  }, 100);
-  
-  const galleryItems = document.querySelectorAll('.gallery-item');
-  
-  if (typeof gsap !== 'undefined') {
-    galleryItems.forEach(item => {
-      item.addEventListener('mouseenter', function() {
-        gsap.to(this, { scale: 1.03, duration: 0.3, ease: "power2.out" });
-      });
-      
-      item.addEventListener('mouseleave', function() {
-        gsap.to(this, { scale: 1, duration: 0.3, ease: "power2.out" });
-      });
-    });
+  if (!gallery) return;
 
-    gsap.from('.gallery-item', {
-      scrollTrigger: {
-        trigger: '.horizontal-gallery',
-        start: 'top bottom',
-        end: 'bottom top',
-        toggleActions: 'play none none reverse'
-      },
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.1
-    });
-  }
-  
-  return gallery;
-}
-
-// Nouvelle fonction pour initialiser la navigation dans la galerie
-function initGalleryNavigation() {
-  const gallery = document.querySelector('.horizontal-gallery');
+  const items = Array.from(gallery.querySelectorAll('.gallery-item'));
   const prevBtn = document.querySelector('.gallery-prev');
   const nextBtn = document.querySelector('.gallery-next');
-  
-  if (!gallery || !prevBtn || !nextBtn) return;
-  
-  const scrollAmount = 800; // Ajustez selon la largeur de vos images
-  
-  prevBtn.addEventListener('click', () => {
-    gallery.scrollBy({
-      left: -scrollAmount,
-      behavior: 'smooth'
-    });
+  const dotsBox = document.querySelector('.gallery-dots');
+  const counter = document.querySelector('.gallery-counter');
+  let current = 0;
+
+  const dots = items.map((item, i) => {
+    if (!dotsBox) return null;
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'gallery-dot';
+    dot.setAttribute('aria-label', `Photo ${i + 1} sur ${items.length}`);
+    dot.addEventListener('click', () => goTo(i));
+    dotsBox.appendChild(dot);
+    return dot;
   });
-  
-  nextBtn.addEventListener('click', () => {
-    gallery.scrollBy({
-      left: scrollAmount,
-      behavior: 'smooth'
+
+  function goTo(index) {
+    const item = items[Math.max(0, Math.min(index, items.length - 1))];
+    const left = item.offsetLeft - (gallery.clientWidth - item.offsetWidth) / 2;
+    gallery.scrollTo({ left, behavior: 'smooth' });
+  }
+
+  // Photo la plus proche du centre de la galerie
+  function update() {
+    const center = gallery.scrollLeft + gallery.clientWidth / 2;
+    let best = 0;
+    items.forEach((item, i) => {
+      const d = Math.abs(item.offsetLeft + item.offsetWidth / 2 - center);
+      if (d < Math.abs(items[best].offsetLeft + items[best].offsetWidth / 2 - center)) best = i;
     });
+    current = best;
+    dots.forEach((dot, i) => dot && dot.setAttribute('aria-current', i === current ? 'true' : 'false'));
+    if (counter) counter.textContent = `${current + 1} / ${items.length}`;
+
+    const atStart = gallery.scrollLeft <= 1;
+    const atEnd = gallery.scrollLeft >= gallery.scrollWidth - gallery.clientWidth - 1;
+    [[prevBtn, atStart], [nextBtn, atEnd]].forEach(([btn, hidden]) => {
+      if (!btn) return;
+      btn.style.opacity = hidden ? '0' : '1';
+      btn.style.pointerEvents = hidden ? 'none' : 'auto';
+    });
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', () => goTo(current - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  gallery.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1); }
   });
-  
-  // Mise à jour de la visibilité des boutons
-  const updateButtonsVisibility = () => {
-    const isAtStart = gallery.scrollLeft <= 0;
-    const isAtEnd = gallery.scrollLeft >= gallery.scrollWidth - gallery.clientWidth;
-    
-    prevBtn.style.opacity = isAtStart ? '0' : '1';
-    prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
-    
-    nextBtn.style.opacity = isAtEnd ? '0' : '1';
-    nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
-  };
-  
-  gallery.addEventListener('scroll', updateButtonsVisibility);
-  window.addEventListener('resize', updateButtonsVisibility);
-  
-  // Initial check
-  updateButtonsVisibility();
+
+  let ticking = false;
+  gallery.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { update(); ticking = false; });
+  }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 }
 
 // Variables globales pour la modal Campspace
@@ -289,10 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   // Initialisation de la galerie horizontale
-  initHorizontalGallery();
-  
-  // Initialisation de la navigation dans la galerie
-  initGalleryNavigation();
+  initGallery();
   
   // Initialiser GLightbox
   const lightbox = initGLightbox();
@@ -374,119 +339,5 @@ document.addEventListener('DOMContentLoaded', function() {
         duration: 0.3 
       });
     });
-  });
-
-  // Initialisation du Swiper avec des paramètres optimisés
-  const swiper = new Swiper('.swiper', {
-    loop: true,
-    slidesPerView: 5,
-    spaceBetween: 0,    // Réduit l'espace pour permettre un meilleur scaling
-    centeredSlides: true,
-    autoplay: {
-      delay: 4000,     // Délai augmenté
-      disableOnInteraction: false,
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-      dynamicBullets: true,
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
-    },
-    speed: 1000,       // Transition plus douce
-    breakpoints: {
-      320: {
-        slidesPerView: 1,
-        spaceBetween: 10
-      },
-      640: {
-        slidesPerView: 2,
-        spaceBetween: 20
-      },
-      1024: {
-        slidesPerView: 3,
-        spaceBetween: 25
-      },
-      1440: {          // Nouveau breakpoint pour grands écrans
-        slidesPerView: 5,
-        spaceBetween: 30
-      }
-    },
-    effect: 'coverflow',
-    coverflowEffect: {
-      rotate: 20,      // Rotation réduite
-      stretch: 0,
-      depth: 200,      // Profondeur augmentée
-      modifier: 1,
-      slideShadows: true,
-    },
-    on: {
-      init: function() {
-        const style = document.createElement('style');
-        style.textContent = `
-          .swiper-container {
-            padding: 60px 0;  // Plus d'espace pour les transformations
-          }
-
-          .swiper-slide {
-            transition: all 0.4s ease;
-            cursor: pointer;
-            height: 250px;     // Hauteur réduite pour les slides inactives
-            width: 350px;      // Largeur de base
-            filter: brightness(0.7);
-            transform: scale(0.7);
-            overflow: hidden;
-          }
-          
-          .swiper-slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 12px;
-            transition: all 0.4s ease;
-          }
-
-          .swiper-slide-active {
-            transform: scale(1.6);     // Scale augmenté significativement
-            height: 350px;            // Hauteur plus importante
-            width: 600px;             // Largeur plus importante
-            filter: brightness(1);
-            z-index: 10;
-          }
-
-          .swiper-slide-prev,
-          .swiper-slide-next {
-            transform: scale(0.9);
-            filter: brightness(0.8);
-            z-index: 5;
-          }
-
-          .swiper-button-next,
-          .swiper-button-prev {
-            color: #16a34a;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 25px;
-            border-radius: 50%;
-            transform: scale(0.6);
-            z-index: 20;
-          }
-
-          @media (min-width: 1440px) {
-            .swiper-container {
-              padding: 80px 0;
-            }
-            .swiper-wrapper {
-              align-items: center;
-            }
-            .swiper-slide-active {
-              transform: scale(1.8);   // Encore plus grand sur les grands écrans
-            }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-    }
   });
 });

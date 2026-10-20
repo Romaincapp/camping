@@ -4,6 +4,7 @@
 // - le calendrier s'affiche avec des jours et des dates réservées,
 // - sélectionner 2 nuits affiche « 2 » nuits et un prix > 0 €,
 // - pas de défilement horizontal en largeur mobile (375 px),
+// - carrousel photos mobile : photo entière à l'écran, aimantation, points + compteur qui suivent,
 // - un autre site ne peut pas afficher index.html dans une iframe (anti-clickjacking).
 // Les requêtes Analytics / AdSense sont bloquées. Si un CDN est injoignable
 // (réseau restreint), les erreurs qui en découlent sont signalées mais ignorées.
@@ -177,6 +178,38 @@ async function launch() {
     reportErrors('index.html (calendrier)', errors);
     await context.close();
 
+    // 2b. Carrousel photos en mobile
+    {
+        const { page, context, errors } = await openPage('index.html', { width: 375, height: 812 });
+        try {
+            const g = await page.evaluate(() => {
+                const gal = document.querySelector('.horizontal-gallery');
+                const items = gal.querySelectorAll('.gallery-item');
+                return {
+                    items: items.length,
+                    itemWidth: items[0].getBoundingClientRect().width,
+                    galleryWidth: gal.clientWidth,
+                    snap: getComputedStyle(gal).scrollSnapType,
+                    dots: document.querySelectorAll('.gallery-dot').length,
+                    counter: (document.querySelector('.gallery-counter') || {}).textContent || ''
+                };
+            });
+            if (g.itemWidth >= g.galleryWidth) report.fail('carrousel (mobile)', `photo plus large que l'écran (${Math.round(g.itemWidth)}px pour ${g.galleryWidth}px) : la suivante ne dépasse pas`);
+            if (!g.snap.includes('mandatory')) report.fail('carrousel (mobile)', `pas d'aimantation (scroll-snap-type : "${g.snap}")`);
+            if (g.dots !== g.items) report.fail('carrousel (mobile)', `${g.dots} point(s) pour ${g.items} photos`);
+            if (g.counter.trim() !== `1 / ${g.items}`) report.fail('carrousel (mobile)', `compteur au départ : "${g.counter}"`);
+            await page.locator('.gallery-dot').nth(2).click();
+            await page.waitForTimeout(1000);
+            const after = (await page.textContent('.gallery-counter')).trim();
+            if (after !== `3 / ${g.items}`) report.fail('carrousel (mobile)', `clic sur le 3e point → compteur "${after}"`);
+            else console.log(`  carrousel mobile : ${g.items} photos, ${Math.round(g.itemWidth)}px / ${g.galleryWidth}px, points OK`);
+        } catch (e) {
+            report.fail('carrousel (mobile)', e.message.split('\n')[0]);
+        }
+        reportErrors('index.html (carrousel)', errors);
+        await context.close();
+    }
+
     // 3. Anti-clickjacking : un autre site ne doit pas pouvoir afficher index.html dans une iframe.
     const evil = http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -204,5 +237,5 @@ async function launch() {
         console.log(`  ⚠ CDN injoignables ici : ${[...cdnFailures].join(', ')} — ${ignored} erreur(s) qui en découlent ignorées,`);
         console.log('    rendu et animations non vérifiés (ils le sont sur GitHub Actions).');
     }
-    report.done(`Navigateur OK : ${PAGES.length} pages desktop + mobile, calendrier et prix fonctionnels`);
+    report.done(`Navigateur OK : ${PAGES.length} pages desktop + mobile, carrousel, calendrier et prix fonctionnels`);
 })().catch(e => { console.error(`✗ ${e.message}`); process.exit(1); });

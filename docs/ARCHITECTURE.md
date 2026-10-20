@@ -8,7 +8,7 @@
 - `<head>` : Meta tags SEO, Open Graph, Twitter Cards, Schema.org
 - Hero section avec animations flottantes
 - Badge Campspace (4.93/5)
-- Galerie Swiper (12+ images)
+- Galerie photos horizontale (12 images, scroll-snap natif, `initGallery()`)
 - 4 cartes de caractéristiques
 - Section stages de survie
 - Calendrier de réservation
@@ -34,12 +34,8 @@ ScrollTrigger.create({
     onEnter: () => {...}
 })
 
-// Swiper Carousel
-const swiper = new Swiper('.gallery-swiper', {
-    slidesPerView: 'auto',
-    spaceBetween: 20,
-    loop: true
-})
+// Galerie : défilement natif + scroll-snap (CSS), flèches / points / compteur
+initGallery()
 
 // GLightbox
 const lightbox = GLightbox({ selector: '.gallery-item' })

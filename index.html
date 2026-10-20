@@ -146,7 +146,6 @@
     <!-- CSS -->
     <link rel="preload" href="images/hero.jpg" as="image" />
     <link rel="stylesheet" href="css.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.css" integrity="sha384-n2BuXHZbxHivnSLBde50zvntnndEF7hDHstI9CjRKREJuaAuUGeprviAMj6Ic5V3" crossorigin="anonymous"/>
     <link rel="stylesheet" href="CalendarStyles.css">
 
     <!-- GLightbox CSS -->
@@ -303,13 +302,13 @@
 <section class="py-16 md:py-20 px-4">
   <div class="container mx-auto">
       <h2 class="text-3xl md:text-4xl font-bold text-center text-green-800 mb-8 md:mb-5">Le terrain en images</h2>
-      <div class="gallery-container">
-          <button class="gallery-nav gallery-prev" aria-label="Précédent">
+      <div class="gallery-container" role="region" aria-roledescription="carrousel" aria-label="Photos du terrain">
+          <button type="button" class="gallery-nav gallery-prev" aria-label="Photo précédente">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
           </button>
-          <div class="horizontal-gallery">
+          <div class="horizontal-gallery" tabindex="0">
               <div class="gallery-item">
                   <a href="images/kayak.jpg" class="glightbox" data-gallery="gallery1">
                       <img src="images/kayak.jpg" alt="Activité kayak" loading="lazy" />
@@ -372,11 +371,13 @@
                   </a>
               </div>
           </div>
-          <button class="gallery-nav gallery-next" aria-label="Suivant">
+          <button type="button" class="gallery-nav gallery-next" aria-label="Photo suivante">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
           </button>
+          <div class="gallery-dots" aria-label="Choisir une photo"></div>
+          <p class="gallery-counter" aria-live="polite"></p>
       </div>
   </div>
 </section>
@@ -718,7 +719,6 @@
 <!-- Animations et autres bibliothèques -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/gsap.min.js" integrity="sha384-/YEXQZh+tg/eIAE+Pk8AFUDqZTrf59gcWlMnoNmVT5KQtMrpJTyFF/agQsiTDrTm" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.0/ScrollTrigger.min.js" integrity="sha384-aq6ENZLr8rKY6gavzjJoTzRcrJ6gXLX65mifivvVsCHiMvWHw53IFL3nfFVouzdy" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/8.4.5/swiper-bundle.min.js" integrity="sha384-SO4etThrSMm+0BHVaOyom0nqVnRPCFUBO1OoztFp0pB8f+6OT2bnDLniEr2xvza7" crossorigin="anonymous"></script>
 <!-- Scripts principaux -->
 <script src="main.js"></script>
 <script src="calendar-vanilla.js"></script>
