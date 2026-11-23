@@ -81,7 +81,7 @@ async function launch() {
     if (shotsDir) fs.mkdirSync(shotsDir, { recursive: true });
     const cdnFailures = new Set();
 
-    async function openPage(file, viewport) {
+    async function openPage(file, viewport, apiBody = calendarApiBody) {
         const context = await browser.newContext({ viewport, locale: 'fr-BE' });
         const page = await context.newPage();
         const errors = [];
@@ -91,7 +91,7 @@ async function launch() {
             if (BLOCKED.test(url)) return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
             // La clé API est restreinte à campingduwignet.com : depuis 127.0.0.1 Google répond 403.
             // On simule donc l'API Google Calendar à partir de calendar-data.json.
-            if (CALENDAR_API.test(url)) return route.fulfill({ status: 200, contentType: 'application/json', body: calendarApiBody() });
+            if (CALENDAR_API.test(url)) return route.fulfill({ status: 200, contentType: 'application/json', body: apiBody() });
             return route.continue();
         });
         page.on('requestfailed', req => {
@@ -177,6 +177,53 @@ async function launch() {
     }
     reportErrors('index.html (calendrier)', errors);
     await context.close();
+
+    // 2a. Réservations qui s'enchaînent ou se chevauchent (bug juillet 2027 : un séjour arrivant
+    // pendant un autre n'affichait qu'une demi-case). Mois fictif = dans 3 mois.
+    {
+        const now = new Date();
+        const y = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+        const d = day => `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const items = [
+            { id: 'a', start: { dateTime: d(10) + 'T12:00:00Z' }, end: { dateTime: d(13) + 'T12:00:00Z' } },
+            { id: 'b', start: { date: d(13) }, end: { date: d(16) } },            // enchaîne sur a
+            { id: 'c', start: { dateTime: d(15) + 'T12:00:00Z' }, end: { dateTime: d(18) + 'T12:00:00Z' } }, // arrive pendant b
+            { id: 'd', start: { dateTime: d(20) + 'T12:00:00Z' }, end: { dateTime: d(21) + 'T12:00:00Z' } }
+        ];
+        const expected = { 9: 'libre', 10: 'arrivée', 11: 'plein', 12: 'plein', 13: 'plein', 14: 'plein', 15: 'plein',
+            16: 'plein', 17: 'plein', 18: 'départ', 19: 'libre', 20: 'arrivée', 21: 'départ', 22: 'libre' };
+        const { page, context, errors } = await openPage('index.html', { width: 1366, height: 900 }, () => JSON.stringify({ items }));
+        try {
+            await page.waitForSelector('.calendar-day', { timeout: 10000 });
+            for (let i = 0; i < 3; i++) { await page.click('#next-month-btn'); await page.waitForTimeout(100); }
+            const states = await page.$$eval('.calendar-day', days => days.map(el => {
+                if (el.querySelector('.inset-0.bg-red-500')) return 'plein';
+                if (el.querySelector('.right-0.bg-red-500')) return 'arrivée';
+                if (el.querySelector('.left-0.bg-red-500')) return 'départ';
+                return 'libre';
+            }));
+            const wrong = Object.entries(expected).filter(([day, s]) => states[day - 1] !== s)
+                .map(([day, s]) => `${day} : ${states[day - 1]} au lieu de ${s}`);
+            if (wrong.length) report.fail('calendrier (chevauchements)', wrong.join(', '));
+            // Arrivée un jour de départ (18) → départ un jour d'arrivée (20) = 2 nuits autorisées
+            await page.locator('.calendar-day').nth(17).click();
+            await page.locator('.calendar-day').nth(19).click();
+            await page.waitForTimeout(200);
+            const nights = (await page.textContent('#numberOfNights') || '').trim();
+            if (nights !== '2') report.fail('calendrier (chevauchements)', `séjour 18 → 20 : "${nights}" nuit(s) au lieu de 2`);
+            // Une plage qui traverse une nuit occupée est refusée
+            page.once('dialog', dlg => dlg.dismiss());
+            await page.locator('.calendar-day').nth(8).click();
+            await page.locator('.calendar-day').nth(10).click();
+            await page.waitForTimeout(200);
+            const checkout = await page.inputValue('#checkout').catch(() => '');
+            if (checkout) report.fail('calendrier (chevauchements)', `séjour 9 → 11 accepté alors que la nuit du 10 est occupée`);
+        } catch (e) {
+            report.fail('calendrier (chevauchements)', e.message.split('\n')[0]);
+        }
+        reportErrors('index.html (chevauchements)', errors);
+        await context.close();
+    }
 
     // 2b. Carrousel photos en mobile
     {

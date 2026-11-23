@@ -481,26 +481,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Vérifier si une date est une date de check-in d'un événement
-  function isCheckInDate(date) {
-    const formattedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    return calendarState.events.some(event => {
-      const eventStart = new Date(event.start.getFullYear(), event.start.getMonth(), event.start.getDate());
-      return formattedDate.getTime() === eventStart.getTime();
-    });
-  }
-  
-  // Vérifier si une date est une date de check-out d'un événement
-  function isCheckOutDate(date) {
-    const formattedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    return calendarState.events.some(event => {
-      const eventEnd = new Date(event.end.getFullYear(), event.end.getMonth(), event.end.getDate());
-      return formattedDate.getTime() === eventEnd.getTime();
-    });
-  }
-  
   // Formater une date pour le champ input
   function formatDateForInput(date) {
     const year = date.getFullYear();
@@ -510,22 +490,26 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Vérifier si une plage de dates est valide (pas de conflits)
+  // Nuit du jour J occupée = quelqu'un dort sur place la nuit de J à J+1.
+  // Une plage arrivée → départ est libre si toutes les nuits [arrivée, départ[ sont libres
+  // (le jour de départ d'un client peut être le jour d'arrivée d'un autre, et inversement).
   function checkDateRangeConflicts(startDate, endDate) {
-    let currentDate = new Date(startDate);
-    currentDate.setDate(currentDate.getDate() + 1); // Commencer au jour après start
-    
-    const endTime = endDate.getTime();
-    
+    const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const endTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+
     while (currentDate.getTime() < endTime) {
-      // On autorise les check-in et check-out dans la plage, mais pas les jours complètement réservés
-      if (isDateBooked(currentDate) && !isCheckInDate(currentDate) && !isCheckOutDate(currentDate)) {
+      if (isDateBooked(currentDate)) {
         return true; // Conflit trouvé
       }
-      
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    
+
     return false; // Pas de conflit
+  }
+
+  // Nuit de la veille occupée (matin du jour J pris par un client qui part)
+  function isPreviousNightBooked(date) {
+    return isDateBooked(new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1));
   }
 
   // Gérer le clic sur une date du calendrier
@@ -540,9 +524,15 @@ function handleDateClick(date) {
     return;
   }
   
-  // Autoriser la sélection de TOUTES les dates de check-in ET check-out
-  // Ne bloquer que les dates complètement réservées qui ne sont ni check-in ni check-out
-  if (isDateBooked(date) && !isCheckInDate(date) && !isCheckOutDate(date)) {
+  // Jour entièrement pris (nuit de la veille ET nuit du jour occupées) : rien à sélectionner
+  const nightBooked = isDateBooked(currentDate);
+  if (nightBooked && isPreviousNightBooked(currentDate)) {
+    return;
+  }
+  // Un jour dont la nuit est occupée (arrivée d'un autre client) peut seulement servir de départ
+  const choosingStart = !calendarState.selectedStartDate || calendarState.selectedEndDate ||
+    currentDate <= calendarState.selectedStartDate;
+  if (nightBooked && choosingStart) {
     return;
   }
   
@@ -1679,9 +1669,10 @@ function handleDateClick(date) {
                      date.getFullYear() === today.getFullYear();
       
       // Vérifier si la date est réservée
-      const booked = isDateBooked(date);
-      const isCheckIn = isCheckInDate(date);
-      const isCheckOut = isCheckOutDate(date);
+      // Moitié droite = nuit du jour occupée (après-midi), moitié gauche = nuit de la veille (matin)
+      const nightOfBooked = isDateBooked(date);
+      const nightBeforeBooked = isPreviousNightBooked(date);
+      const booked = nightOfBooked && nightBeforeBooked;
       
       // Vérifier si la date est sélectionnée
       const isStartDate = calendarState.selectedStartDate && 
@@ -1710,7 +1701,7 @@ function handleDateClick(date) {
         cellClass += "bg-white ";
       }
       
-      if (booked && !isCheckIn && !isCheckOut) {
+      if (booked) {
         cellClass += "cursor-not-allowed ";
       }
       
@@ -1727,15 +1718,15 @@ function handleDateClick(date) {
           class="${cellClass} calendar-day"
           data-date="${date.toISOString()}"
         >
-          ${booked && !isCheckIn && !isCheckOut ? 
+          ${booked ?
             `<div class="absolute inset-0 bg-red-500 opacity-70 z-5"></div>` : ''}
-          
-          ${isCheckIn ? 
+
+          ${nightOfBooked && !nightBeforeBooked ?
             `<div class="absolute inset-0 overflow-hidden z-5">
               <div class="absolute top-0 right-0 w-1/2 h-full bg-red-500 opacity-70"></div>
             </div>` : ''}
           
-          ${isCheckOut ? 
+          ${nightBeforeBooked && !nightOfBooked ?
             `<div class="absolute inset-0 overflow-hidden z-5">
               <div class="absolute top-0 left-0 w-1/2 h-full bg-red-500 opacity-70"></div>
             </div>` : ''}
